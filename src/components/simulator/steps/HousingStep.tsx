@@ -142,7 +142,7 @@ export function HousingStep({ onNext }: Props) {
               name="purchaseAge"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                     <FormLabel className="text-base font-semibold">
                       購入予定年齢
                     </FormLabel>
@@ -174,7 +174,7 @@ export function HousingStep({ onNext }: Props) {
               name="propertyPrice"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                     <FormLabel className="text-base font-semibold">
                       物件価格
                     </FormLabel>
@@ -214,7 +214,7 @@ export function HousingStep({ onNext }: Props) {
               name="downPayment"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                     <FormLabel className="text-base font-semibold">
                       頭金
                     </FormLabel>

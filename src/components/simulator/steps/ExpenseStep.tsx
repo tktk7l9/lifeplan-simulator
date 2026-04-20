@@ -60,7 +60,7 @@ export function ExpenseStep({ onNext }: Props) {
           name="monthlyLivingExpense"
           render={({ field }) => (
             <FormItem>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                 <FormLabel className="text-base font-semibold">
                   月の生活費
                 </FormLabel>
@@ -106,7 +106,7 @@ export function ExpenseStep({ onNext }: Props) {
             name="monthlyRent"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">
                     月額家賃
                   </FormLabel>
@@ -153,7 +153,7 @@ export function ExpenseStep({ onNext }: Props) {
           name="inflationRate"
           render={({ field }) => (
             <FormItem>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                 <FormLabel className="text-base font-semibold">物価上昇率（インフレ率）</FormLabel>
                 <div className="flex items-center gap-1">
                   <span className="text-2xl font-bold text-amber-600">{field.value.toFixed(1)}</span>

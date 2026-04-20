@@ -74,7 +74,7 @@ export function InsuranceStep({ onNext }: Props) {
             name="lifeInsurancePremiumMonthly"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">月額保険料</FormLabel>
                   <div className="flex items-center gap-2">
                     <Input
@@ -119,7 +119,7 @@ export function InsuranceStep({ onNext }: Props) {
             name="medicalCostMonthlyAt70"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">70歳以降の月額医療費（追加分）</FormLabel>
                   <div className="flex items-center gap-2">
                     <Input
@@ -158,7 +158,7 @@ export function InsuranceStep({ onNext }: Props) {
             name="nursingCareStartAge"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">介護開始年齢</FormLabel>
                   <span className="text-2xl font-bold text-amber-600">
                     {field.value === 0 ? "なし" : `${field.value}歳〜`}
@@ -190,7 +190,7 @@ export function InsuranceStep({ onNext }: Props) {
               name="nursingCareCostMonthly"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                     <FormLabel className="text-base font-semibold">月額介護費用</FormLabel>
                     <div className="flex items-center gap-2">
                       <Input
@@ -238,7 +238,7 @@ export function InsuranceStep({ onNext }: Props) {
             name="corporateDCBalance"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">企業型DC 現在残高</FormLabel>
                   <div className="flex items-center gap-2">
                     <Input
@@ -276,7 +276,7 @@ export function InsuranceStep({ onNext }: Props) {
             name="corporateDCMonthly"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">企業型DC 月額拠出（会社負担含む）</FormLabel>
                   <div className="flex items-center gap-2">
                     <Input
@@ -314,7 +314,7 @@ export function InsuranceStep({ onNext }: Props) {
             name="corporatePensionMonthly"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">確定給付年金（DB）月額</FormLabel>
                   <div className="flex items-center gap-2">
                     <Input

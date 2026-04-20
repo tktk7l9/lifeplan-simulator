@@ -101,7 +101,7 @@ function SliderField({
 }) {
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
         <FormLabel className="text-base font-semibold">{label}</FormLabel>
         <div className="flex items-center gap-2">
           <Input
@@ -517,7 +517,7 @@ export function IncomeStep({ onNext }: Props) {
                   name="postRetirementIncomeUntilAge"
                   render={({ field }) => (
                     <FormItem>
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                         <FormLabel className="text-sm font-semibold">働く期間（終了年齢）</FormLabel>
                         <span className="font-bold text-amber-600">{field.value}歳まで</span>
                       </div>
@@ -664,7 +664,7 @@ export function IncomeStep({ onNext }: Props) {
                           name="spouseCareerBreakStartAge"
                           render={({ field }) => (
                             <FormItem>
-                              <div className="flex items-center justify-between mb-2">
+                              <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                                 <FormLabel className="text-sm font-semibold">ブレーク開始年齢</FormLabel>
                                 <span className="font-bold text-amber-600">{field.value}歳</span>
                               </div>
@@ -681,7 +681,7 @@ export function IncomeStep({ onNext }: Props) {
                           name="spouseCareerBreakEndAge"
                           render={({ field }) => (
                             <FormItem>
-                              <div className="flex items-center justify-between mb-2">
+                              <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                                 <FormLabel className="text-sm font-semibold">復帰年齢</FormLabel>
                                 <span className="font-bold text-amber-600">{field.value}歳</span>
                               </div>

@@ -246,7 +246,7 @@ function MobileTrailBar({ currentStep, onJumpTo }: { currentStep: number; onJump
                     key={i}
                     onClick={() => onJumpTo(i)}
                     className={cn(
-                      "w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black border-2 transition-all",
+                      "w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-black border-2 transition-all",
                       isActive && "bg-amber-500 border-amber-400 text-white scale-110 shadow-md shadow-amber-200/60",
                       isDone && !isActive && "bg-white border-amber-400 text-amber-600",
                       !isDone && !isActive && "bg-white border-amber-200 text-amber-300 hover:border-amber-300",
@@ -327,15 +327,11 @@ export function SimulatorApp() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex gap-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex gap-6">
         {/* Desktop sidebar */}
         <aside className="hidden lg:flex flex-col w-60 shrink-0">
           <TrailSidebar currentStep={currentStep} onJumpTo={(i) => { setStep(i); scrollToTop(); }} />
         </aside>
-
-        {/* Mobile trail bar */}
-        <div className="lg:hidden w-full absolute left-0 right-0 px-4 mt-2">
-        </div>
 
         {/* Main content */}
         <main className="flex-1 min-w-0">
@@ -348,33 +344,33 @@ export function SimulatorApp() {
               style={{ borderRadius: "3px 16px 4px 12px / 12px 3px 16px 4px" }}>
 
               {/* Step header */}
-              <div className="px-6 py-5 border-b-2 border-amber-50 bg-gradient-to-r from-amber-50/60 to-transparent">
+              <div className="px-4 sm:px-6 py-4 sm:py-5 border-b-2 border-amber-50 bg-gradient-to-r from-amber-50/60 to-transparent">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-2xl"
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-xl sm:text-2xl shrink-0"
                     style={{ borderRadius: "3px 12px 3px 10px / 10px 3px 12px 3px" }}>
                     {STEPS[currentStep]?.icon}
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="text-xs font-bold text-amber-500 tracking-wider uppercase mb-0.5">
                       {STEPS[currentStep]?.label}
                     </div>
-                    <h1 className="text-lg font-black text-amber-900">
+                    <h1 className="text-base sm:text-lg font-black text-amber-900 truncate">
                       {STEPS[currentStep]?.sublabel}
                     </h1>
                   </div>
-                  <div className="ml-auto opacity-50 pointer-events-none">
+                  <div className="hidden sm:block ml-auto opacity-50 pointer-events-none shrink-0">
                     <TinySpinner shape={STEP_SHAPES[currentStep]} size={40} />
                   </div>
                 </div>
               </div>
 
               {/* Step content */}
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {StepComponent && <StepComponent onNext={handleNext} />}
               </div>
 
               {/* Navigation */}
-              <div className="px-6 py-4 border-t-2 border-amber-50 flex items-center justify-between bg-amber-50/30">
+              <div className="px-4 sm:px-6 py-3 sm:py-4 border-t-2 border-amber-50 flex items-center justify-between bg-amber-50/30">
                 <button
                   onClick={handleBack}
                   disabled={currentStep === 0}

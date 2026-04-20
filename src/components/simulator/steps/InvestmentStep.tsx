@@ -180,7 +180,7 @@ export function InvestmentStep({ onNext }: Props) {
             name="currentSavings"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">現在の貯蓄額</FormLabel>
                   <div className="flex items-center gap-2">
                     <Input
@@ -215,7 +215,7 @@ export function InvestmentStep({ onNext }: Props) {
             name="currentInvestmentAssets"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">現在の投資資産</FormLabel>
                   <div className="flex items-center gap-2">
                     <Input
@@ -271,7 +271,7 @@ export function InvestmentStep({ onNext }: Props) {
             name="nisaAccumulationMonthly"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <div>
                     <FormLabel className="text-base font-semibold">積立投資枠</FormLabel>
                     <span className="ml-2 text-xs text-muted-foreground">年120万円上限</span>
@@ -309,7 +309,7 @@ export function InvestmentStep({ onNext }: Props) {
             name="nisaGrowthMonthly"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <div>
                     <FormLabel className="text-base font-semibold">成長投資枠</FormLabel>
                     <span className="ml-2 text-xs text-muted-foreground">年240万円上限</span>
@@ -368,7 +368,7 @@ export function InvestmentStep({ onNext }: Props) {
             name="monthlyIdeco"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">iDeCo月額</FormLabel>
                   <div className="flex items-center gap-2">
                     <Input
@@ -419,7 +419,7 @@ export function InvestmentStep({ onNext }: Props) {
             name="shokiboKigyoMonthly"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">月額掛金</FormLabel>
                   <div className="flex items-center gap-2">
                     <Input
@@ -460,7 +460,7 @@ export function InvestmentStep({ onNext }: Props) {
             name="monthlyInvestment"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">月の投資額</FormLabel>
                   <div className="flex items-center gap-2">
                     <Input
@@ -494,7 +494,7 @@ export function InvestmentStep({ onNext }: Props) {
             name="investmentReturnRate"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">一般投資の期待利回り</FormLabel>
                   <div className="flex items-center gap-2">
                     <Input
