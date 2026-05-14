@@ -43,14 +43,15 @@ export const metadata: Metadata = {
     "老後2000万円",
     "キャッシュフロー",
   ],
-  authors: [{ name: "ライフプランシミュレーター" }],
-  creator: "ライフプランシミュレーター",
+  authors: [{ name: "tktk7l9" }],
+  creator: "tktk7l9",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://lifeplan-simulator.vercel.app"
   ),
   openGraph: {
     type: "website",
     locale: "ja_JP",
+    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://lifeplan-simulator.vercel.app",
     siteName: "ライフプランシミュレーター",
     title: "ライフプランシミュレーター — 人生の山頂を目指そう",
     description:
