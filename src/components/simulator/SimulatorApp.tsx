@@ -1,8 +1,8 @@
 "use client";
 
+import { lazy, Suspense } from "react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { BasicInfoStep } from "./steps/BasicInfoStep";
-import { FloatingParticlesWrapper } from "@/components/three/FloatingParticlesWrapper";
 import { TinySpinner, type SpinnerShape } from "@/components/three/TinySpinner";
 import { IncomeStep } from "./steps/IncomeStep";
 import { ExpenseStep } from "./steps/ExpenseStep";
@@ -10,10 +10,13 @@ import { HousingStep } from "./steps/HousingStep";
 import { LifeEventsStep } from "./steps/LifeEventsStep";
 import { InvestmentStep } from "./steps/InvestmentStep";
 import { InsuranceStep } from "./steps/InsuranceStep";
-import { ResultsView } from "./results/ResultsView";
 import { SavedSimulationsDrawer } from "./SavedSimulationsDrawer";
 import { cn } from "@/lib/utils";
 import type { SimulationInput } from "@/lib/simulation/types";
+
+const ResultsView = lazy(() =>
+  import("./results/ResultsView").then(m => ({ default: m.ResultsView }))
+);
 
 const STEPS = [
   { label: "ベースキャンプ", sublabel: "基本情報・家族構成", icon: "🏕️", short: "BC" },
@@ -85,14 +88,14 @@ function TrailSidebar({ currentStep, onJumpTo }: { currentStep: number; onJumpTo
     <div className="bg-white border border-amber-100 rounded-2xl shadow-sm overflow-hidden sticky top-20">
 
       {/* Header gradient band */}
-      <div className="bg-gradient-to-br from-amber-500 via-orange-400 to-amber-600 px-4 py-3 flex items-center justify-between">
+      <div className="bg-gradient-to-br from-amber-700 via-amber-700 to-amber-800 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M8 3L2 21h20L14 3l-3 6-3-6z" />
           </svg>
           <span className="text-white text-xs font-bold tracking-widest uppercase">登山ルート</span>
         </div>
-        <span className="text-white/90 text-xs font-black">{pct}%</span>
+        <span className="text-white text-xs font-black">{pct}%</span>
       </div>
 
       {/* Elevation progress */}
@@ -153,7 +156,7 @@ function TrailSidebar({ currentStep, onJumpTo }: { currentStep: number; onJumpTo
                     isSummit && !isActive && !isCompleted && "bg-white border-dashed border-amber-300",
                   )}>
                     {isCompleted && !isActive ? (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     ) : isActive ? (
@@ -161,7 +164,7 @@ function TrailSidebar({ currentStep, onJumpTo }: { currentStep: number; onJumpTo
                     ) : isSummit ? (
                       <span className="text-sm leading-none">🚩</span>
                     ) : (
-                      <span className="text-[10px] font-bold text-amber-300">{step.short}</span>
+                      <span className="text-[10px] font-bold text-amber-700">{step.short}</span>
                     )}
                   </div>
 
@@ -169,18 +172,18 @@ function TrailSidebar({ currentStep, onJumpTo }: { currentStep: number; onJumpTo
                   <div className="min-w-0 flex-1">
                     <div className={cn(
                       "text-xs font-bold leading-tight truncate",
-                      isActive ? "text-amber-800" : isCompleted ? "text-amber-700" : "text-amber-400"
+                      isActive ? "text-amber-800" : isCompleted ? "text-amber-700" : "text-stone-600"
                     )}>
                       {step.icon} {step.label}
                     </div>
                     {summary ? (
-                      <div className="text-[10px] leading-tight mt-0.5 truncate text-amber-600/80">
+                      <div className="text-[10px] leading-tight mt-0.5 truncate text-amber-700">
                         {summary}
                       </div>
                     ) : (
                       <div className={cn(
                         "text-[10px] leading-tight mt-0.5 truncate",
-                        isActive ? "text-amber-600" : "text-amber-400/70"
+                        isActive ? "text-amber-700" : "text-stone-500"
                       )}>
                         {step.sublabel}
                       </div>
@@ -223,10 +226,10 @@ function MobileTrailBar({ currentStep, onJumpTo }: { currentStep: number; onJump
               </div>
               <div>
                 <div className="text-xs font-bold text-amber-800">{STEPS[currentStep]?.icon} {STEPS[currentStep]?.label}</div>
-                <div className="text-[10px] text-amber-500">{STEPS[currentStep]?.sublabel}</div>
+                <div className="text-[10px] text-amber-700">{STEPS[currentStep]?.sublabel}</div>
               </div>
             </div>
-            <span className="text-xs font-black text-amber-600">{Math.round((currentStep / (STEPS.length - 1)) * 100)}%</span>
+            <span className="text-xs font-black text-amber-800">{Math.round((currentStep / (STEPS.length - 1)) * 100)}%</span>
           </div>
 
           {/* Dot trail */}
@@ -248,15 +251,15 @@ function MobileTrailBar({ currentStep, onJumpTo }: { currentStep: number; onJump
                     className={cn(
                       "w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-black border-2 transition-all",
                       isActive && "bg-amber-500 border-amber-400 text-white scale-110 shadow-md shadow-amber-200/60",
-                      isDone && !isActive && "bg-white border-amber-400 text-amber-600",
-                      !isDone && !isActive && "bg-white border-amber-200 text-amber-300 hover:border-amber-300",
+                      isDone && !isActive && "bg-white border-amber-400 text-amber-800",
+                      !isDone && !isActive && "bg-white border-amber-200 text-amber-700 hover:border-amber-300",
                     )}
                     title={step.sublabel}
                     aria-label={`${step.short !== step.icon ? step.short + ": " : ""}${step.sublabel}`}
                     aria-current={isActive ? "step" : undefined}
                   >
                     {isDone && !isActive ? (
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     ) : isActive ? "🥾" : step.short}
@@ -296,20 +299,18 @@ export function SimulatorApp() {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-orange-50 via-amber-50/50 to-yellow-50/30">
-      {/* Subtle 3D particles in background */}
-      <FloatingParticlesWrapper count={40} opacity={0.10} />
       {/* Top bar */}
       <header className="sticky top-0 z-50 bg-white/92 backdrop-blur-md border-b-2 border-amber-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
           <a href="/" className="flex items-center gap-2 font-black text-amber-800 hover:text-amber-900 transition-colors">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M8 3L2 21h20L14 3l-3 6-3-6z" />
             </svg>
             ライフプランシミュレーター
           </a>
           <div className="flex items-center gap-3">
             <SavedSimulationsDrawer />
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
               🥾 {STEPS[currentStep]?.label}
             </span>
           </div>
@@ -338,7 +339,9 @@ export function SimulatorApp() {
           <MobileTrailBar currentStep={currentStep} onJumpTo={(i) => { setStep(i); scrollToTop(); }} />
 
           {isResultStep ? (
-            <ResultsView onBack={handleBack} />
+            <Suspense fallback={<div className="flex items-center justify-center h-64 text-amber-600 font-semibold">集計中…</div>}>
+              <ResultsView onBack={handleBack} />
+            </Suspense>
           ) : (
             <div className="bg-white border-2 border-amber-100 shadow-sm"
               style={{ borderRadius: "3px 16px 4px 12px / 12px 3px 16px 4px" }}>
@@ -351,7 +354,7 @@ export function SimulatorApp() {
                     {STEPS[currentStep]?.icon}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-amber-500 tracking-wider uppercase mb-0.5">
+                    <div className="text-xs font-bold text-amber-700 tracking-wider uppercase mb-0.5">
                       {STEPS[currentStep]?.label}
                     </div>
                     <h1 className="text-base sm:text-lg font-black text-amber-900 truncate">
@@ -377,11 +380,11 @@ export function SimulatorApp() {
                   className={cn(
                     "inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all",
                     currentStep === 0
-                      ? "text-amber-300 cursor-not-allowed"
+                      ? "text-stone-400 cursor-not-allowed"
                       : "text-amber-700 hover:bg-amber-100"
                   )}
                 >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M19 12H5M12 19l-7-7 7-7" />
                   </svg>
                   前へ
@@ -389,10 +392,10 @@ export function SimulatorApp() {
 
                 {/* Sketch elevation fraction */}
                 <div className="flex items-center gap-1.5">
-                  <svg width="28" height="14" viewBox="0 0 28 14" aria-hidden>
+                  <svg width="28" height="14" viewBox="0 0 28 14" aria-hidden="true">
                     <path d="M 2 12 L 8 4 L 14 8 L 20 2 L 26 6" fill="none" stroke="#d97706" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span className="text-xs text-amber-500 font-semibold">{currentStep + 1}/{STEPS.length}</span>
+                  <span className="text-xs text-amber-700 font-semibold">{currentStep + 1}/{STEPS.length}</span>
                 </div>
               </div>
             </div>

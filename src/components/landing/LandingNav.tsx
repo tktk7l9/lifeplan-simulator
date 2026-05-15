@@ -1,33 +1,13 @@
-"use client";
-
-import { useEffect, useRef } from "react";
 import Link from "next/link";
 
 export function LandingNav() {
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const heroEl = document.getElementById("lp-hero");
-    function update() {
-      if (!heroEl || !el) return;
-      const r = heroEl.getBoundingClientRect();
-      if (r.bottom < 80) el.classList.add("scrolled");
-      else el.classList.remove("scrolled");
-    }
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
-  }, []);
-
   return (
     <header
-      ref={ref}
+      id="lp-nav"
       className="lp-nav fixed top-0 left-0 right-0 z-50 border-b"
     >
       <div className="max-w-[1400px] mx-auto px-5 md:px-10 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" prefetch={false} className="flex items-center gap-2">
           <svg width="28" height="28" viewBox="0 0 28 28" className="lp-nav-amber flex-shrink-0">
             <path d="M2 22 L10 10 L15 16 L20 8 L26 22 Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
             <path d="M2 22 L26 22" stroke="currentColor" strokeWidth="2"/>
@@ -48,12 +28,14 @@ export function LandingNav() {
 
         <Link
           href="/simulator"
+          prefetch={false}
           className="lp-nav-cta inline-flex items-center gap-2 font-black text-[12px] px-4 py-2.5 rounded-full transition-colors"
         >
           無料ではじめる
           <span>↗</span>
         </Link>
       </div>
+      <script dangerouslySetInnerHTML={{ __html: `(function(){function i(){var n=document.getElementById('lp-nav'),h=document.getElementById('lp-hero');if(!n||!h)return;function u(){n.classList.toggle('scrolled',h.getBoundingClientRect().bottom<80);}u();window.addEventListener('scroll',u,{passive:true});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',i);else i();})();` }} />
     </header>
   );
 }

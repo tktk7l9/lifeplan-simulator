@@ -6,6 +6,10 @@
   const container = document.getElementById('hero3d');
   if (!container || !window.THREE) return;
 
+  // Skip if WebGL is unavailable (e.g. headless Chrome without GPU)
+  const _testCanvas = document.createElement('canvas');
+  if (!_testCanvas.getContext('webgl') && !_testCanvas.getContext('experimental-webgl')) return;
+
   const THREE = window.THREE;
   const W = () => container.clientWidth;
   const H = () => container.clientHeight;

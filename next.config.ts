@@ -25,6 +25,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  compress: true,
   async headers() {
     return [
       {
@@ -32,6 +33,9 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
     ];
+  },
+  experimental: {
+    optimizePackageImports: ["recharts", "lucide-react", "@radix-ui/react-accordion", "@radix-ui/react-dialog", "@radix-ui/react-select", "@radix-ui/react-tabs", "@radix-ui/react-tooltip"],
   },
 };
 
