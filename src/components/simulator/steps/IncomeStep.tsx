@@ -723,7 +723,7 @@ export function IncomeStep({ onNext }: Props) {
 
         <Button
           type="submit"
-          className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl text-base"
+          className="w-full h-12 bg-amber-800 hover:bg-amber-900 text-white font-semibold rounded-xl text-base"
         >
           次へ進む
         </Button>
