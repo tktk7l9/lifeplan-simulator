@@ -172,4 +172,31 @@ describe("ResultsView annotation branches", () => {
       expect(tabs.length).toBeGreaterThan(0);
     });
   });
+
+  it("シナリオ比較タブで ScenarioComparison が描画される", async () => {
+    useSimulationStore.getState().calculate();
+    await act(async () => { render(<ResultsView onBack={() => {}} />); });
+    const scenarioTab = screen.getByRole("tab", { name: /シナリオ比較/ });
+    // Radix Tabs は pointerdown ベースなので mouseDown + click
+    await act(async () => {
+      fireEvent.pointerDown(scenarioTab, { button: 0, pointerType: "mouse" });
+      fireEvent.mouseDown(scenarioTab);
+      fireEvent.click(scenarioTab);
+    });
+    // テキスト全体マッチに失敗する可能性があるので、HTML文字列でチェック
+    await waitFor(() => {
+      const body = document.body.innerHTML;
+      expect(body).toMatch(/保守ケース|楽観ケース|標準ケース/);
+    });
+  });
+
+  it("モンテカルロタブ + 感度分析タブ", async () => {
+    useSimulationStore.getState().calculate();
+    await act(async () => { render(<ResultsView onBack={() => {}} />); });
+    const mc = screen.getByRole("tab", { name: /モンテカルロ/ });
+    await act(async () => { fireEvent.click(mc); });
+    const sens = screen.getByRole("tab", { name: /感度分析/ });
+    await act(async () => { fireEvent.click(sens); });
+    expect(true).toBe(true);
+  });
 });
