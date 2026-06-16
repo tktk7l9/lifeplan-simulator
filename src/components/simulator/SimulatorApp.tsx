@@ -36,7 +36,6 @@ const EMP_LABELS: Record<string, string> = {
   employee: "会社員", civil_servant: "公務員", employee_freelance: "会社員＋副業",
   self_employed: "自営業", freelance: "フリーランス", part_time: "パート",
 };
-const HOUSING_LABELS: Record<string, string> = { rent: "賃貸", buy: "購入予定", own: "持ち家" };
 
 function getStepSummary(stepIndex: number, input: Partial<SimulationInput>): string | null {
   switch (stepIndex) {

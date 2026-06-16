@@ -11,7 +11,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormDescription,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -165,7 +164,6 @@ export function IncomeStep({ onNext }: Props) {
   const annualIncome = form.watch("annualIncome");
   const watchedEmploymentType = form.watch("employmentType");
   const hasSideIncome = form.watch("hasSideIncome");
-  const sideIncomeMonthly = form.watch("sideIncomeMonthly");
   const hasPostRetirementIncome = form.watch("hasPostRetirementIncome");
   const spouseEmploymentType = form.watch("spouseEmploymentType");
   const hasSpouseCareerBreak = form.watch("hasSpouseCareerBreak");

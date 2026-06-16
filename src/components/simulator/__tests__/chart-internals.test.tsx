@@ -9,7 +9,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
-import { render, screen, act, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 
 // recharts: Tooltip だけでなく、Chart コンテナも children をそのまま render する stub に差し替える
 vi.mock("recharts", async (importOriginal) => {

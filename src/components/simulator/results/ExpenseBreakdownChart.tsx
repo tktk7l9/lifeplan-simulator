@@ -2,7 +2,7 @@
 
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceLine, Legend,
+  ResponsiveContainer, ReferenceLine,
 } from "recharts";
 import type { YearlyData } from "@/lib/simulation/types";
 

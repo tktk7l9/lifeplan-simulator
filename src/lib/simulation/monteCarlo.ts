@@ -37,7 +37,6 @@ export function runMonteCarlo(input: SimulationInput, runs = 400): MonteCarloRes
     let savingsAssets = input.currentSavings;
     let investmentAssets = input.currentInvestmentAssets + (input.corporateDCBalance ?? 0);
 
-    const inflRate = (input.inflationRate ?? 1.5) / 100;
     const totalMonthlyInvestment =
       (input.monthlyInvestment ?? 0) +
       (input.nisaAccumulationMonthly ?? 0) +

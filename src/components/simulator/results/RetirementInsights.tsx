@@ -155,7 +155,6 @@ export function RetirementInsights({ result, input }: Props) {
 
   // Asset longevity estimate (if unsafe)
   const retirementAssetBase = result.retirementAssets;
-  const annualCFAtRetirement = retRow ? (retRow.income + retRow.spouseIncome - retRow.totalExpense) : 0;
 
   return (
     <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">

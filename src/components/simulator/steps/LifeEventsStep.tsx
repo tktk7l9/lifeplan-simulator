@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { LifeEvent, LifeEventType } from "@/lib/simulation/types";
-import { cn } from "@/lib/utils";
 
 interface Props {
   onNext: () => void;

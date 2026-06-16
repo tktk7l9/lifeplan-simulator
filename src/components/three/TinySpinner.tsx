@@ -32,7 +32,6 @@ const KEYFRAMES = `
 
 export function TinySpinner({ shape = "gem", color = 0xf59e0b, size = 48, className }: Props) {
   const c = hexToHsl(color);
-  const half = size / 2;
   const s = size * 0.44;
 
   const face: React.CSSProperties = {

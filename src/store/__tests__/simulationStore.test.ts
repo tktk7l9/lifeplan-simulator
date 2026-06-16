@@ -3,7 +3,6 @@
  */
 import { describe, it, expect, beforeEach } from "vitest";
 import { useSimulationStore } from "../simulationStore";
-import type { SimulationResult } from "@/lib/simulation/types";
 
 // 各テスト前にストアを初期化
 beforeEach(() => {

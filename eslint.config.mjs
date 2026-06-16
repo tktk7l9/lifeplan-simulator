@@ -14,7 +14,25 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Minified vendored library (three.js) — not source, don't lint.
     "public/**",
+    // Generated coverage reports.
+    "coverage/**",
   ]),
+  {
+    rules: {
+      // Respect the `_` prefix convention for intentionally-unused bindings.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+      // React Compiler is not enabled here; this advisory rule only fires on
+      // react-hook-form's function-returning APIs and is non-actionable.
+      "react-hooks/incompatible-library": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

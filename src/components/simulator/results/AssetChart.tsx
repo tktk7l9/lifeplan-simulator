@@ -86,7 +86,7 @@ function calcDomain(data: { 総資産: number }[]): [number, number] {
   return [Math.floor((min - padding) / 100) * 100, Math.ceil((max + padding) / 100) * 100];
 }
 
-export function AssetChart({ data, retirementAge, annotations = [], spouseAgeDiff, currentAge }: Props) {
+export function AssetChart({ data, retirementAge, annotations = [], spouseAgeDiff }: Props) {
   const chartData = data.map((d) => ({
     age: d.age,
     貯蓄資産: Math.max(0, Math.round(d.savingsAssets)),
@@ -99,8 +99,6 @@ export function AssetChart({ data, retirementAge, annotations = [], spouseAgeDif
 
   // Sort annotations by age to reduce label overlap; alternate position
   const sortedAnnotations = [...annotations].sort((a, b) => a.age - b.age);
-
-  const positions = ["top", "insideTopLeft", "insideTopRight", "top"] as const;
 
   return (
     <div className="w-full h-96">
