@@ -142,19 +142,19 @@ describe("runMonteCarlo", () => {
     const input = baseInput();
     // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
     delete input.inflationRate;
-    // @ts-expect-error
+    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
     delete input.corporateDCBalance;
-    // @ts-expect-error
+    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
     delete input.monthlyInvestment;
-    // @ts-expect-error
+    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
     delete input.nisaAccumulationMonthly;
-    // @ts-expect-error
+    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
     delete input.nisaGrowthMonthly;
-    // @ts-expect-error
+    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
     delete input.monthlyIdeco;
-    // @ts-expect-error
+    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
     delete input.shokiboKigyoMonthly;
-    // @ts-expect-error
+    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
     delete input.corporateDCMonthly;
     const r = runMonteCarlo(input, 5);
     expect(r.dataPoints).toHaveLength(71);

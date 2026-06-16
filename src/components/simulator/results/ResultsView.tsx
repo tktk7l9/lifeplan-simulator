@@ -432,6 +432,7 @@ export function ResultsView({ onBack }: Props) {
   // Preload both analyses immediately on mount so tabs show results on first click
   useEffect(() => {
     if (!result) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- マウント時に非同期プリロードを開始するための意図的なローディング状態設定
     setMcLoading(true);
     import("@/lib/simulation/monteCarlo")
       .then(({ runMonteCarlo }) => setMonteCarloResult(runMonteCarlo({ ...input } as SimulationInput)))

@@ -97,7 +97,7 @@ describe("runSensitivityAnalysis", () => {
 
   it("postRetirementIncomeMonthly が undefined でも fallback 0", () => {
     const input = baseInput();
-    // @ts-expect-error
+    // @ts-expect-error 故意に削除して fallback 分岐を踏む
     delete input.postRetirementIncomeMonthly;
     const r = runSensitivityAnalysis(input);
     expect(r.find((d) => d.parameter === "postRetirementIncome")).toBeDefined();

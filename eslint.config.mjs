@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Minified vendored library (three.js) — not source, don't lint.
+    "public/**",
   ]),
 ]);
 

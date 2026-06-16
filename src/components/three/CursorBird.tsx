@@ -311,6 +311,7 @@ export function CursorBird() {
         )}
 
         {/* ── Feet (only when nearly still) ── */}
+        {/* eslint-disable-next-line react-hooks/refs -- アニメーションループのmutable状態(ref)を描画判定に使う意図的パターン */}
         {physics.current.speed < 1.5 && action === "idle" && (
           <g stroke="#d4900e" strokeWidth="1.2" strokeLinecap="round" opacity="0.7">
             <line x1="-4" y1="14" x2="-6" y2="20" />

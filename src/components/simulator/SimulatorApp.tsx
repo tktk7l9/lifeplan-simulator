@@ -1,6 +1,7 @@
 "use client";
 
 import { lazy, Suspense } from "react";
+import Link from "next/link";
 import { useSimulationStore } from "@/store/simulationStore";
 import { BasicInfoStep } from "./steps/BasicInfoStep";
 import { TinySpinner, type SpinnerShape } from "@/components/three/TinySpinner";
@@ -302,12 +303,12 @@ export function SimulatorApp() {
       {/* Top bar */}
       <header className="sticky top-0 z-50 bg-white/92 backdrop-blur-md border-b-2 border-amber-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
-          <a href="/" className="flex items-center gap-2 font-black text-amber-800 hover:text-amber-900 transition-colors">
+          <Link href="/" className="flex items-center gap-2 font-black text-amber-800 hover:text-amber-900 transition-colors">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M8 3L2 21h20L14 3l-3 6-3-6z" />
             </svg>
             ライフプランシミュレーター
-          </a>
+          </Link>
           <div className="flex items-center gap-3">
             <SavedSimulationsDrawer />
             <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">

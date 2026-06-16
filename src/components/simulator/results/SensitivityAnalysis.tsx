@@ -59,6 +59,7 @@ const PARAM_INFO: Record<string, {
 
 export function SensitivityAnalysis({ data, base }: Props) {
   const [isClient, setIsClient] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- クライアントマウント検知（ハイドレーション対策）の意図的パターン
   useEffect(() => setIsClient(true), []);
   if (!isClient) return null;
 
