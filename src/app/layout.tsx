@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "@/components/providers";
 
 const jetBrainsMono = JetBrains_Mono({
@@ -74,6 +75,7 @@ export default function RootLayout({
     <html lang="ja" className={`${jetBrainsMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>{children}</Providers>
+        {process.env.VERCEL && <Analytics />}
       </body>
     </html>
   );
