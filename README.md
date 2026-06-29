@@ -1,5 +1,7 @@
 # 🏔️ ライフプランシミュレーター
 
+[![Keyway Secrets](https://www.keyway.sh/badge.svg?repo=tktk7l9/lifeplan-simulator)](https://www.keyway.sh/vaults/tktk7l9/lifeplan-simulator)
+
 収入・支出・住宅・ライフイベント・投資を入力するだけで、老後（100歳まで）の資産推移をシミュレーションできる日本向けWebアプリです。完全無料・登録不要。
 
 ## 主な機能
