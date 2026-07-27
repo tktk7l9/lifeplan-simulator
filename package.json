@@ -31,7 +31,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.24.0",
-    "next": "16.2.10",
+    "next": "16.2.11",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-hook-form": "^7.81.0",
@@ -51,7 +51,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "@vitest/coverage-v8": "^4.1.6",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "16.2.11",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4",
     "typescript": "^5",
@@ -59,6 +59,8 @@
   },
   "overrides": {
     "postcss": "^8.5.10",
-    "sharp": "^0.35.0"
+    "sharp": "^0.35.0",
+    "minimatch": "^10.2.4",
+    "brace-expansion": "^5.0.8"
   }
 }
