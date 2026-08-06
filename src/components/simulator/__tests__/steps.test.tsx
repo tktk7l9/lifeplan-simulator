@@ -37,7 +37,6 @@ beforeEach(() => {
 });
 
 const onNext = () => {};
-const onBack = () => {};
 
 describe("BasicInfoStep", () => {
   it("基本情報フォームが描画される", () => {
@@ -88,42 +87,42 @@ describe("BasicInfoStep", () => {
 
 describe("IncomeStep", () => {
   it("収入フォーム描画", () => {
-    render(<IncomeStep onNext={onNext} onBack={onBack} />);
+    render(<IncomeStep onNext={onNext} />);
     expect(screen.getAllByText(/年収|収入/).length).toBeGreaterThan(0);
   });
 });
 
 describe("ExpenseStep", () => {
   it("支出フォーム描画", () => {
-    render(<ExpenseStep onNext={onNext} onBack={onBack} />);
+    render(<ExpenseStep onNext={onNext} />);
     expect(screen.getAllByText(/生活費|支出/).length).toBeGreaterThan(0);
   });
 });
 
 describe("HousingStep", () => {
   it("住居フォーム描画", () => {
-    render(<HousingStep onNext={onNext} onBack={onBack} />);
+    render(<HousingStep onNext={onNext} />);
     expect(screen.getAllByText(/住宅|住居|家賃|賃貸/).length).toBeGreaterThan(0);
   });
 });
 
 describe("LifeEventsStep", () => {
   it("ライフイベントフォーム描画", () => {
-    render(<LifeEventsStep onNext={onNext} onBack={onBack} />);
+    render(<LifeEventsStep onNext={onNext} />);
     expect(screen.getAllByText(/ライフイベント|イベント/).length).toBeGreaterThan(0);
   });
 });
 
 describe("InvestmentStep", () => {
   it("投資フォーム描画", () => {
-    render(<InvestmentStep onNext={onNext} onBack={onBack} />);
+    render(<InvestmentStep onNext={onNext} />);
     expect(screen.getAllByText(/投資|NISA|貯蓄|iDeCo/).length).toBeGreaterThan(0);
   });
 });
 
 describe("InsuranceStep", () => {
   it("保険フォーム描画", () => {
-    render(<InsuranceStep onNext={onNext} onBack={onBack} />);
+    render(<InsuranceStep onNext={onNext} />);
     expect(screen.getAllByText(/保険|医療|介護/).length).toBeGreaterThan(0);
   });
 });

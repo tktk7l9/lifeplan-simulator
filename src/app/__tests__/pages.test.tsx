@@ -66,7 +66,7 @@ describe("simulator/layout", () => {
 
 describe("RootLayout", () => {
   it("メタデータ含め描画する (関数として呼び出す)", () => {
-    const Layout = RootLayout as React.ComponentType<{ children: React.ReactNode }>;
+    const Layout = RootLayout as (props: { children: React.ReactNode }) => React.ReactNode;
     // RootLayout 内に <html> がある場合は render すると重複だが、
     // jsdom は許容する
     const el = Layout({ children: <span>子</span> });

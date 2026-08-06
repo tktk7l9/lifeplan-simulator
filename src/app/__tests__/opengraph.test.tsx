@@ -28,7 +28,7 @@ describe("opengraph-image", () => {
   });
 
   it("Image() が ImageResponse を返す", () => {
-    const result = Image() as { element: React.ReactNode };
+    const result = Image() as unknown as { element: React.ReactNode };
     expect(result).toBeTruthy();
     expect(result.element).toBeTruthy();
   });

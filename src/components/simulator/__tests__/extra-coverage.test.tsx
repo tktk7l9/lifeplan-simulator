@@ -82,6 +82,7 @@ describe("SavedSimulationsDrawer interactions", () => {
         totalIncome: 100000,
         totalExpense: 95000,
         pensionMonthly: 18,
+        spousePensionMonthly: 0,
         yearlyData: [],
         notes: [],
       } as SimulationResult,

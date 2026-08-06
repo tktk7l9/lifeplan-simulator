@@ -89,7 +89,7 @@ describe("SavedSimulationsDrawer", () => {
         id: "sim_1",
         name: "テスト",
         savedAt: new Date().toISOString(),
-        input: input as Parameters<typeof useSimulationStore.getState>[0] extends never ? never : import("@/lib/simulation/types").SimulationInput,
+        input: input as import("@/lib/simulation/types").SimulationInput,
         result: {} as import("@/lib/simulation/types").SimulationResult,
       }],
     });

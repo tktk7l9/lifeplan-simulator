@@ -52,7 +52,7 @@ describe("Three wrappers (R3F は描画されないが mount は OK)", () => {
   });
 
   it("BirdHoverZone: children を表示", () => {
-    const { getByText } = render(<BirdHoverZone action={() => {}}><span>子</span></BirdHoverZone>);
+    const { getByText } = render(<BirdHoverZone action="test"><span>子</span></BirdHoverZone>);
     expect(getByText("子")).toBeTruthy();
   });
 

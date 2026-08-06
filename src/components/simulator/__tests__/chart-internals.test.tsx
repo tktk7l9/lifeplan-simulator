@@ -61,7 +61,7 @@ vi.mock("recharts", async (importOriginal) => {
         );
       }
       if (React.isValidElement(content)) {
-        const Cmp = content.type as React.ComponentType<unknown>;
+        const Cmp = content.type as React.ComponentType<{ active: boolean; payload: unknown; label: unknown }>;
         return (
           <>
             <div data-testid="tt-positive">

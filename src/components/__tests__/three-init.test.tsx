@@ -65,7 +65,7 @@ vi.mock("three", async (importOriginal) => {
       this.geometry = g ?? new Geometry();
       this.material = m ?? new Material();
     }
-    add() {}
+    add(_c?: unknown) {}
     lookAt() {}
     traverse() {}
     clone() {
