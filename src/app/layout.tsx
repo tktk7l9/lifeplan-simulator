@@ -3,6 +3,7 @@ import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "@/components/providers";
+import { SITE_URL } from "@/lib/site";
 
 const jetBrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -41,12 +42,12 @@ export const metadata: Metadata = {
   authors: [{ name: "tktk7l9" }],
   creator: "tktk7l9",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://lifeplan-simulator.vercel.app"
+    process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL
   ),
   openGraph: {
     type: "website",
     locale: "ja_JP",
-    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://lifeplan-simulator.vercel.app",
+    url: process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL,
     siteName: "ライフプランシミュレーター",
     title: "ライフプランシミュレーター — 人生の山頂を目指そう",
     description:
