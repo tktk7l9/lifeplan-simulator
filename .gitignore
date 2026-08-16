@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cloudflare Workers のビルド成果物とローカル状態
+.open-next
+.wrangler
