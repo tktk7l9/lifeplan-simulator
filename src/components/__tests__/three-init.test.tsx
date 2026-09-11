@@ -170,15 +170,14 @@ afterEach(() => {
 });
 
 describe("HeroCanvas init() 経路", () => {
-  it("mount → setTimeout(200) で init() 実行", () => {
+  it("mount → setTimeout(200) で init() が renderer の canvas を差す", () => {
     const { container } = render(<HeroCanvas />);
-    // mountRef.current は div 要素になる
     act(() => { vi.advanceTimersByTime(300); });
-    // canvas が container 内に追加される
-    expect(container.querySelector("div")).toBeTruthy();
+    // ラッパ div は init 前から在るので、init の成否は appendChild された canvas で見る。
+    expect(container.querySelector("canvas")).toBeTruthy();
   });
 
-  it("unmount でクリーンアップ", () => {
+  it("unmount でクリーンアップ（dispose 経路が投げない）", () => {
     const { unmount } = render(<HeroCanvas />);
     act(() => { vi.advanceTimersByTime(300); });
     expect(() => unmount()).not.toThrow();
@@ -186,25 +185,17 @@ describe("HeroCanvas init() 経路", () => {
 });
 
 describe("FloatingParticles init() 経路", () => {
-  it("既定 props で init", () => {
-    render(<FloatingParticles />);
+  it.each<[string, { count?: number; opacity?: number }]>([
+    ["既定 props", {}],
+    ["count=30 opacity=0.3", { count: 30, opacity: 0.3 }],
+    ["count=120 opacity=0.5", { count: 120, opacity: 0.5 }],
+  ])("%s で init が canvas を差す", (_label, props) => {
+    const { container } = render(<FloatingParticles {...props} />);
     act(() => { vi.advanceTimersByTime(500); });
-    expect(true).toBe(true);
+    expect(container.querySelector("canvas")).toBeTruthy();
   });
 
-  it("count=30 opacity=0.3 で init", () => {
-    render(<FloatingParticles count={30} opacity={0.3} />);
-    act(() => { vi.advanceTimersByTime(500); });
-    expect(true).toBe(true);
-  });
-
-  it("count=120 opacity=0.5 で init", () => {
-    render(<FloatingParticles count={120} opacity={0.5} />);
-    act(() => { vi.advanceTimersByTime(500); });
-    expect(true).toBe(true);
-  });
-
-  it("unmount でクリーンアップ", () => {
+  it("unmount でクリーンアップ（dispose 経路が投げない）", () => {
     const { unmount } = render(<FloatingParticles />);
     act(() => { vi.advanceTimersByTime(500); });
     expect(() => unmount()).not.toThrow();
@@ -212,9 +203,9 @@ describe("FloatingParticles init() 経路", () => {
 });
 
 describe("SidebarMountain3D", () => {
-  it("mount + advance", () => {
-    render(<SidebarMountain3D />);
+  it("mount + advance で init が canvas を差す", () => {
+    const { container } = render(<SidebarMountain3D />);
     act(() => { vi.advanceTimersByTime(500); });
-    expect(true).toBe(true);
+    expect(container.querySelector("canvas")).toBeTruthy();
   });
 });

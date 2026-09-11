@@ -36,14 +36,15 @@ describe("ResultsView", () => {
     expect(screen.getAllByRole("tab").length).toBeGreaterThan(0);
   });
 
-  it("「データテーブル」タブをクリックで切替", async () => {
+  it("「年別データ」タブをクリックすると年別データ表に切り替わる", async () => {
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
-    const tabs = screen.getAllByRole("tab");
-    for (const tab of tabs) {
-      await act(async () => { fireEvent.click(tab); });
-    }
-    // 全タブをクリックしても crash しない
-    expect(true).toBe(true);
+    // 初期タブ（資産推移）では年別データ表は出ていない
+    expect(screen.queryByText("年別データ表")).toBeNull();
+    const tab = screen.getByRole("tab", { name: "年別データ" });
+    // Radix Tabs は onMouseDown で切り替わる（click では何も起きない）
+    await act(async () => { fireEvent.mouseDown(tab); });
+    expect(screen.getByText("年別データ表")).toBeTruthy();
+    expect(tab.getAttribute("data-state")).toBe("active");
   });
 
   it("onBack ボタン (もし存在すれば)", async () => {

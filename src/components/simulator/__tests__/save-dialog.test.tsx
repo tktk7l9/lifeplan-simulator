@@ -109,7 +109,8 @@ describe("SaveDialog full flow", () => {
     await act(async () => {
       fireEvent.keyDown(document.body, { key: "Escape" });
     });
-    // 何らかの結果が出ていれば OK
-    expect(true).toBe(true);
+    // 閉じたのでダイアログの入力欄が外れている（保存もされていない）
+    expect(screen.queryByPlaceholderText(/楽観シナリオ/)).toBeNull();
+    expect(useSimulationStore.getState().savedSimulations).toHaveLength(0);
   });
 });

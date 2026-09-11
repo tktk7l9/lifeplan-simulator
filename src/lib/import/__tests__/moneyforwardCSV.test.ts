@@ -152,7 +152,7 @@ describe("parseMFCSV — 口座一覧形式", () => {
     expect(r.accounts[0].balance).toBe(0);
   });
 
-  it("isAccount=true だが口座名カラムが取れない → findCol -1 で warning (line 145-147)", () => {
+  it("isAccount=true だが口座名カラムが取れない → findCol -1 で warning", () => {
     // ヘッダーに "残高" は含まれるが "口座名/口座/名称/金融機関" は含まれない
     const csv = "保有残高,foo\n100,bar";
     const r = parseMFCSV(csv);

@@ -69,19 +69,6 @@ describe("InsuranceStep sliders", () => {
     }
   });
 
-  it("nursingCareStartAge > 0 で nursingCareCostMonthly slider が描画される", async () => {
-    render(<InsuranceStep onNext={() => {}} />);
-    // 介護開始年齢 slider (range 0-95, デフォルト 80) - 0 にしてから 80 に戻す
-    const all = sliders();
-    // 80 と一致するスライダーがそれ
-    const careStartSlider = all.find((s) => s.value === "80");
-    if (careStartSlider) {
-      await act(async () => { fireEvent.change(careStartSlider, { target: { value: "0" } }); });
-      await act(async () => { fireEvent.change(careStartSlider, { target: { value: "85" } }); });
-    }
-    expect(true).toBe(true);
-  });
-
   it("年齢別支出カーブ off ブランチ", async () => {
     render(<InsuranceStep onNext={() => {}} />);
     const toggleBtn = screen.getByText(/年齢別支出カーブを使用する/)

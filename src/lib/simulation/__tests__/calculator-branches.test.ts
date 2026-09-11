@@ -1,5 +1,12 @@
-// calculator.ts の未踏分岐を網羅するためのテスト。
-// 既存 calculator.test.ts は意味的観点（基本不変条件）を担当。
+// calculator.ts の枝ごとの現状ロック。雇用形態・控除段階・住居形態・配偶者パターン・
+// 老後費用など、入力の組み合わせで分かれる経路を1つずつ実額で固定する。
+// 隣の calculator.test.ts は構造的不変条件（年数・単調性・整合）を担当。
+//
+// 値は 2026-09-12 時点の実測。税制や前提を意図して変えたときは、ここが落ちることが
+// 「変更が効いた」確認になるので、差分を見てから更新すること。
+// （以前このファイルは calculator-coverage.test.ts という名前で、分岐を踏むだけの
+//  `expect(...).toBeGreaterThan(0)` が並んでいた。分岐は通るが金額が倍でも半額でも通る
+//  状態だったので、実額ロックに置き換えてある。）
 
 import { describe, it, expect } from "vitest";
 import { calcNetIncome, calcFreelanceOfficerNetIncome, runSimulation } from "../calculator";
@@ -63,37 +70,39 @@ function baseInput(overrides: Partial<SimulationInput> = {}): SimulationInput {
   };
 }
 
-describe("calcNetIncome: 雇用形態と所得帯ごとの分岐", () => {
-  it("公務員 (civil_servant) ルートも正の手取り", () => {
-    expect(calcNetIncome(600, "civil_servant", 30)).toBeGreaterThan(0);
+/**
+ * 手取り計算の現状ロック。
+ *
+ * 以前はここが `expect(...).toBeGreaterThan(0)` の羅列だった（雇用形態 5 種・給与所得控除の
+ * 境界 5 点・基礎控除の 3 段階…）。分岐は踏むが `return 1` でも全部通るので、手取りが倍でも
+ * 半額でも気づけなかった。実額を表で固定して初めて金額の回帰が落ちる。
+ *
+ * 単位は万円/年。値は 2026-09-12 時点の実装の実測値。税制を意図して変えたときは
+ * ここを意図的に更新すること（差分が出ること自体が「効いた」という確認になる）。
+ */
+describe("calcNetIncome: 雇用形態と所得帯ごとの手取り（現状ロック）", () => {
+  it.each<[string, number, string, number, number]>([
+    ["公務員",                 600, "civil_servant",      30, 461.8620],
+    ["会社員兼フリーランス",   600, "employee_freelance", 30, 461.8620],
+    ["自営業（厚生年金なし）", 500, "self_employed",      30, 383.0489],
+    ["フリーランス",           500, "freelance",          30, 383.0489],
+    ["パート",                 200, "part_time",          30, 177.8692],
+    // 給与所得控除の境界: 180 / 360 / 660 / 850 / 上限
+    ["給与所得控除 180万境界",  180, "employee",          30, 148.3558],
+    ["給与所得控除 360万境界",  360, "employee",          30, 285.7318],
+    ["給与所得控除 660万境界",  660, "employee",          30, 504.1581],
+    ["給与所得控除 850万境界",  850, "employee",          30, 623.0367],
+    ["給与所得控除 上限超",    1500, "employee",          30, 985.0592],
+    // 累進課税の最上段（4000万超・45%帯）
+    ["45%帯",                 5000, "employee",          50, 2462.6720],
+    // 基礎控除の逓減 3 段階（2400 / 2450 / 2500 超）
+    ["基礎控除 2400超",       2450, "employee",          40, 1419.7995],
+    ["基礎控除 2450超",       2480, "employee",          40, 1424.1478],
+    ["基礎控除 2500超",       2600, "employee",          40, 1465.9442],
+  ])("%s: 年収%d万 / %s / %d歳 → 手取り %s万", (_label, gross, type, age, expected) => {
+    expect(calcNetIncome(gross, type, age)).toBeCloseTo(expected, 3);
   });
-  it("会社員兼フリーランス (employee_freelance) も正の手取り", () => {
-    expect(calcNetIncome(600, "employee_freelance", 30)).toBeGreaterThan(0);
-  });
-  it("自営業 (self_employed) は厚生年金なし＋国民年金固定額", () => {
-    expect(calcNetIncome(500, "self_employed", 30)).toBeGreaterThan(0);
-  });
-  it("フリーランス (freelance) も同様", () => {
-    expect(calcNetIncome(500, "freelance", 30)).toBeGreaterThan(0);
-  });
-  it("パート (part_time)", () => {
-    expect(calcNetIncome(200, "part_time", 30)).toBeGreaterThan(0);
-  });
-  it("給与所得控除の境界: 180 / 360 / 660 / 850 / 上限", () => {
-    expect(calcNetIncome(180, "employee", 30)).toBeGreaterThan(0);
-    expect(calcNetIncome(360, "employee", 30)).toBeGreaterThan(0);
-    expect(calcNetIncome(660, "employee", 30)).toBeGreaterThan(0);
-    expect(calcNetIncome(850, "employee", 30)).toBeGreaterThan(0);
-    expect(calcNetIncome(1500, "employee", 30)).toBeGreaterThan(0);
-  });
-  it("累進課税: 4000万超 (45%帯) も計算できる", () => {
-    expect(calcNetIncome(5000, "employee", 50)).toBeGreaterThan(0);
-  });
-  it("基礎控除の段階: 2400/2450/2500 超で逓減", () => {
-    expect(calcNetIncome(2450, "employee", 40)).toBeGreaterThan(0);
-    expect(calcNetIncome(2480, "employee", 40)).toBeGreaterThan(0);
-    expect(calcNetIncome(2600, "employee", 40)).toBeGreaterThan(0);
-  });
+
   it("additionalDeductions が大きいと手取りが増える（基礎控除以下の境界）", () => {
     const no = calcNetIncome(600, "employee", 30, 0, 0);
     const yes = calcNetIncome(600, "employee", 30, 0, 100);
@@ -101,34 +110,30 @@ describe("calcNetIncome: 雇用形態と所得帯ごとの分岐", () => {
   });
 });
 
-describe("calcFreelanceOfficerNetIncome: 各分岐", () => {
-  it("役員報酬のみ(事業0)でも正の手取り", () => {
-    expect(calcFreelanceOfficerNetIncome(0, 500, 35)).toBeGreaterThan(0);
+describe("calcFreelanceOfficerNetIncome: 事業収入＋役員報酬（現状ロック）", () => {
+  it.each<[string, number, number, number, number]>([
+    ["役員報酬のみ（事業0）",      0, 500, 35, 389.5597],
+    // 役員報酬側の給与所得控除の境界
+    ["役員 180万境界",           100, 180, 30, 243.0691],
+    ["役員 360万境界",           100, 360, 30, 380.4451],
+    ["役員 660万境界",           100, 660, 30, 593.5111],
+    ["役員 850万境界",           100, 850, 30, 712.3897],
+    ["役員 上限超",              100, 1500, 30, 1069.7666],
+    ["45%帯",                   2000, 3000, 50, 2634.3732],
+    // 基礎控除の 3 段階（合計所得 ≤2400 / ≤2450 / ≤2500 / それ超）
+    ["基礎控除 48万段",         1000, 1000, 40, 1330.5525],
+    ["基礎控除 32万段",         1200, 1230, 40, 1535.1354],
+    ["基礎控除 16万段",         1240, 1240, 40, 1550.8259],
+    ["基礎控除 0 段",           1200, 1300, 40, 1556.1273],
+    ["基礎控除 0 段（事業増）", 1300, 1300, 40, 1597.1529],
+  ])("%s: 事業%d万 + 役員%d万 / %d歳 → 手取り %s万", (_label, business, officer, age, expected) => {
+    expect(calcFreelanceOfficerNetIncome(business, officer, age)).toBeCloseTo(expected, 3);
   });
-  it("役員報酬の給与所得控除境界 (180/360/660/850/上限)", () => {
-    for (const v of [180, 360, 660, 850, 1500]) {
-      expect(calcFreelanceOfficerNetIncome(100, v, 30)).toBeGreaterThan(0);
-    }
-  });
+
   it("40歳以上の社保料増加分が手取りに反映される", () => {
     const under = calcFreelanceOfficerNetIncome(300, 400, 39);
     const over  = calcFreelanceOfficerNetIncome(300, 400, 40);
     expect(over).toBeLessThan(under);
-  });
-  it("4000万超で45%税率帯も処理", () => {
-    expect(calcFreelanceOfficerNetIncome(2000, 3000, 50)).toBeGreaterThan(0);
-  });
-  it("基礎控除段階 2400/2450/2500 超", () => {
-    expect(calcFreelanceOfficerNetIncome(1200, 1300, 40)).toBeGreaterThan(0);
-    expect(calcFreelanceOfficerNetIncome(1300, 1300, 40)).toBeGreaterThan(0);
-  });
-  it("基礎控除 ≤2400 / ≤2450 / ≤2500 の各段階を踏む", () => {
-    // ≤2400: 48万
-    expect(calcFreelanceOfficerNetIncome(1000, 1000, 40)).toBeGreaterThan(0);
-    // 2400 < x ≤ 2450: 32万
-    expect(calcFreelanceOfficerNetIncome(1200, 1230, 40)).toBeGreaterThan(0);
-    // 2450 < x ≤ 2500: 16万
-    expect(calcFreelanceOfficerNetIncome(1240, 1240, 40)).toBeGreaterThan(0);
   });
 });
 
@@ -136,10 +141,9 @@ describe("runSimulation: 住居タイプ分岐", () => {
   it("housingType=own: 維持費＋固定資産税のみ", () => {
     const r = runSimulation(baseInput({ housingType: "own", propertyPrice: 4000, monthlyRent: 0 }));
     const y = r.yearlyData[0];
-    expect(y.housingCost).toBeGreaterThan(0);
-    // 維持費30万 + 固定資産税(4000*0.008=32) = 62万 程度
-    expect(y.housingCost).toBeCloseTo(62, 0);
-    expect(y.propertyValue).toBeGreaterThan(0);
+    // 維持費30万 + 固定資産税(4000 * 0.008 = 32万) = 62万
+    expect(y.housingCost).toBe(62);
+    expect(y.propertyValue).toBe(4000);
   });
 
   it("housingType=buy で purchaseAge 前は家賃ゼロ・購入後はローン", () => {
@@ -158,7 +162,7 @@ describe("runSimulation: 住居タイプ分岐", () => {
     const before = r.yearlyData.find((d) => d.age === 39)!;
     const after = r.yearlyData.find((d) => d.age === 41)!;
     expect(before.housingCost).toBe(0);
-    expect(after.housingCost).toBeGreaterThan(0);
+    expect(after.housingCost).toBeCloseTo(167.0886, 4);
   });
 
   it("housingType=buy: ローン完済後は維持費30万+固定資産税のみ", () => {
@@ -196,7 +200,7 @@ describe("runSimulation: 住居タイプ分岐", () => {
     );
     // 購入後5年目 (40歳) は控除が効いている → 全 income が手取りより大きいはず
     const at40 = r.yearlyData.find((d) => d.age === 40)!;
-    expect(at40.income).toBeGreaterThan(0);
+    expect(at40.income).toBeCloseTo(591.111, 4);
   });
 
   it("0% mortgageRate も計算可能", () => {
@@ -232,7 +236,7 @@ describe("runSimulation: 子どもの教育費分岐", () => {
   it("private 全期間", () => {
     const r = runSimulation(baseInput({ children: [child({ educationPath: "private" })] }));
     const total = r.yearlyData.reduce((s, y) => s + y.educationCost, 0);
-    expect(total).toBeGreaterThan(0);
+    expect(total).toBe(2626);
   });
 
   it("mix: public と private の中間値", () => {
@@ -261,8 +265,8 @@ describe("runSimulation: 子どもの教育費分岐", () => {
         annualIncome: 700,
       })
     );
-    expect(withTeen.yearlyData[0].income).toBeGreaterThan(0);
-    expect(withCollege.yearlyData[0].income).toBeGreaterThan(0);
+    expect(withTeen.yearlyData[0].income).toBeCloseTo(535.9531, 4);
+    expect(withCollege.yearlyData[0].income).toBeCloseTo(541.0056, 4);
   });
 });
 
@@ -271,8 +275,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
     const r = runSimulation(
       baseInput({ hasSpouse: true, spouseAge: 30, spouseEmploymentType: "homemaker" })
     );
-    expect(r.spousePensionMonthly).toBeGreaterThan(0);
-    expect(r.spousePensionMonthly).toBeLessThan(7);
+    expect(r.spousePensionMonthly).toBeCloseTo(6.8, 4);
   });
 
   it("会社員配偶者: 退職後に厚生年金", () => {
@@ -285,7 +288,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
         spouseIncomeGrowthRate: 1,
       })
     );
-    expect(r.spousePensionMonthly).toBeGreaterThan(0);
+    expect(r.spousePensionMonthly).toBeCloseTo(12.7114, 4);
   });
 
   it("会社員配偶者(本人 gender=female ケース): 性別三項分岐の他方", () => {
@@ -298,12 +301,12 @@ describe("runSimulation: 配偶者の各パターン", () => {
         spouseAnnualIncome: 400,
       })
     );
-    expect(r.spousePensionMonthly).toBeGreaterThan(0);
+    expect(r.spousePensionMonthly).toBeCloseTo(11.6391, 4);
   });
 
   it("retirementAge が age より前 → retirementData undefined で fallback 0", () => {
     // age=70 で retirementAge=65 にすると、yearlyData は 70 から始まるので
-    // age===65 のエントリがない → retirementAssets が 0 にフォールバック (line 555)
+    // age===65 のエントリがない → retirementAssets が 0 にフォールバック
     const r = runSimulation(baseInput({ age: 70, retirementAge: 65 }));
     expect(r.retirementAssets).toBe(0);
   });
@@ -321,7 +324,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
       })
     );
     const inBreak = r.yearlyData.find((d) => d.age === 33)!; // spouseAge=33
-    expect(inBreak.spouseIncome).toBeGreaterThan(0);
+    expect(inBreak.spouseIncome).toBeCloseTo(113.34895, 5);
   });
 
   it("キャリアブレーク中・収入ゼロでもエラーにならない", () => {
@@ -340,33 +343,26 @@ describe("runSimulation: 配偶者の各パターン", () => {
     expect(inBreak.spouseIncome).toBe(0);
   });
 
-  it("配偶者が生涯現役 (退職年齢>100) でもポスト処理で年金が算出される (gender=female)", () => {
-    const r = runSimulation(
-      baseInput({
-        gender: "female",
-        hasSpouse: true,
-        spouseAge: 30,
-        spouseRetirementAge: 120,
-        spouseEmploymentType: "employee",
-        spouseAnnualIncome: 400,
-      })
-    );
-    expect(r.spousePensionMonthly).toBeGreaterThan(0);
-  });
-
-  it("配偶者が生涯現役: gender=male 経路 (line 573 三項分岐の他方)", () => {
-    const r = runSimulation(
-      baseInput({
-        gender: "male",
-        hasSpouse: true,
-        spouseAge: 30,
-        spouseRetirementAge: 120,
-        spouseEmploymentType: "employee",
-        spouseAnnualIncome: 400,
-      })
-    );
-    expect(r.spousePensionMonthly).toBeGreaterThan(0);
-  });
+  // 本人の gender で三項分岐する経路を両方踏む。実測すると配偶者年金は
+  // どちらでも同値（19.7717万/月）で、「本人の性別は配偶者年金に効かない」が
+  // 主張したい内容そのもの。以前は別々の it に分かれていて、名前は
+  // 「三項分岐の他方」と言いつつ同値であることは誰も確かめていなかった。
+  it.each(["female", "male"] as const)(
+    "配偶者が生涯現役 (退職年齢>100): 本人 gender=%s でも配偶者年金は同値",
+    (gender) => {
+      const r = runSimulation(
+        baseInput({
+          gender,
+          hasSpouse: true,
+          spouseAge: 30,
+          spouseRetirementAge: 120,
+          spouseEmploymentType: "employee",
+          spouseAnnualIncome: 400,
+        })
+      );
+      expect(r.spousePensionMonthly).toBeCloseTo(19.7717, 4);
+    }
+  );
 
   it("配偶者退職年齢の独立設定", () => {
     const r = runSimulation(
@@ -379,7 +375,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
         retirementAge: 65,
       })
     );
-    expect(r.spousePensionMonthly).toBeGreaterThan(0);
+    expect(r.spousePensionMonthly).toBeCloseTo(10.581, 4);
   });
 
   it("配偶者控除: 専業主婦・70歳以上は老人配偶者控除（48万）", () => {
@@ -392,7 +388,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
         spouseEmploymentType: "homemaker",
       })
     );
-    expect(r.yearlyData[0].income).toBeGreaterThan(0);
+    expect(r.yearlyData[0].income).toBeCloseTo(543.0568, 4);
   });
 
   it("配偶者の所得 ≤103万円も配偶者控除対象", () => {
@@ -405,7 +401,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
         spouseAnnualIncome: 100,
       })
     );
-    expect(r.yearlyData[0].income).toBeGreaterThan(0);
+    expect(r.yearlyData[0].income).toBeCloseTo(540.7448, 4);
   });
 });
 
@@ -440,19 +436,19 @@ describe("runSimulation: 老後の介護・医療・保険・退職金・副業"
   it("medicalCostMonthlyAt70: 70歳から発生", () => {
     const r = runSimulation(baseInput({ medicalCostMonthlyAt70: 2 }));
     expect(r.yearlyData.find((d) => d.age === 69)!.medicalCost).toBe(0);
-    expect(r.yearlyData.find((d) => d.age === 70)!.medicalCost).toBeGreaterThan(0);
+    expect(r.yearlyData.find((d) => d.age === 70)!.medicalCost).toBe(24);
   });
   it("介護費用は nursingCareStartAge から発生", () => {
     const r = runSimulation(baseInput({ nursingCareStartAge: 80, nursingCareCostMonthly: 8 }));
     expect(r.yearlyData.find((d) => d.age === 79)!.medicalCost).toBe(0);
-    expect(r.yearlyData.find((d) => d.age === 80)!.medicalCost).toBeGreaterThan(0);
+    expect(r.yearlyData.find((d) => d.age === 80)!.medicalCost).toBe(96);
   });
   it("生命保険料は退職前にのみ計上", () => {
     const r = runSimulation(baseInput({ lifeInsurancePremiumMonthly: 2 }));
     // 退職前 < 退職後（保険料分の差）
     const before = r.yearlyData.find((d) => d.age === 64)!.totalExpense;
     // 単一年比較は粗いが、保険料があるぶん大きいはず
-    expect(before).toBeGreaterThan(0);
+    expect(before).toBeCloseTo(720.7785, 4);
   });
   it("退職金は退職年に貯蓄へ加算される", () => {
     const a = runSimulation(baseInput({ retirementAllowance: 0 }));
@@ -470,7 +466,7 @@ describe("runSimulation: 老後の介護・医療・保険・退職金・副業"
   });
   it("退職金が極大 (1億円超): 4000万超の45%帯", () => {
     const r = runSimulation(baseInput({ retirementAllowance: 12000 }));
-    expect(r.retirementAssets).toBeGreaterThan(0);
+    expect(r.retirementAssets).toBeCloseTo(6098.3766, 4);
   });
   it("postRetirementIncomeMonthly: 退職後の就労収入", () => {
     const a = runSimulation(baseInput({ postRetirementIncomeMonthly: 0 }));
@@ -498,8 +494,8 @@ describe("runSimulation: フリーランス兼役員パス", () => {
         officerIncomeGrowthRate: 2,
       })
     );
-    expect(r.yearlyData[0].income).toBeGreaterThan(0);
-    expect(r.pensionMonthly).toBeGreaterThan(0);
+    expect(r.yearlyData[0].income).toBeCloseTo(562.0859, 4);
+    expect(r.pensionMonthly).toBeCloseTo(15.082, 4);
   });
   it("self_employed + officerAnnualIncome でも同経路", () => {
     const r = runSimulation(
@@ -509,7 +505,7 @@ describe("runSimulation: フリーランス兼役員パス", () => {
         officerAnnualIncome: 500,
       })
     );
-    expect(r.pensionMonthly).toBeGreaterThan(0);
+    expect(r.pensionMonthly).toBeCloseTo(13.9431, 4);
   });
 });
 
@@ -610,7 +606,7 @@ describe("runSimulation: NISA 課税口座フォールバック", () => {
       })
     );
     expect(r.notes.some((n) => n.includes("NISA"))).toBe(true);
-    expect(r.finalAssets).toBeGreaterThan(0);
+    expect(r.finalAssets).toBeCloseTo(85526.4871, 4);
   });
 });
 

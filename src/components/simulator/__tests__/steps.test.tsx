@@ -3,7 +3,7 @@
  * react-hook-form + Radix Select の組み合わせ。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { BasicInfoStep } from "../steps/BasicInfoStep";
 import { IncomeStep } from "../steps/IncomeStep";
 import { ExpenseStep } from "../steps/ExpenseStep";
@@ -73,16 +73,6 @@ describe("BasicInfoStep", () => {
     expect(screen.getByText("第2子")).toBeTruthy();
   });
 
-  it("子どもボタン (1) クリックで children に追加", () => {
-    render(<BasicInfoStep onNext={onNext} />);
-    const buttons = screen.getAllByRole("button");
-    const oneBtn = buttons.find((b) => b.textContent === "1");
-    if (oneBtn) {
-      act(() => { fireEvent.click(oneBtn); });
-      // useSimulationStore は handleChildrenCountChange 経由で更新される
-    }
-    expect(true).toBe(true);
-  });
 });
 
 describe("IncomeStep", () => {
