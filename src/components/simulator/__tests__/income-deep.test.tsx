@@ -67,14 +67,6 @@ describe("IncomeStep: 切替トグル", () => {
     }
   });
 
-  it("老後就労ありトグル", () => {
-    render(<IncomeStep onNext={onNext} />);
-    const toggles = screen.getAllByRole("switch");
-    if (toggles.length >= 2) {
-      act(() => { fireEvent.click(toggles[1]); });
-    }
-    expect(true).toBe(true);
-  });
 });
 
 describe("IncomeStep: 配偶者あり", () => {
@@ -120,13 +112,17 @@ describe("IncomeStep: 配偶者あり", () => {
   });
 });
 
-describe("IncomeStep: 年収・退職金", () => {
-  it("年収 input 変更", () => {
+describe("IncomeStep: 年収の派生表示", () => {
+  it("年収から月額換算と手取り推計を導出して表示する", () => {
     render(<IncomeStep onNext={onNext} />);
-    const inputs = document.querySelectorAll('input[type="number"]') as NodeListOf<HTMLInputElement>;
-    if (inputs.length > 0) {
-      act(() => { fireEvent.change(inputs[0], { target: { value: "800" } }); });
-    }
-    expect(true).toBe(true);
+    // 既定 annualIncome=500万 → 月額換算 500/12 = 41.7万円/月
+    expect(screen.getByText("41.7万円/月")).toBeTruthy();
+    // 手取り推計は額面より小さい正の値（ラベルと値の取り違えを捕まえる）
+    const net = screen
+      .getAllByText(/万円\/月$/)
+      .map((el) => Number(el.textContent!.replace("万円/月", "")))
+      .filter((n) => Number.isFinite(n));
+    expect(Math.min(...net)).toBeGreaterThan(0);
+    expect(Math.min(...net)).toBeLessThan(41.7);
   });
 });

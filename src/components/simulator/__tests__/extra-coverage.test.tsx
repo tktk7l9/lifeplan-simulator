@@ -122,16 +122,19 @@ describe("SavedSimulationsDrawer interactions", () => {
     expect(screen.getAllByText(/要注意/).length).toBeGreaterThan(0);
   });
 
-  it("読み込むボタンで loadSimulation 呼び出し", async () => {
+  it("読み込むボタンで保存済みシミュレーションがストアへ反映される", async () => {
     useSimulationStore.setState({
       savedSimulations: [makeSim("d")],
+      result: null,
+      currentStep: 0,
     });
     render(<SavedSimulationsDrawer />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
     const loadBtn = screen.getByText("読み込む").closest("button")!;
     await act(async () => { fireEvent.click(loadBtn); });
-    // loadSimulation がストアに反映される
-    expect(true).toBe(true);
+    const s = useSimulationStore.getState();
+    expect(s.result?.retirementAssets).toBe(5000);
+    expect(s.currentStep).toBe(7);
   });
 
   it("削除ボタン: 一度押すと「本当に削除」になり、もう一度で削除", async () => {

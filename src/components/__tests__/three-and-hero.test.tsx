@@ -10,6 +10,7 @@ import { BirdHoverZone } from "../three/BirdHoverZone";
 import { MountainHero } from "../illustrations/MountainHero";
 
 let rafSpy: ReturnType<typeof vi.spyOn> | null = null;
+let cafSpy: ReturnType<typeof vi.spyOn> | null = null;
 let rafCallbacks: FrameRequestCallback[] = [];
 
 beforeEach(() => {
@@ -18,11 +19,12 @@ beforeEach(() => {
     rafCallbacks.push(cb);
     return rafCallbacks.length;
   });
-  vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+  cafSpy = vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
 });
 
 afterEach(() => {
   rafSpy?.mockRestore();
+  cafSpy?.mockRestore();
 });
 
 function flushOneFrame() {
@@ -84,8 +86,9 @@ describe("CursorBird", () => {
 
   it("アンマウントで cancelAnimationFrame", () => {
     const { unmount } = render(<CursorBird />);
+    cafSpy?.mockClear();
     unmount();
-    expect(true).toBe(true);
+    expect(cafSpy).toHaveBeenCalled();
   });
 });
 

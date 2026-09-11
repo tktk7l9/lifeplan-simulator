@@ -63,18 +63,6 @@ describe("HousingStep interactions", () => {
     expect(inputs.length).toBeGreaterThan(0);
   });
 
-  it("購入: 金利 0% でも PMT が動く (分岐網羅)", async () => {
-    render(<HousingStep onNext={() => {}} />);
-    await act(async () => { fireEvent.click(screen.getByText("購入").closest("button")!); });
-    const inputs = document.querySelectorAll('input[type="number"]') as NodeListOf<HTMLInputElement>;
-    // mortgageRate (1.0) を 0 に
-    const rate = Array.from(inputs).find((i) => i.value === "1");
-    if (rate) {
-      await act(async () => { fireEvent.change(rate, { target: { value: "0" } }); });
-    }
-    expect(true).toBe(true);
-  });
-
   it("持ち家を選ぶと持ち家用ヒントが見える", async () => {
     render(<HousingStep onNext={() => {}} />);
     await act(async () => { fireEvent.click(screen.getByText("持ち家あり").closest("button")!); });
@@ -169,34 +157,6 @@ describe("InsuranceStep interactions", () => {
     expect(screen.getAllByText(/生命保険|医療|介護|企業/).length).toBeGreaterThan(0);
   });
 
-  it("介護開始年齢を 0 に下げると 介護費用フィールド非表示", async () => {
-    render(<InsuranceStep onNext={() => {}} />);
-    // スライダー操作は jsdom でうまく動かないので、form.setValue を直接トリガするため
-    // input[type=number] を発見して 0 に変更しても効果がない。代わりに submit で onSubmit を発火。
-    const submit = screen.getByText(/次へ進む/).closest("button")!;
-    await act(async () => { fireEvent.click(submit); });
-    expect(true).toBe(true);
-  });
-
-  it("年齢別支出カーブをトグル", async () => {
-    render(<InsuranceStep onNext={() => {}} />);
-    // 「年齢別支出カーブを使用する」横のボタン
-    const toggleBtn = screen.getByText(/年齢別支出カーブを使用する/).closest("div")?.parentElement?.querySelector("button");
-    if (toggleBtn) {
-      await act(async () => { fireEvent.click(toggleBtn); });
-    }
-    expect(true).toBe(true);
-  });
-
-  it("月額保険料 number input 変更で field.onChange", async () => {
-    render(<InsuranceStep onNext={() => {}} />);
-    const inputs = document.querySelectorAll('input[type="number"]') as NodeListOf<HTMLInputElement>;
-    if (inputs.length > 0) {
-      await act(async () => { fireEvent.change(inputs[0], { target: { value: "2.5" } }); });
-    }
-    expect(true).toBe(true);
-  });
-
   it("submit で onNext", async () => {
     const onNext = vi.fn();
     render(<InsuranceStep onNext={onNext} />);
@@ -223,15 +183,6 @@ describe("ExpenseStep interactions", () => {
     expect(screen.queryByText(/月額家賃/)).toBeNull();
   });
 
-  it("生活費 input 変更", async () => {
-    render(<ExpenseStep onNext={() => {}} />);
-    const inputs = document.querySelectorAll('input[type="number"]') as NodeListOf<HTMLInputElement>;
-    if (inputs.length > 0) {
-      await act(async () => { fireEvent.change(inputs[0], { target: { value: "30" } }); });
-    }
-    expect(true).toBe(true);
-  });
-
   it("submit で onNext", async () => {
     const onNext = vi.fn();
     render(<ExpenseStep onNext={onNext} />);
@@ -250,25 +201,6 @@ describe("InvestmentStep interactions", () => {
     expect(screen.getAllByText(/NISA/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/iDeCo/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/小規模企業共済/).length).toBeGreaterThan(0);
-  });
-
-  it("NISA 商品ボタンクリックで handleNisaProductSelect", async () => {
-    render(<InvestmentStep onNext={() => {}} />);
-    // 商品ボタンは button[type=button] で多数。最初の数個をクリックしても OK
-    const productButtons = document.querySelectorAll('button[type="button"]');
-    if (productButtons.length >= 2) {
-      await act(async () => { fireEvent.click(productButtons[1]); });
-    }
-    expect(true).toBe(true);
-  });
-
-  it("貯蓄額 input 変更", async () => {
-    render(<InvestmentStep onNext={() => {}} />);
-    const inputs = document.querySelectorAll('input[type="number"]') as NodeListOf<HTMLInputElement>;
-    if (inputs.length > 0) {
-      await act(async () => { fireEvent.change(inputs[0], { target: { value: "500" } }); });
-    }
-    expect(true).toBe(true);
   });
 
   it("submit で onNext", async () => {

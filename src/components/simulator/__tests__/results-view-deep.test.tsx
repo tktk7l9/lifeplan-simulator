@@ -133,34 +133,6 @@ describe("ResultsView annotation branches", () => {
     }
   });
 
-  it("印刷ボタン (もしあれば) クリック", async () => {
-    useSimulationStore.getState().calculate();
-    await act(async () => { render(<ResultsView onBack={() => {}} />); });
-    const printBtn = screen.queryByText(/印刷|PDF/);
-    if (printBtn) {
-      const btn = printBtn.closest("button");
-      if (btn) {
-        // window.print を mock
-        const printSpy = vi.fn();
-        Object.defineProperty(window, "print", { value: printSpy, writable: true });
-        await act(async () => { fireEvent.click(btn); });
-        // setTimeout 経由なので fake timers なしでは検証困難
-      }
-    }
-    expect(true).toBe(true);
-  });
-
-  it("保存ダイアログを開く", async () => {
-    useSimulationStore.getState().calculate();
-    await act(async () => { render(<ResultsView onBack={() => {}} />); });
-    const saveBtn = screen.queryByText(/保存$|シミュレーションを保存/);
-    if (saveBtn) {
-      const btn = saveBtn.closest("button");
-      if (btn) await act(async () => { fireEvent.click(btn); });
-    }
-    expect(true).toBe(true);
-  });
-
   it("全タブをクリックして遷移", async () => {
     useSimulationStore.getState().calculate();
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
@@ -190,13 +162,18 @@ describe("ResultsView annotation branches", () => {
     });
   });
 
-  it("モンテカルロタブ + 感度分析タブ", async () => {
+  it("モンテカルロタブ → 感度分析タブへ切り替わる", async () => {
     useSimulationStore.getState().calculate();
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
+    // Radix Tabs は onMouseDown で切り替わる（click では何も起きない）
     const mc = screen.getByRole("tab", { name: /モンテカルロ/ });
-    await act(async () => { fireEvent.click(mc); });
+    await act(async () => { fireEvent.mouseDown(mc); });
+    expect(screen.getByText("モンテカルロシミュレーション")).toBeTruthy();
+
     const sens = screen.getByRole("tab", { name: /感度分析/ });
-    await act(async () => { fireEvent.click(sens); });
-    expect(true).toBe(true);
+    await act(async () => { fireEvent.mouseDown(sens); });
+    expect(screen.getByText("感度分析（トルネードチャート）")).toBeTruthy();
+    // 切り替えたので前のパネルは外れている
+    expect(screen.queryByText("モンテカルロシミュレーション")).toBeNull();
   });
 });
