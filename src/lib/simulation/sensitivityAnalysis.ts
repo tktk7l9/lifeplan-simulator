@@ -10,7 +10,7 @@ export function runSensitivityAnalysis(input: SimulationInput): SensitivityDataP
 
   const results: SensitivityDataPoint[] = [];
 
-  // 年収 ±20%
+  // Annual income ±20%
   results.push({
     parameter: "annualIncome",
     label: "年収",
@@ -19,7 +19,7 @@ export function runSensitivityAnalysis(input: SimulationInput): SensitivityDataP
     high: simulate({ ...input, annualIncome: input.annualIncome * 1.2 }),
   });
 
-  // 投資リターン ±2pp
+  // Investment return ±2pp
   results.push({
     parameter: "investmentReturnRate",
     label: "投資リターン",
@@ -28,7 +28,7 @@ export function runSensitivityAnalysis(input: SimulationInput): SensitivityDataP
     high: simulate({ ...input, investmentReturnRate: input.investmentReturnRate + 2 }),
   });
 
-  // 生活費 ±20%
+  // Living expenses ±20%
   results.push({
     parameter: "monthlyLivingExpense",
     label: "生活費",
@@ -37,7 +37,7 @@ export function runSensitivityAnalysis(input: SimulationInput): SensitivityDataP
     high: simulate({ ...input, monthlyLivingExpense: input.monthlyLivingExpense * 1.2 }),
   });
 
-  // 物価上昇率 ±1pp
+  // Inflation rate ±1pp
   results.push({
     parameter: "inflationRate",
     label: "物価上昇率",
@@ -46,7 +46,7 @@ export function runSensitivityAnalysis(input: SimulationInput): SensitivityDataP
     high: simulate({ ...input, inflationRate: (input.inflationRate ?? 1.5) + 1 }),
   });
 
-  // 退職年齢 ±5年
+  // Retirement age ±5 years
   results.push({
     parameter: "retirementAge",
     label: "退職年齢",
@@ -55,7 +55,7 @@ export function runSensitivityAnalysis(input: SimulationInput): SensitivityDataP
     high: simulate({ ...input, retirementAge: input.retirementAge + 5 }),
   });
 
-  // 老後就労収入: 0 vs 2倍
+  // Post-retirement work income: 0 vs 2x
   results.push({
     parameter: "postRetirementIncome",
     label: "老後就労収入",

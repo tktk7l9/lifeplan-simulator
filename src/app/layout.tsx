@@ -75,9 +75,9 @@ export default function RootLayout({
     <html lang="ja" className={`${jetBrainsMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>{children}</Providers>
-        {/* Cloudflare Web Analytics（トークンは公開前提の識別子。秘密ではない） */}
+        {/* Cloudflare Web Analytics (the token is a public identifier, not a secret) */}
         {/* eslint-disable-next-line @next/next/no-sync-scripts --
-            type="module" のスクリプトは仕様上 defer されるため、パーサーを止めない */}
+            a type="module" script is deferred by spec, so it does not block the parser */}
         <script
           type="module"
           src="https://static.cloudflareinsights.com/beacon.min.js"

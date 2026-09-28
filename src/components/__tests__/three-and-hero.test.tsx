@@ -1,6 +1,6 @@
 /**
- * CursorBird / BirdHoverZone / MountainHero のインタラクションを発火させてカバー。
- * Three.js は使用していない (SVG ベース) ため jsdom でも動作する。
+ * Covers CursorBird / BirdHoverZone / MountainHero by firing their interactions.
+ * They do not use Three.js (SVG based), so they work in jsdom.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React from "react";
@@ -46,10 +46,10 @@ describe("CursorBird", () => {
     act(() => {
       window.dispatchEvent(new MouseEvent("mousemove", { clientX: 400, clientY: 300 }));
     });
-    // 1フレーム進める
+    // Advance one frame
     flushOneFrame();
     flushOneFrame();
-    // flip / wingAngle の state が更新されるはず → 再描画
+    // The flip / wingAngle state should update → re-render
     expect(document.querySelector("svg")).toBeTruthy();
   });
 
@@ -69,7 +69,7 @@ describe("CursorBird", () => {
     act(() => {
       window.dispatchEvent(new CustomEvent("bird-action", { detail: { action: "excited" } }));
     });
-    // 連続したフレーム → vx が振動して flip 切替も発火
+    // Consecutive frames → vx oscillates and the flip toggle fires too
     act(() => {
       window.dispatchEvent(new MouseEvent("mousemove", { clientX: 100, clientY: 100 }));
     });
@@ -120,7 +120,7 @@ describe("MountainHero", () => {
     const listener = vi.fn();
     window.addEventListener("bird-action", listener);
     const { container } = render(<MountainHero />);
-    // すべての <g> 要素を取得し、 onMouseEnter を持つものに mouseEnter を発火
+    // Get every <g> element and fire mouseEnter on those that have onMouseEnter
     const groups = container.querySelectorAll("g[style*='cursor']");
     for (const g of Array.from(groups)) {
       fireEvent.mouseEnter(g);

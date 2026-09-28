@@ -2,7 +2,7 @@ export { readFileAsText } from "./nenkinCSV";
 
 export interface MFAccount {
   name: string;
-  balance: number; // 万円単位（小数1桁）
+  balance: number; // in 10k-yen (万円) units (1 decimal place)
   category: "deposit" | "investment" | "crypto" | "other";
 }
 
@@ -42,16 +42,16 @@ function parseYen(s: string): number {
   const isNeg = s.includes("△") || s.includes("▲") || s.replace(/[^\-\d]/g, "").startsWith("-");
   const n = parseInt(s.replace(/[^0-9]/g, ""), 10);
   if (isNaN(n)) return 0;
-  const val = Math.round((n / 10000) * 10) / 10; // 万円・小数1桁
+  const val = Math.round((n / 10000) * 10) / 10; // 10k yen, 1 decimal place
   return isNeg ? -val : val;
 }
 
-// ─── 資産推移月次 形式 ────────────────────────────────────────────
-// 列: 日付, 合計（円）, 預貯金・現金・仮想通貨（円）, 証券(運用)（円）, その他（円）, ポイント（円）
-// 最新行（先頭データ行）から各カテゴリ金額を読む
+// ─── Monthly asset history format ────────────────────────────────
+// Columns: 日付, 合計（円）, 預貯金・現金・仮想通貨（円）, 証券(運用)（円）, その他（円）, ポイント（円）
+// Read each category amount from the latest row (the first data row)
 
 function parseTrendFormat(lines: string[], headerCols: string[], warnings: string[]): MFParseResult {
-  // 最新データ行（日付列に YYYY/MM/DD を含む最初の行）
+  // Latest data row (the first row whose date column contains YYYY/MM/DD)
   let dataRow: string[] | null = null;
   let updateDate = "";
 
@@ -71,31 +71,31 @@ function parseTrendFormat(lines: string[], headerCols: string[], warnings: strin
 
   const accounts: MFAccount[] = [];
 
-  // 各ヘッダー列をスキャンしてカテゴリを判定
+  // Scan each header column and determine its category
   for (let col = 1; col < headerCols.length; col++) {
     const header = headerCols[col];
     const raw = dataRow[col] ?? "0";
     const balance = parseYen(raw);
 
-    // 合計列・ポイント列はスキップ
+    // Skip the total and points columns
     if (header.includes("合計") || header.includes("ポイント")) continue;
-    // 0円の列もスキップ
+    // Also skip columns with 0 yen
     if (balance === 0) continue;
 
-    // カテゴリ判定
+    // Category detection
     let category: MFAccount["category"];
     if (header.includes("証券") || header.includes("運用")) {
       category = "investment";
     } else if (header.includes("仮想通貨") || header.includes("暗号")) {
       category = "crypto";
     } else if (header.includes("預貯金") || header.includes("現金")) {
-      // "預貯金・現金・仮想通貨" という複合カテゴリはまず deposit 扱い
+      // The combined "預貯金・現金・仮想通貨" category is treated as deposit first
       category = "deposit";
     } else {
       category = "other";
     }
 
-    // ヘッダーから "（円）" などの不要部分を除いた短い名前
+    // Short name: the header with noise such as "（円）" removed
     const name = header
       .replace(/（円）|(\(円\))|\(¥\)/g, "")
       .replace(/（\d+ヶ月）/g, "")
@@ -119,8 +119,8 @@ function parseTrendFormat(lines: string[], headerCols: string[], warnings: strin
   return { accounts, totalDeposit, totalInvestment, updateDate, warnings };
 }
 
-// ─── 口座一覧 形式 ────────────────────────────────────────────────
-// 列: 口座名, 残高（円）, 種別, ...
+// ─── Account list format ─────────────────────────────────────────
+// Columns: 口座名, 残高（円）, 種別, ...
 
 const DEPOSIT_KW = ["銀行", "預金", "貯金", "普通", "定期", "財布", "現金", "ゆうちょ", "信用金庫", "信金", "JAバンク"];
 const INVEST_KW  = ["証券", "NISA", "iDeCo", "投資", "投信", "ファンド", "ETF", "株", "FX", "先物", "外貨", "債券"];
@@ -172,7 +172,7 @@ function parseAccountFormat(lines: string[], headerCols: string[], warnings: str
   return { accounts, totalDeposit, totalInvestment, updateDate: "", warnings };
 }
 
-// ─── エントリポイント ─────────────────────────────────────────────
+// ─── Entry point ─────────────────────────────────────────────────
 
 export function parseMFCSV(text: string): MFParseResult {
   const warnings: string[] = [];
@@ -186,11 +186,11 @@ export function parseMFCSV(text: string): MFParseResult {
 
   const headerCols = splitCSVLine(lines[0]).map((c) => c.trim());
 
-  // フォーマット判定
+  // Detect the format
   const isTrend   = headerCols.some((h) => h.includes("日付") || h.includes("合計"));
   const isAccount = headerCols.some((h) => h.includes("口座") || h.includes("残高"));
 
-  // 日付列の値でも判定
+  // Also detect by the value of the date column
   const firstData = splitCSVLine(lines[1] ?? "");
   const looksLikeDate = /^\d{4}\/\d{2}\/\d{2}$/.test(firstData[0]?.trim() ?? "");
 

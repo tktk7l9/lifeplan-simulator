@@ -38,7 +38,7 @@ function buildEventMap(input: Partial<SimulationInput>): Map<number, EventBadge[
 
   const myAge = input.age ?? 0;
 
-  // 住宅購入
+  // Home purchase
   if (input.housingType === "buy" && input.purchaseAge) {
     push(input.purchaseAge, {
       label: "住宅購入",
@@ -47,7 +47,7 @@ function buildEventMap(input: Partial<SimulationInput>): Map<number, EventBadge[
     });
   }
 
-  // 退職
+  // Retirement
   if (input.retirementAge) {
     push(input.retirementAge, {
       label: "退職",
@@ -56,7 +56,7 @@ function buildEventMap(input: Partial<SimulationInput>): Map<number, EventBadge[
     });
   }
 
-  // 年金受給開始（65歳固定 or 退職後65歳）
+  // Pension start (fixed at 65, or 65 after retirement)
   const pensionStart = Math.max(65, input.retirementAge ?? 65);
   push(pensionStart, {
     label: "年金受給",
@@ -64,7 +64,7 @@ function buildEventMap(input: Partial<SimulationInput>): Map<number, EventBadge[
     cls: "bg-emerald-100 text-emerald-700 border-emerald-200",
   });
 
-  // 配偶者退職
+  // Spouse retirement
   if (input.hasSpouse && input.spouseAge && input.spouseRetirementAge) {
     const ageAtSpouseRetirement = myAge + (input.spouseRetirementAge - input.spouseAge);
     push(ageAtSpouseRetirement, {
@@ -74,18 +74,18 @@ function buildEventMap(input: Partial<SimulationInput>): Map<number, EventBadge[
     });
   }
 
-  // 子どものイベント
+  // Child events
   (input.children ?? []).forEach((child, idx) => {
     const suffix = (input.children?.length ?? 0) > 1 ? `${idx + 1}` : "";
 
-    // 大学入学（本人 age = child.birthAge + 18）
+    // University entrance (user's age = child.birthAge + 18)
     push(child.birthAge + 18, {
       label: `子${suffix}大学`,
       icon: "🎓",
       cls: "bg-violet-100 text-violet-700 border-violet-200",
     });
 
-    // 独立（child.birthAge + 22）
+    // Independence (child.birthAge + 22)
     push(child.birthAge + 22, {
       label: `子${suffix}独立`,
       icon: "🏡",
@@ -93,7 +93,7 @@ function buildEventMap(input: Partial<SimulationInput>): Map<number, EventBadge[
     });
   });
 
-  // ライフイベント（wedding, car, travel …）
+  // Life events (wedding, car, travel …)
   (input.lifeEvents ?? []).forEach((ev) => {
     push(ev.age, {
       label: ev.label,
@@ -102,7 +102,7 @@ function buildEventMap(input: Partial<SimulationInput>): Map<number, EventBadge[
     });
   });
 
-  // 介護開始
+  // Nursing care start
   if ((input.nursingCareStartAge ?? 0) > 0) {
     push(input.nursingCareStartAge!, {
       label: "介護開始",
@@ -248,7 +248,7 @@ export function DataTable({ data, input }: Props) {
                       <span className="text-xs text-muted-foreground ml-1.5">{row.year}</span>
                     </td>
 
-                    {/* 収入 */}
+                    {/* Income */}
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       <span className={cn(
                         "font-medium",
@@ -263,22 +263,22 @@ export function DataTable({ data, input }: Props) {
                       )}
                     </td>
 
-                    {/* 支出 */}
+                    {/* Expenses */}
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       <span className="font-medium text-slate-600">{fmt(row.totalExpense)}</span>
                     </td>
 
-                    {/* 住居費 */}
+                    {/* Housing cost */}
                     <td className="px-3 py-2 text-right whitespace-nowrap text-slate-500">
                       {fmt(row.housingCost)}
                     </td>
 
-                    {/* 教育費 */}
+                    {/* Education cost */}
                     <td className="px-3 py-2 text-right whitespace-nowrap text-slate-500">
                       {fmt(row.educationCost)}
                     </td>
 
-                    {/* イベント費 */}
+                    {/* Event cost */}
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       {row.lifeEventCost > 0 ? (
                         <span className="text-orange-600 font-medium">{fmt(row.lifeEventCost)}</span>
@@ -287,7 +287,7 @@ export function DataTable({ data, input }: Props) {
                       )}
                     </td>
 
-                    {/* 純CF */}
+                    {/* Net cash flow */}
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       <span className={cn(
                         "font-semibold tabular-nums",
@@ -297,7 +297,7 @@ export function DataTable({ data, input }: Props) {
                       </span>
                     </td>
 
-                    {/* 総資産 */}
+                    {/* Total assets */}
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       <span className={cn(
                         "font-bold tabular-nums",
@@ -312,7 +312,7 @@ export function DataTable({ data, input }: Props) {
                       )}
                     </td>
 
-                    {/* イベント */}
+                    {/* Events */}
                     <td className="px-3 py-2 whitespace-nowrap">
                       {badges.length > 0 ? (
                         <div className="flex flex-wrap gap-1">

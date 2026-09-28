@@ -33,7 +33,7 @@ export function runMonteCarlo(input: SimulationInput, runs = 400): MonteCarloRes
     // Each run uses the same base simulation but with stochastic annual returns
     const annualReturns = ages.map(() => randn(expectedReturn, sigma));
 
-    // 本計算と同じ: 企業型DC残高は投資資産に加算
+    // Same as the main calculation: the corporate DC balance is added to investment assets
     let savingsAssets = input.currentSavings;
     let investmentAssets = input.currentInvestmentAssets + (input.corporateDCBalance ?? 0);
 

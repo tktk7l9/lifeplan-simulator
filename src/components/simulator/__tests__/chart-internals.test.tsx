@@ -1,17 +1,17 @@
 /**
- * 各チャートの CustomTooltip / format ヘルパを直接 render してカバレッジを上げる。
- * recharts の Tooltip は jsdom ではマウス位置や payload を発火しないため、
- * react-renderer 用にエクスポートされた tooltip コンポーネントを内部参照で直接呼び出す。
+ * Renders each chart's CustomTooltip / format helpers directly to raise coverage.
+ * The recharts Tooltip does not fire mouse position or payload in jsdom, so
+ * we call the tooltip component exported for the react renderer directly via an internal reference.
  *
- * 各 *.tsx の Tooltip 要素は <Tooltip content={(props) => <CustomTooltip ... />} /> のため、
- * ここでは tooltip 描画を独立してテストするために、それぞれの module 内部の CustomTooltip
- * は export されていない。そこで、recharts を mock し、active=true payload 付きでレンダする。
+ * Each *.tsx Tooltip element is <Tooltip content={(props) => <CustomTooltip ... />} />, and
+ * to test tooltip rendering in isolation here, the CustomTooltip inside each module
+ * is not exported. So we mock recharts and render with active=true and a payload.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 import { render, screen } from "@testing-library/react";
 
-// recharts: Tooltip だけでなく、Chart コンテナも children をそのまま render する stub に差し替える
+// recharts: replace not only Tooltip but also the chart containers with stubs that render children as-is
 vi.mock("recharts", async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   const Passthrough = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
@@ -33,9 +33,9 @@ vi.mock("recharts", async (importOriginal) => {
     Legend: () => null,
     ReferenceLine: () => null,
     Cell: () => null,
-    // Tooltip: content が関数 or React 要素なら呼び出して描画
+    // Tooltip: if content is a function or a React element, call it and render
     Tooltip: ({ content }: { content?: unknown }) => {
-      // payload[i].payload に nested data も入れて MonteCarloChart 互換に
+      // Also put nested data into payload[i].payload for MonteCarloChart compatibility
       const sharedNested = {
         age: 40,
         p10: 100, p25: 200, p50: 300, p75: 400, p90: 25000,
@@ -129,22 +129,22 @@ describe("AssetChart CustomTooltip", () => {
         spouseAgeDiff={2}
       />,
     );
-    // 正の tooltip
+    // Positive tooltip
     const pos = screen.getByTestId("tt-positive");
     expect(pos.textContent).toContain("40歳");
     expect(pos.textContent).toMatch(/万円|億円/);
-    // 配偶者年齢ヒント表示
+    // Spouse age hint shown
     expect(pos.textContent).toContain("配偶者");
-    // 負の tooltip - text-red-500 含む
+    // Negative tooltip - includes text-red-500
     const neg = screen.getByTestId("tt-negative");
     expect(neg.querySelector(".text-red-500")).toBeTruthy();
-    // inactive は何も描画しない
+    // Inactive renders nothing
     const inactive = screen.getByTestId("tt-inactive");
     expect(inactive.textContent).toBe("");
   });
 
   it("億円フォーマット (10000 以上)", () => {
-    // formatYAxis / formatManYen の 10000+ 経路 を踏むため大きな data を用意
+    // Prepare large data to hit the 10000+ path of formatYAxis / formatManYen
     const big = makeYearlyData().map((d, i) => ({
       ...d,
       cumulativeAssets: 20000 + i * 1000,
@@ -152,7 +152,7 @@ describe("AssetChart CustomTooltip", () => {
       investmentAssets: 5000,
     } as YearlyData));
     render(<AssetChart data={big} retirementAge={65} />);
-    // テストは smoke だけ
+    // The test is smoke only
     expect(screen.getAllByTestId("rc").length).toBeGreaterThan(0);
   });
 
@@ -214,7 +214,7 @@ describe("MonteCarloChart fmt edge cases", () => {
       p90: 500,
     }));
     render(<MonteCarloChart data={data} retirementAge={65} failureProbability={15} />);
-    // Tooltip 内のラベルが表示される
+    // The label inside the Tooltip is shown
     expect(document.body.textContent).toContain("生存確率");
   });
 });

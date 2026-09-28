@@ -80,7 +80,7 @@ export function NenkinImportDialog({ onApply }: NenkinImportDialogProps) {
 
         {!result ? (
           <>
-            {/* ドロップゾーン */}
+            {/* Drop zone */}
             <div
               className={cn(
                 "mt-4 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
@@ -138,7 +138,7 @@ export function NenkinImportDialog({ onApply }: NenkinImportDialogProps) {
               </div>
             )}
 
-            {/* サマリー */}
+            {/* Summary */}
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-green-50 border border-green-200 p-4">
                 <p className="text-xs text-green-600 font-medium">加入月数</p>
@@ -163,7 +163,7 @@ export function NenkinImportDialog({ onApply }: NenkinImportDialogProps) {
               </div>
             </div>
 
-            {/* レコードテーブル */}
+            {/* Record table */}
             {result.records.length > 0 && (
               <div className="mt-4">
                 <p className="text-sm font-medium text-gray-700 mb-2">年金記録詳細</p>
@@ -211,7 +211,7 @@ export function NenkinImportDialog({ onApply }: NenkinImportDialogProps) {
               </div>
             )}
 
-            {/* アクション */}
+            {/* Actions */}
             <div className="mt-6 flex justify-between gap-3">
               <Button
                 variant="outline"

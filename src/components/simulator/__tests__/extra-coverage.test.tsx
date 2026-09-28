@@ -1,5 +1,5 @@
 /**
- * カバレッジ追加: Input ui / Saved drawer / SimulatorApp 遷移 / 結果チャート群を直接 render
+ * Extra coverage: render Input ui / Saved drawer / SimulatorApp transitions / result charts directly
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
@@ -161,7 +161,7 @@ describe("SavedSimulationsDrawer interactions", () => {
     await act(async () => { fireEvent.click(del); });
     const cancel = screen.getByText("キャンセル").closest("button")!;
     await act(async () => { fireEvent.click(cancel); });
-    // 削除されない
+    // Not deleted
     expect(useSimulationStore.getState().savedSimulations.length).toBe(1);
   });
 
@@ -187,15 +187,15 @@ describe("SimulatorApp transitions", () => {
   it("ステップ 6 → handleNext で calculate + setStep(7)", async () => {
     useSimulationStore.setState({ currentStep: 6 });
     await act(async () => { render(<SimulatorApp />); });
-    // 各 step に対応するフォーム submit ボタンを取る
+    // Get the form submit button for each step
     const submit = screen.queryByText(/次へ進む|次へ/);
     if (submit) {
       const btn = submit.closest("button");
       if (btn) await act(async () => { fireEvent.click(btn); });
     }
-    // calculate が呼ばれたかは result の有無で判定
+    // Whether calculate was called is judged by whether a result exists
     await waitFor(() => {
-      // result または step が 7 になっていれば OK
+      // OK if there is a result or step has become 7
       const s = useSimulationStore.getState();
       expect(s.currentStep === 7 || s.result != null).toBeTruthy();
     });
@@ -375,7 +375,7 @@ describe("DataTable direct render", () => {
     } as unknown as YearlyData));
     const input = useSimulationStore.getInitialState().input as SimulationInput;
     render(<DataTable data={data} input={input} />);
-    // 全行表示ボタンが見える場合はクリック
+    // Click the show-all-rows button if it is visible
     const all = screen.queryByText(/全期間|全行|すべて/);
     if (all) {
       const btn = all.closest("button");

@@ -432,7 +432,7 @@ export function ResultsView({ onBack }: Props) {
   // Preload both analyses immediately on mount so tabs show results on first click
   useEffect(() => {
     if (!result) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- マウント時に非同期プリロードを開始するための意図的なローディング状態設定
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional loading-state update to start an async preload on mount
     setMcLoading(true);
     import("@/lib/simulation/monteCarlo")
       .then(({ runMonteCarlo }) => setMonteCarloResult(runMonteCarlo({ ...input } as SimulationInput)))
@@ -476,23 +476,23 @@ export function ResultsView({ onBack }: Props) {
     ? `本人 ${result.pensionMonthly.toFixed(1)} + 配偶者 ${(result.spousePensionMonthly ?? 0).toFixed(1)} 万円/月`
     : `${result.pensionMonthly.toFixed(1)} 万円/月`;
 
-  // グラフアノテーション生成
+  // Build chart annotations
   const annotations: ChartAnnotation[] = [];
 
-  // 住宅購入
+  // Home purchase
   if (input.housingType === "buy" && (input.purchaseAge ?? 0) > currentAge) {
     annotations.push({ age: input.purchaseAge!, label: "住宅購入", color: "#3b82f6" });
   }
 
-  // 介護開始
+  // Nursing care start
   if (input.nursingCareStartAge && input.nursingCareStartAge > 0) {
     annotations.push({ age: input.nursingCareStartAge, label: "介護", color: "#dc2626" });
   }
 
-  // 配偶者退職
+  // Spouse retirement
   if (input.hasSpouse && (input.spouseAge ?? 0) > 0) {
     const spouseRetAge = input.spouseRetirementAge || retirementAge;
-    // 本人が何歳のときに配偶者が退職するか
+    // The user's age when the spouse retires
     const mainAgeAtSpouseRetirement = currentAge + (spouseRetAge - (input.spouseAge ?? currentAge));
     if (mainAgeAtSpouseRetirement > currentAge && mainAgeAtSpouseRetirement < 100
         && Math.abs(mainAgeAtSpouseRetirement - retirementAge) > 1) {
@@ -500,7 +500,7 @@ export function ResultsView({ onBack }: Props) {
     }
   }
 
-  // 子どものイベント（大学入学・独立）
+  // Child events (university entrance, independence)
   (input.children ?? []).forEach((child, idx) => {
     const n = (input.children ?? []).length > 1 ? `${idx + 1}` : "";
     const uniEntryAge = child.birthAge + 18;

@@ -160,7 +160,7 @@ export function InvestmentStep({ onNext }: Props) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
-        {/* ── マネーフォワード連携バナー ── */}
+        {/* ── MoneyForward import banner ── */}
         <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 flex items-center justify-between gap-4">
           <div>
             <p className="font-semibold text-sm text-blue-800">マネーフォワード ME CSV 連携</p>
@@ -265,7 +265,7 @@ export function InvestmentStep({ onNext }: Props) {
             />
           </div>
 
-          {/* つみたて枠 */}
+          {/* Tsumitate (installment) allowance */}
           <FormField
             control={form.control}
             name="nisaAccumulationMonthly"
@@ -303,7 +303,7 @@ export function InvestmentStep({ onNext }: Props) {
             )}
           />
 
-          {/* 成長投資枠 */}
+          {/* Growth investment allowance */}
           <FormField
             control={form.control}
             name="nisaGrowthMonthly"
@@ -403,7 +403,7 @@ export function InvestmentStep({ onNext }: Props) {
 
         <Separator />
 
-        {/* 小規模企業共済 */}
+        {/* Small Business Mutual Aid (小規模企業共済) */}
         <div className="space-y-5">
           <div className="flex items-center gap-2">
             <h2 className="font-semibold text-foreground">小規模企業共済</h2>

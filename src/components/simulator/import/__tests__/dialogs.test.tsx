@@ -1,12 +1,12 @@
 /**
- * Import dialogs の smoke test
+ * Smoke test for the import dialogs
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
 import { MoneyForwardImportDialog } from "../MoneyForwardImportDialog";
 import { NenkinImportDialog } from "../NenkinImportDialog";
 
-// readFileAsText を mock
+// Mock readFileAsText
 vi.mock("@/lib/import/moneyforwardCSV", async (importOriginal) => {
   const actual: Record<string, unknown> = await importOriginal();
   return {
@@ -32,7 +32,7 @@ vi.mock("@/lib/import/nenkinCSV", async (importOriginal) => {
 describe("MoneyForwardImportDialog", () => {
   it("ボタンを表示", () => {
     render(<MoneyForwardImportDialog onApply={() => {}} />);
-    // CSV インポートのトリガーボタン
+    // Trigger button for CSV import
     expect(screen.getAllByRole("button").length).toBeGreaterThan(0);
   });
 
@@ -47,14 +47,14 @@ describe("MoneyForwardImportDialog", () => {
     const onApply = vi.fn();
     render(<MoneyForwardImportDialog onApply={onApply} />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
-    // dialog 内の file input を探す
+    // Find the file input inside the dialog
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement | null;
     if (fileInput) {
       const file = new File(["dummy"], "data.csv", { type: "text/csv" });
       await act(async () => {
         fireEvent.change(fileInput, { target: { files: [file] } });
       });
-      // パース後に結果が表示される
+      // The result is shown after parsing
       await waitFor(() => {
         const buttons = screen.getAllByRole("button");
         expect(buttons.length).toBeGreaterThan(1);

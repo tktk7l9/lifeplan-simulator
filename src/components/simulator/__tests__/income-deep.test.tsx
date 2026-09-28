@@ -1,5 +1,5 @@
 /**
- * IncomeStep の各分岐を深掘り
+ * Digs into each branch of IncomeStep
  */
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
@@ -62,7 +62,7 @@ describe("IncomeStep: 切替トグル", () => {
     const toggles = screen.getAllByRole("switch");
     if (toggles.length > 0) {
       act(() => { fireEvent.click(toggles[0]); });
-      // 副業フィールド表示が変わる
+      // The side-job field display changes
       expect(toggles[0]).toBeTruthy();
     }
   });
@@ -115,9 +115,9 @@ describe("IncomeStep: 配偶者あり", () => {
 describe("IncomeStep: 年収の派生表示", () => {
   it("年収から月額換算と手取り推計を導出して表示する", () => {
     render(<IncomeStep onNext={onNext} />);
-    // 既定 annualIncome=500万 → 月額換算 500/12 = 41.7万円/月
+    // Default annualIncome = 500 (5M yen) → monthly 500/12 = 41.7 (10k yen)/month
     expect(screen.getByText("41.7万円/月")).toBeTruthy();
-    // 手取り推計は額面より小さい正の値（ラベルと値の取り違えを捕まえる）
+    // Estimated take-home is a positive value smaller than the gross (catches a label/value mix-up)
     const net = screen
       .getAllByText(/万円\/月$/)
       .map((el) => Number(el.textContent!.replace("万円/月", "")))

@@ -1,11 +1,11 @@
 /**
- * opengraph-image.tsx の test
+ * Test for opengraph-image.tsx
  */
 import { describe, it, expect, vi } from "vitest";
 import type React from "react";
 
-// next/og の ImageResponse を mock (jsdom では実体動作しない)
-// vitest 4 では vi.fn().mockImplementation はコンストラクタとして動作しないため class を返す
+// Mock ImageResponse from next/og (it does not really work in jsdom)
+// In vitest 4, vi.fn().mockImplementation does not work as a constructor, so return a class
 vi.mock("next/og", () => ({
   ImageResponse: class {
     element: React.ReactNode;

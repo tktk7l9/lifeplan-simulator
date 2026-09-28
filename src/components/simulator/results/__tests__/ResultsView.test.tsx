@@ -1,5 +1,5 @@
 /**
- * ResultsView: 計算結果がある状態で全タブを描画
+ * ResultsView: render every tab with a calculation result present
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act, fireEvent } from "@testing-library/react";
@@ -32,16 +32,16 @@ beforeEach(() => {
 describe("ResultsView", () => {
   it("結果概要を表示 (タブ + チャート)", async () => {
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
-    // タブのいずれかが見える
+    // One of the tabs is visible
     expect(screen.getAllByRole("tab").length).toBeGreaterThan(0);
   });
 
   it("「年別データ」タブをクリックすると年別データ表に切り替わる", async () => {
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
-    // 初期タブ（資産推移）では年別データ表は出ていない
+    // The initial tab (asset history) does not show the yearly data table
     expect(screen.queryByText("年別データ表")).toBeNull();
     const tab = screen.getByRole("tab", { name: "年別データ" });
-    // Radix Tabs は onMouseDown で切り替わる（click では何も起きない）
+    // Radix Tabs switches on onMouseDown (click does nothing)
     await act(async () => { fireEvent.mouseDown(tab); });
     expect(screen.getByText("年別データ表")).toBeTruthy();
     expect(tab.getAttribute("data-state")).toBe("active");

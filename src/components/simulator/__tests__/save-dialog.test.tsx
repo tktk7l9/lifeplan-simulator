@@ -1,5 +1,5 @@
 /**
- * ResultsView 内 SaveDialog のフルフロー + 印刷ボタン + 各タブ切替後の表示
+ * Full flow of SaveDialog in ResultsView + print button + display after switching each tab
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
@@ -40,18 +40,18 @@ describe("SaveDialog full flow", () => {
     // SaveDialog trigger
     const trigger = screen.getByText(/シミュレーションを保存/).closest("button")!;
     await act(async () => { fireEvent.click(trigger); });
-    // 入力欄が現れる
+    // The input field appears
     const input = await screen.findByPlaceholderText(/楽観シナリオ/);
     await act(async () => { fireEvent.change(input, { target: { value: "シナリオA" } }); });
-    // 保存ボタン
+    // Save button
     const saveBtn = screen.getAllByText(/保存する/).find((el) => el.tagName === "BUTTON")!;
     await act(async () => { fireEvent.click(saveBtn); });
     await waitFor(() => {
       expect(useSimulationStore.getState().savedSimulations.length).toBe(1);
     });
-    // 「保存しました！」表示
+    // "保存しました！" is shown
     expect(screen.getAllByText(/保存しました/).length).toBeGreaterThan(0);
-    // 1.2s 後にダイアログが閉じる
+    // The dialog closes after 1.2s
     await act(async () => { vi.advanceTimersByTime(1300); });
   });
 
@@ -81,9 +81,9 @@ describe("SaveDialog full flow", () => {
     const trigger = screen.getByText(/シミュレーションを保存/).closest("button")!;
     await act(async () => { fireEvent.click(trigger); });
     const input = await screen.findByPlaceholderText(/楽観シナリオ/);
-    // 空白だけ
+    // Whitespace only
     await act(async () => { fireEvent.change(input, { target: { value: "   " } }); });
-    // 保存ボタンは disabled (trim().length === 0)
+    // The save button is disabled (trim().length === 0)
     const saveBtn = screen.getAllByText(/保存する/).find((el) => el.tagName === "BUTTON") as HTMLButtonElement;
     expect(saveBtn.disabled).toBe(true);
   });
@@ -105,11 +105,11 @@ describe("SaveDialog full flow", () => {
     await act(async () => { fireEvent.click(trigger); });
     const input = await screen.findByPlaceholderText(/楽観シナリオ/) as HTMLInputElement;
     await act(async () => { fireEvent.change(input, { target: { value: "X" } }); });
-    // ESC キーで閉じる (radix dialog 標準動作)
+    // Close with the ESC key (standard radix dialog behavior)
     await act(async () => {
       fireEvent.keyDown(document.body, { key: "Escape" });
     });
-    // 閉じたのでダイアログの入力欄が外れている（保存もされていない）
+    // It closed, so the dialog's input field is gone (and nothing was saved)
     expect(screen.queryByPlaceholderText(/楽観シナリオ/)).toBeNull();
     expect(useSimulationStore.getState().savedSimulations).toHaveLength(0);
   });

@@ -1,13 +1,13 @@
 /**
- * ResultsView の各分岐をカバー:
- * - 配偶者あり + 配偶者退職年齢の annotation
- * - 子どもあり (大学入学・独立 annotation)
- * - 住宅購入予定 (annotation)
- * - 介護開始あり (annotation)
- * - retirementAssets/finalAssets が負
+ * Covers each branch of ResultsView:
+ * - has spouse + spouse retirement age annotation
+ * - has children (university entrance / independence annotations)
+ * - planned home purchase (annotation)
+ * - nursing care start (annotation)
+ * - retirementAssets/finalAssets are negative
  * - isCalculating / result null
- * - 保存ダイアログの開閉と保存
- * - 印刷ボタン
+ * - opening/closing the save dialog and saving
+ * - print button
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
@@ -149,13 +149,13 @@ describe("ResultsView annotation branches", () => {
     useSimulationStore.getState().calculate();
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
     const scenarioTab = screen.getByRole("tab", { name: /シナリオ比較/ });
-    // Radix Tabs は pointerdown ベースなので mouseDown + click
+    // Radix Tabs is pointerdown based, so mouseDown + click
     await act(async () => {
       fireEvent.pointerDown(scenarioTab, { button: 0, pointerType: "mouse" });
       fireEvent.mouseDown(scenarioTab);
       fireEvent.click(scenarioTab);
     });
-    // テキスト全体マッチに失敗する可能性があるので、HTML文字列でチェック
+    // Matching the whole text may fail, so check the HTML string
     await waitFor(() => {
       const body = document.body.innerHTML;
       expect(body).toMatch(/保守ケース|楽観ケース|標準ケース/);
@@ -165,7 +165,7 @@ describe("ResultsView annotation branches", () => {
   it("モンテカルロタブ → 感度分析タブへ切り替わる", async () => {
     useSimulationStore.getState().calculate();
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
-    // Radix Tabs は onMouseDown で切り替わる（click では何も起きない）
+    // Radix Tabs switches on onMouseDown (click does nothing)
     const mc = screen.getByRole("tab", { name: /モンテカルロ/ });
     await act(async () => { fireEvent.mouseDown(mc); });
     expect(screen.getByText("モンテカルロシミュレーション")).toBeTruthy();
@@ -173,7 +173,7 @@ describe("ResultsView annotation branches", () => {
     const sens = screen.getByRole("tab", { name: /感度分析/ });
     await act(async () => { fireEvent.mouseDown(sens); });
     expect(screen.getByText("感度分析（トルネードチャート）")).toBeTruthy();
-    // 切り替えたので前のパネルは外れている
+    // We switched, so the previous panel is gone
     expect(screen.queryByText("モンテカルロシミュレーション")).toBeNull();
   });
 });

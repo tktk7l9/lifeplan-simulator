@@ -97,7 +97,7 @@ describe("parseNenkinCSV", () => {
       "厚生年金,A,令和2年1月,令和3年12月,250000,",
     ].join("\n");
     const r = parseNenkinCSV(csv);
-    expect(r.records[0].months).toBe(24); // 2020/01 → 2021/12 = 24ヶ月
+    expect(r.records[0].months).toBe(24); // 2020/01 → 2021/12 = 24 months
   });
 
   it("金額文字列: カンマ・全角カンマ・円記号を除去", () => {
@@ -128,7 +128,7 @@ describe("parseNenkinCSV", () => {
       "厚生年金,A,令和2年1月,令和3年12月,250000,abc",
     ].join("\n");
     const r = parseNenkinCSV(csv);
-    expect(r.records[0].months).toBe(24); // 日付から計算
+    expect(r.records[0].months).toBe(24); // computed from the dates
   });
 
   it("全空行はスキップ", () => {
@@ -179,7 +179,7 @@ describe("parseNenkinCSV", () => {
   });
 
   it("特定カラム (標準報酬月額/月数) が無いヘッダーでも parse できる", () => {
-    // 該当カラムが無く findCol が -1 を返す経路を発火
+    // Hit the path where the column is missing and findCol returns -1
     const csv = [
       "種別,勤務先,資格取得,資格喪失",
       "厚生年金,A,令和2年1月,令和3年12月",
@@ -187,7 +187,7 @@ describe("parseNenkinCSV", () => {
     const r = parseNenkinCSV(csv);
     expect(r.records).toHaveLength(1);
     expect(r.records[0].standardMonthly).toBe(0);
-    expect(r.records[0].months).toBe(24); // 日付計算で埋まる
+    expect(r.records[0].months).toBe(24); // filled by the date calculation
   });
 
   it("勤務先が空なら '不明' で埋める", () => {
@@ -213,7 +213,7 @@ describe("readFileAsText", () => {
   });
 
   it("文字化けを検出して Shift-JIS フォールバック (FileReader 経由)", async () => {
-    // FileReader を node 環境でモック
+    // Mock FileReader in the node environment
     const decoded = "種別,勤務先\n厚生年金,テスト";
     class MockFR {
       result: string | null = null;
@@ -227,7 +227,7 @@ describe("readFileAsText", () => {
     const orig = (globalThis as { FileReader?: unknown }).FileReader;
     (globalThis as { FileReader?: unknown }).FileReader = MockFR as unknown as typeof FileReader;
     try {
-      // 0x80-0x9F を含む文字列 → UTF-8 経路でテスト失敗 → Shift-JIS へ
+      // A string containing 0x80-0x9F → the UTF-8 path fails the check → falls back to Shift-JIS
       const f = new File([new Uint8Array([0x83, 0x8c])], "x.csv");
       const out = await readFileAsText(f);
       expect(out).toBe(decoded);
@@ -272,7 +272,7 @@ describe("readFileAsText", () => {
     (globalThis as { FileReader?: unknown }).FileReader = MockFR as unknown as typeof FileReader;
     try {
       const f = new File(["x"], "x.csv");
-      // text() を強制的に reject させる
+      // Force text() to reject
       Object.defineProperty(f, "text", { value: () => Promise.reject(new Error("boom")) });
       const out = await readFileAsText(f);
       expect(out).toBe(decoded);

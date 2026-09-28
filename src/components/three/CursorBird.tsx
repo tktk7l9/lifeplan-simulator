@@ -81,7 +81,7 @@ export function CursorBird() {
     };
   }, []);
 
-  // Wing paths — シマエナガ rounded wing feathers
+  // Wing paths — rounded wing feathers of a long-tailed tit (Shima-enaga)
   const scaleX = flip ? -1 : 1;
   const wUp = wingAngle * 0.6;
 
@@ -311,7 +311,7 @@ export function CursorBird() {
         )}
 
         {/* ── Feet (only when nearly still) ── */}
-        {/* eslint-disable-next-line react-hooks/refs -- アニメーションループのmutable状態(ref)を描画判定に使う意図的パターン */}
+        {/* eslint-disable-next-line react-hooks/refs -- intentional pattern: uses the animation loop's mutable state (ref) to decide what to render */}
         {physics.current.speed < 1.5 && action === "idle" && (
           <g stroke="#d4900e" strokeWidth="1.2" strokeLinecap="round" opacity="0.7">
             <line x1="-4" y1="14" x2="-6" y2="20" />

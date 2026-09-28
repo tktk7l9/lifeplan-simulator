@@ -1,5 +1,5 @@
 /**
- * Results 系コンポーネントの smoke test
+ * Smoke test for the Results components
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render } from "@testing-library/react";

@@ -1,10 +1,10 @@
 /**
- * Import dialogs の追加カバレッジ:
- * - drag/drop イベント
- * - 「やり直す」ボタン
- * - 「シミュレーターに反映する」ボタン → onApply
- * - エラー表示
- * - チェックボックス toggle (MoneyForward の include/exclude)
+ * Extra coverage for the import dialogs:
+ * - drag/drop events
+ * - the 「やり直す」 button
+ * - the 「シミュレーターに反映する」 button → onApply
+ * - error display
+ * - checkbox toggle (MoneyForward include/exclude)
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
@@ -48,7 +48,7 @@ describe("MoneyForwardImportDialog deep", () => {
     const onApply = vi.fn();
     render(<MoneyForwardImportDialog onApply={onApply} />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
-    // ドロップゾーンを取得 (border-dashed 含む div)
+    // Get the drop zone (the div containing border-dashed)
     const dropzone = document.querySelector(".border-dashed") as HTMLElement;
     expect(dropzone).toBeTruthy();
     await act(async () => { fireEvent.dragOver(dropzone); });
@@ -58,7 +58,7 @@ describe("MoneyForwardImportDialog deep", () => {
       fireEvent.drop(dropzone, { dataTransfer: { files: [file] } });
     });
     await waitFor(() => {
-      // 結果表示エリアが出る (口座名 etc)
+      // The result area appears (account names etc.)
       expect(document.body.textContent).toMatch(/口座|銀行|預貯金/);
     });
   });

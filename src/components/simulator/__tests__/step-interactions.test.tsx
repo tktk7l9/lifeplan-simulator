@@ -1,10 +1,10 @@
 /**
- * 各ステップのフォーム操作・ボタンクリックを発火させてカバレッジを引き上げる。
- * - HousingStep: rent/buy/own の各分岐 + ローン計算サマリー
+ * Fires form operations and button clicks on each step to raise coverage.
+ * - HousingStep: rent/buy/own branches + loan calculation summary
  * - LifeEventsStep: addEvent / removeEvent / updateEvent / handleNext
- * - InsuranceStep: 介護年齢 / 年齢別支出カーブ / submit
- * - ExpenseStep: rent モード時の家賃フィールド表示と submit
- * - InvestmentStep: NISA/iDeCo 商品選択 + submit + マネフォ取り込み
+ * - InsuranceStep: nursing care age / age-based spending curve / submit
+ * - ExpenseStep: rent field shown in rent mode, and submit
+ * - InvestmentStep: NISA/iDeCo product selection + submit + MoneyForward import
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
@@ -54,11 +54,11 @@ describe("HousingStep interactions", () => {
     render(<HousingStep onNext={() => {}} />);
     await act(async () => { fireEvent.click(screen.getByText("購入").closest("button")!); });
     const inputs = document.querySelectorAll('input[type="number"]') as NodeListOf<HTMLInputElement>;
-    // 物件価格 (4000) の input を探す
+    // Find the input for the property price (4000)
     const price = Array.from(inputs).find((i) => Number(i.value) === 4000);
     if (price) {
       await act(async () => { fireEvent.change(price, { target: { value: "5000" } }); });
-      // 同じ input の value が変化
+      // The value of the same input changes
     }
     expect(inputs.length).toBeGreaterThan(0);
   });
@@ -70,7 +70,7 @@ describe("HousingStep interactions", () => {
   });
 
   it("賃貸を選ぶと賃貸用ヒントが見える", async () => {
-    // 初期 = rent
+    // Initial = rent
     render(<HousingStep onNext={() => {}} />);
     expect(screen.getAllByText(/支出.*ステップ|家賃/).length).toBeGreaterThan(0);
   });
@@ -96,20 +96,20 @@ describe("LifeEventsStep interactions", () => {
     render(<LifeEventsStep onNext={() => {}} />);
     const addBtn = screen.getByText("イベントを追加").closest("button")!;
     await act(async () => { fireEvent.click(addBtn); });
-    // 追加されたイベントは その他 (= 既存の "その他" がない場合)
+    // The added event is その他 (when there is no existing "その他")
     expect(screen.getAllByText(/その他/).length).toBeGreaterThan(0);
   });
 
   it("イベント削除ボタンで件数 -1", async () => {
     render(<LifeEventsStep onNext={() => {}} />);
-    // 削除ボタン (X svg) を取得
+    // Get the delete button (X svg)
     const buttons = document.querySelectorAll("button");
     const removeButtons = Array.from(buttons).filter((b) =>
       b.querySelector('svg line[x1="18"]'),
     );
     expect(removeButtons.length).toBeGreaterThan(0);
     await act(async () => { fireEvent.click(removeButtons[0]); });
-    // 削除されると残り 1件のはず
+    // After deletion, 1 item should remain
     expect(screen.queryAllByText(/結婚式|マイカー購入/).length).toBeLessThan(3);
   });
 

@@ -13,7 +13,7 @@ describe("投資商品マスタ定数", () => {
   });
 });
 
-// 共通の最小入力（テストごとに override する）
+// Common minimal input (overridden per test)
 function baseInput(overrides: Partial<SimulationInput> = {}): SimulationInput {
   return {
     age: 30,
@@ -83,7 +83,7 @@ describe("calcNetIncome", () => {
   });
 
   it("会社員 年収500万円・30歳: 手取りは現在ロジックの値域内", () => {
-    // 手取りは概ね 380〜410 万円 (税+社保 ~18〜24%)
+    // Take-home is roughly 3.8–4.1M yen (tax + social insurance ~18–24%)
     const net = calcNetIncome(500, "employee", 30);
     expect(net).toBeGreaterThan(370);
     expect(net).toBeLessThan(420);
@@ -93,14 +93,14 @@ describe("calcNetIncome", () => {
     const under40 = calcNetIncome(600, "employee", 39);
     const over40  = calcNetIncome(600, "employee", 40);
     expect(over40).toBeLessThan(under40);
-    // 差は社保負担0.91%相当（≒5〜7万円）
+    // The difference equals the 0.91% social insurance share (≈ 50–70k yen)
     expect(under40 - over40).toBeGreaterThan(3);
     expect(under40 - over40).toBeLessThan(10);
   });
 
   it("iDeCo掛金は所得控除されるため手取りが増える", () => {
     const noIdeco   = calcNetIncome(600, "employee", 30, 0);
-    const withIdeco = calcNetIncome(600, "employee", 30, 2.3); // 月2.3万円
+    const withIdeco = calcNetIncome(600, "employee", 30, 2.3); // 23k yen/month
     expect(withIdeco).toBeGreaterThan(noIdeco);
   });
 });
@@ -111,7 +111,7 @@ describe("calcFreelanceOfficerNetIncome", () => {
   });
 
   it("フリーランス収入のみは calcNetIncome(freelance) と概ね一致範囲", () => {
-    // 完全一致は社保計算ロジックが微妙に異なるため近似比較
+    // Exact equality fails because the social insurance logic differs slightly, so compare approximately
     const v = calcFreelanceOfficerNetIncome(500, 0, 35);
     expect(v).toBeGreaterThan(380);
     expect(v).toBeLessThan(470);
@@ -155,7 +155,7 @@ describe("runSimulation: 構造的不変条件", () => {
   it("年金月額は 0 以上で受給可能な水準", () => {
     const r = runSimulation(baseInput());
     expect(r.pensionMonthly).toBeGreaterThan(0);
-    expect(r.pensionMonthly).toBeLessThan(40); // 万円/月
+    expect(r.pensionMonthly).toBeLessThan(40); // 10k yen/month
   });
 
   it("投資なしでも投資資産は非負（最初の月で +0 されるだけ）", () => {
@@ -164,7 +164,7 @@ describe("runSimulation: 構造的不変条件", () => {
   });
 
   it("購入時の頭金は貯蓄から差し引かれる", () => {
-    // 頭金影響を観測できるよう手元資金を厚めに与える（baseInput は 200万円）
+    // Give ample cash on hand so the down payment's effect is observable (baseInput has 2M yen)
     const opts = {
       currentSavings: 2000,
       annualIncome: 800,
@@ -185,17 +185,17 @@ describe("runSimulation: 構造的不変条件", () => {
     );
     const rentAt35 = rentR.yearlyData.find((d) => d.age === 35)!;
     const buyAt35  = buyR.yearlyData.find((d) => d.age === 35)!;
-    // 購入年は頭金分だけ資産が削られる → cumulativeAssets は rent より小さい
+    // In the purchase year assets drop by the down payment → cumulativeAssets is smaller than with rent
     expect(buyAt35.cumulativeAssets).toBeLessThan(rentAt35.cumulativeAssets);
   });
 
   it("NISA枠1800万に達した時に notes に上限到達メッセージが入る", () => {
-    // 月15万 × 12 × 10年 = 1800 でちょうど枠到達
+    // 150k yen/month × 12 × 10 years = 1800 (10k yen), exactly reaching the cap
     const r = runSimulation(
       baseInput({
         nisaAccumulationMonthly: 15,
         nisaGrowthMonthly: 0,
-        annualIncome: 1500, // 拠出原資を確保
+        annualIncome: 1500, // secure the contribution funds
       })
     );
     expect(r.notes.some((n) => n.includes("NISA"))).toBe(true);
@@ -209,8 +209,8 @@ describe("runSimulation: 構造的不変条件", () => {
 });
 
 describe("runSimulation: 現状ロック (snapshot 的)", () => {
-  // 計算ロジック変更を意図せず壊さないための「現在値」を固定。
-  // 桁が大きく変わるような値変化は意図された場合のみ更新する。
+  // Pin the "current values" so calculation logic changes do not break things unintentionally.
+  // Update only when a change that shifts values by orders of magnitude is intended.
   it("健全ケース（年収800・支出20・投資3万/月）で 65歳時点プラス資産", () => {
     const r = runSimulation(
       baseInput({
@@ -227,7 +227,7 @@ describe("runSimulation: 現状ロック (snapshot 的)", () => {
 
   it("生涯総収入は税後・現役35年の現実レンジ内 (年収500万ケース)", () => {
     const r = runSimulation(baseInput());
-    // 税後手取り ~400万 × 35年 + 退職後年金35年 → 概ね 1.5〜2.5万 万円
+    // After-tax take-home ~4M yen × 35 years + 35 years of pension after retirement → roughly 150–250M yen
     expect(r.totalIncome).toBeGreaterThan(10000);
     expect(r.totalIncome).toBeLessThan(25000);
   });

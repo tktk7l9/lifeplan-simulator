@@ -1,11 +1,11 @@
 /**
- * サイトの正規 URL の既定値。
+ * Default canonical URL of the site.
  *
- * metadataBase / OGP がここを参照する。NEXT_PUBLIC_SITE_URL が設定されていれば
- * そちらが優先される（ビルド時にインライン化される点に注意）。
+ * metadataBase / OGP read this. If NEXT_PUBLIC_SITE_URL is set, it takes
+ * precedence (note that it is inlined at build time).
  *
- * 2026-08-16 に Vercel (lifeplan-simulator.vercel.app) から Cloudflare Workers
- * へ移行。Vercel 側は Fair Use 超過でアカウントごと 402 になっており、旧 URL を
- * canonical に残すと死んだページを正規扱いさせてしまう。
+ * Migrated from Vercel (lifeplan-simulator.vercel.app) to Cloudflare Workers
+ * on 2026-08-16. The Vercel account returns 402 across the board after exceeding Fair Use, so
+ * keeping the old URL as canonical would make a dead page the canonical one.
  */
 export const SITE_URL = "https://lifeplan-simulator.saitotakuya0719.workers.dev";

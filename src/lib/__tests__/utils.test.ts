@@ -12,7 +12,7 @@ describe("cn", () => {
     expect(cn({ foo: true, bar: false })).not.toContain("bar");
   });
   it("Tailwind の衝突するクラスは後勝ち", () => {
-    // p-2 と p-4 が両方あれば twMerge により後者だけ残る
+    // With both p-2 and p-4, twMerge keeps only the latter
     expect(cn("p-2", "p-4")).toBe("p-4");
   });
 });
