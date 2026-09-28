@@ -144,6 +144,16 @@ describe("saved simulations: undo instead of confirm, delete kept apart (SHIG 57
     expect(useSimulationStore.getState().savedSimulations.map((s) => s.id)).toEqual(["a", "b"]);
   });
 
+  it("moves keyboard focus to 元に戻す when the pressed delete button disappears", async () => {
+    useSimulationStore.setState({ savedSimulations: [makeSim("a"), makeSim("b")] });
+    render(<SavedSimulationsDrawer />);
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /保存済み/ })); });
+    const del = screen.getByRole("button", { name: "保存-aを削除" });
+    del.focus();
+    await act(async () => { fireEvent.click(del); });
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "元に戻す" }));
+  });
+
   it("the delete button is not in the same row as 読み込む", async () => {
     useSimulationStore.setState({ savedSimulations: [makeSim("a")] });
     render(<SavedSimulationsDrawer />);
@@ -178,6 +188,40 @@ describe("start over with undo (SHIG 38, 54, 60)", () => {
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "元に戻す" })); });
     expect(useSimulationStore.getState().input.monthlyLivingExpense).toBe(42);
     expect(useSimulationStore.getState().currentStep).toBe(2);
+  });
+});
+
+describe("step forms never show values other than the store's (SHIG 38, 54)", () => {
+  it("resetting on the first step clears the visible form, and undo brings it back", async () => {
+    await act(async () => { render(<SimulatorApp />); });
+    await act(async () => { fireEvent.click(screen.getByRole("radio", { name: "女性" })); });
+    expect(useSimulationStore.getState().input.gender).toBe("female");
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "最初からやり直す" })); });
+    expect(useSimulationStore.getState().input.gender).toBe("male");
+    expect(screen.getByRole("radio", { name: "男性" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: "女性" }).getAttribute("aria-checked")).toBe("false");
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "元に戻す" })); });
+    expect(useSimulationStore.getState().input.gender).toBe("female");
+    expect(screen.getByRole("radio", { name: "女性" }).getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("a form mounted before rehydration shows the persisted input afterwards", async () => {
+    await act(async () => { render(<SimulatorApp />); });
+    expect(screen.getByRole("radio", { name: "男性" }).getAttribute("aria-checked")).toBe("true");
+    const persisted = {
+      state: {
+        savedSimulations: [],
+        input: { ...useSimulationStore.getInitialState().input, gender: "female", hasSpouse: true },
+        currentStep: 0,
+        result: null,
+        resultKey: null,
+      },
+      version: 0,
+    };
+    localStorage.setItem("lifeplan-simulator-store", JSON.stringify(persisted));
+    await act(async () => { await useSimulationStore.persist.rehydrate(); });
+    expect(screen.getByRole("radio", { name: "女性" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: "あり" }).getAttribute("aria-checked")).toBe("true");
   });
 });
 

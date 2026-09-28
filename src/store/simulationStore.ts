@@ -21,6 +21,12 @@ interface SimulationStore {
   result: SimulationResult | null;
   /** Serialized input the current result was computed from. */
   resultKey: string | null;
+  /**
+   * Bumped whenever the whole input is replaced from outside the forms (load, reset,
+   * undo, rehydration). Step forms are keyed on it so they re-read the store instead
+   * of showing, and later writing back, stale values.
+   */
+  sessionId: number;
   isCalculating: boolean;
   savedSimulations: SavedSimulation[];
   aiEvaluation: AIEvaluation | null;
@@ -182,6 +188,7 @@ export const useSimulationStore = create<SimulationStore>()(
       input: defaultInput,
       result: null,
       resultKey: null,
+      sessionId: 0,
       isCalculating: false,
       savedSimulations: [],
       aiEvaluation: null,
@@ -237,6 +244,7 @@ export const useSimulationStore = create<SimulationStore>()(
           resultKey: inputKey(sim.input),
           aiEvaluation: null,
           currentStep: RESULT_STEP,
+          sessionId: state.sessionId + 1,
         });
         return previous;
       },
@@ -261,11 +269,18 @@ export const useSimulationStore = create<SimulationStore>()(
 
       resetInput: () => {
         const previous = snapshotOf(get());
-        set({ input: defaultInput, result: null, resultKey: null, aiEvaluation: null, currentStep: 0 });
+        set((state) => ({
+          input: defaultInput,
+          result: null,
+          resultKey: null,
+          aiEvaluation: null,
+          currentStep: 0,
+          sessionId: state.sessionId + 1,
+        }));
         return previous;
       },
 
-      restoreSession: (snapshot) => set({ ...snapshot }),
+      restoreSession: (snapshot) => set((state) => ({ ...snapshot, sessionId: state.sessionId + 1 })),
 
       setAiEvaluation: (evaluation) => set({ aiEvaluation: evaluation }),
     }),
@@ -278,6 +293,13 @@ export const useSimulationStore = create<SimulationStore>()(
         currentStep: state.currentStep,
         result: state.result,
         resultKey: state.resultKey,
+      }),
+      // During hydration React renders the pre-rehydration state; bumping the id makes a
+      // form mounted in that pass remount with the persisted input.
+      merge: (persisted, current) => ({
+        ...current,
+        ...(persisted as Partial<SimulationStore>),
+        sessionId: current.sessionId + 1,
       }),
     }
   )

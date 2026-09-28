@@ -280,7 +280,7 @@ function MobileTrailBar({ currentStep, onJumpTo }: { currentStep: number; onJump
 
 /* ── Main ────────────────────────────────────────────────── */
 export function SimulatorApp() {
-  const { currentStep, setStep, resetInput, restoreSession } = useSimulationStore();
+  const { currentStep, sessionId, setStep, resetInput, restoreSession } = useSimulationStore();
 
   const isResultStep = currentStep === RESULT_STEP;
   const StepComponent = !isResultStep && currentStep < STEP_COMPONENTS.length
@@ -383,7 +383,7 @@ export function SimulatorApp() {
 
               {/* Step content */}
               <div className="p-4 sm:p-6">
-                {StepComponent && <StepComponent onNext={handleNext} />}
+                {StepComponent && <StepComponent key={sessionId} onNext={handleNext} />}
               </div>
 
               {/* Navigation */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SavedSimulation } from "@/lib/simulation/types";
 import { TOAST_DURATION_MS } from "@/components/ui/undo-toast";
 import { useSimulationStore } from "@/store/simulationStore";
@@ -35,6 +35,13 @@ export function SavedSimulationsDrawer() {
   // Undo for a delete is shown inside the dialog, next to the list it changed (SHIG 66);
   // a page-level toast would sit behind the modal.
   const [lastDeleted, setLastDeleted] = useState<{ sim: SavedSimulation; index: number } | null>(null);
+
+  // The pressed delete button is gone with its row; hand keyboard focus to the undo
+  // button instead of letting it fall back to the dialog container.
+  const undoRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (lastDeleted) undoRef.current?.focus();
+  }, [lastDeleted]);
 
   useEffect(() => {
     if (!lastDeleted) return;
@@ -101,6 +108,7 @@ export function SavedSimulationsDrawer() {
             <div className="flex items-center justify-between gap-3 rounded-lg bg-stone-900 px-3 py-1 text-sm text-white">
               <span className="min-w-0 truncate">「{lastDeleted.sim.name}」を削除しました</span>
               <button
+                ref={undoRef}
                 type="button"
                 onClick={handleUndoDelete}
                 className="min-h-11 shrink-0 px-2 font-semibold text-amber-300 underline-offset-2 hover:underline"
