@@ -1,10 +1,10 @@
 /**
- * Landing / illustrations / three ラッパの回帰ガード。
+ * Regression guard for Landing / illustrations / three wrappers.
  *
- * これらは描画結果を検証できない（R3F は jsdom で描かれず、SVG は見た目そのもの）ため、
- * 担保できるのは「マウントが投げない」までと割り切る。同じ主張を 9 本に分けても
- * 捕まえられるものは増えないので、マウントは it.each 1 本に畳んである。
- * children を通すもの（LandingReveal / BirdHoverZone）は中身を主張できるので分けて書く。
+ * Their rendered output cannot be verified (R3F does not draw in jsdom, and SVG is the visuals themselves),
+ * so all we can assert is "mounting does not throw". Splitting that same claim into 9 tests
+ * would not catch anything more, so the mounts are folded into a single it.each.
+ * Components that pass children through (LandingReveal / BirdHoverZone) can assert their contents, so they are written separately.
  */
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";

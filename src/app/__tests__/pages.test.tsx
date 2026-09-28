@@ -1,17 +1,17 @@
 /**
- * Next.js pages / layouts の smoke test
+ * Smoke test for Next.js pages / layouts
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-// next/link を mock
+// Mock next/link
 vi.mock("next/link", () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => (
     <a href={href}>{children}</a>
   ),
 }));
 
-// next/headers / metadata 系
+// next/headers / metadata related
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
 }));
@@ -22,7 +22,7 @@ vi.mock("next/font/google", () => ({
   Noto_Sans_JP: () => ({ variable: "--font-noto", className: "noto" }),
 }));
 
-// SimulatorApp は重いので stub
+// SimulatorApp is heavy, so stub it
 vi.mock("@/components/simulator/SimulatorApp", () => ({
   SimulatorApp: () => <div data-testid="sim-app-stub" />,
 }));
@@ -67,8 +67,8 @@ describe("simulator/layout", () => {
 describe("RootLayout", () => {
   it("メタデータ含め描画する (関数として呼び出す)", () => {
     const Layout = RootLayout as (props: { children: React.ReactNode }) => React.ReactNode;
-    // RootLayout 内に <html> がある場合は render すると重複だが、
-    // jsdom は許容する
+    // RootLayout contains <html>, so rendering it nests a duplicate,
+    // but jsdom tolerates that
     const el = Layout({ children: <span>子</span> });
     expect(el).toBeTruthy();
   });

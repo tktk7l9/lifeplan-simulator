@@ -74,7 +74,7 @@ function CustomTooltip({ active, payload, label }: {
 
 export function MonteCarloChart({ data, retirementAge, failureProbability }: Props) {
   const [isClient, setIsClient] = useState(false);
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- クライアントマウント検知（ハイドレーション対策）の意図的パターン
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional pattern for detecting client mount (hydration safety)
   useEffect(() => setIsClient(true), []);
   if (!isClient) return null;
 

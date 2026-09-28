@@ -61,8 +61,8 @@ function baseInput(overrides: Partial<SimulationInput> = {}): SimulationInput {
 }
 
 describe("runMonteCarlo", () => {
-  // 乱数固定化: 0.5 を返すと Box-Muller の cos(π) = -1, sqrt(-2*ln(0.5))≈1.177 → z=-1.177
-  // テストの再現性のために Math.random をスタブする
+  // Fixed randomness: returning 0.5 gives Box-Muller cos(π) = -1, sqrt(-2*ln(0.5))≈1.177 → z=-1.177
+  // Stub Math.random for test reproducibility
   let originalRandom: typeof Math.random;
   beforeEach(() => {
     originalRandom = Math.random;
@@ -93,9 +93,9 @@ describe("runMonteCarlo", () => {
 
   it("シミュレーション期間が age=90 未満で打ち切られると failureProbability=0", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
-    // age 85 開始 → 100 まで 15年。age90 idx は >=0 なので、これだとヒットする。
-    // 真に age 90 不在にするには... 実コードは age 100 まで生成されるので難しい。
-    // 替わりに、極端に資産豊富で破綻不可能なケースで failureProbability=0 を確認
+    // Start at age 85 → 15 years to 100. The age90 idx is >= 0, so this would hit.
+    // Truly making age 90 absent... is hard because the real code always generates up to age 100.
+    // Instead, confirm failureProbability=0 with an extremely asset-rich case that cannot go broke
     const r = runMonteCarlo(
       baseInput({ currentSavings: 1_000_000, currentInvestmentAssets: 1_000_000 }),
       30
@@ -118,7 +118,7 @@ describe("runMonteCarlo", () => {
   it("percentile が同値 (lo===hi) で分岐するパス: 1 run だけだと配列長1で全分位が同値", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
     const r = runMonteCarlo(baseInput(), 1);
-    // 1サンプルなら percentile はすべて同じ値（lo===hi 分岐の発火）
+    // With 1 sample every percentile is the same value (fires the lo===hi branch)
     for (const dp of r.dataPoints) {
       expect(dp.p10).toBe(dp.p25);
       expect(dp.p25).toBe(dp.p50);
@@ -138,23 +138,23 @@ describe("runMonteCarlo", () => {
 
   it("Optional フィールドが undefined でもデフォルトで動作", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
-    // ?? 0 / ?? 1.5 のフォールバック分岐を狙う
+    // Target the ?? 0 / ?? 1.5 fallback branches
     const input = baseInput();
-    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
+    // @ts-expect-error intentionally undefined to fire the fallback branch
     delete input.inflationRate;
-    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
+    // @ts-expect-error intentionally undefined to fire the fallback branch
     delete input.corporateDCBalance;
-    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
+    // @ts-expect-error intentionally undefined to fire the fallback branch
     delete input.monthlyInvestment;
-    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
+    // @ts-expect-error intentionally undefined to fire the fallback branch
     delete input.nisaAccumulationMonthly;
-    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
+    // @ts-expect-error intentionally undefined to fire the fallback branch
     delete input.nisaGrowthMonthly;
-    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
+    // @ts-expect-error intentionally undefined to fire the fallback branch
     delete input.monthlyIdeco;
-    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
+    // @ts-expect-error intentionally undefined to fire the fallback branch
     delete input.shokiboKigyoMonthly;
-    // @ts-expect-error 意図的に undefined にして fallback 分岐を発火
+    // @ts-expect-error intentionally undefined to fire the fallback branch
     delete input.corporateDCMonthly;
     const r = runMonteCarlo(input, 5);
     expect(r.dataPoints).toHaveLength(71);

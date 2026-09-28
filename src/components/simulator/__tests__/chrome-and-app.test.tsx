@@ -20,9 +20,9 @@ vi.mock("recharts", async (importOriginal) => {
   };
 });
 
-// ResultsView は lazy import なので Suspense + 必要に応じて preload
+// ResultsView is a lazy import, so use Suspense + preload as needed
 vi.mock("../results/ResultsView", async () => {
-  // 実体を import して default 形でラップ
+  // Import the real module and wrap it in default form
   const mod = await vi.importActual<typeof import("../results/ResultsView")>("../results/ResultsView");
   return { ResultsView: mod.ResultsView };
 });
@@ -50,7 +50,7 @@ describe("SimulatorApp", () => {
     useSimulationStore.getState().calculate();
     let r!: ReturnType<typeof render>;
     await act(async () => { r = render(<SimulatorApp />); });
-    // 集計中 or 結果
+    // Calculating, or the result
     await waitFor(() => {
       expect(r.container.textContent).toMatch(/集計中|結果|資産|総額/);
     });
@@ -58,7 +58,7 @@ describe("SimulatorApp", () => {
 
   it("ステップボタンクリックで currentStep が変わる", async () => {
     await act(async () => { render(<SimulatorApp />); });
-    // サイドバーの "一合目" などのボタンを探す
+    // Look for buttons such as "一合目" in the sidebar
     const stepBtn = screen.queryByText(/一合目/);
     if (stepBtn) {
       const btn = stepBtn.closest("button");
@@ -131,7 +131,7 @@ describe("AIEvaluationCard", () => {
     const btn = screen.getByText(/AI総評を取得する/).closest("button")!;
     await act(async () => { fireEvent.click(btn); });
     await waitFor(() => {
-      // エラーが表示されるか aiEvaluation が null のまま
+      // Either an error is shown or aiEvaluation stays null
       expect(fetchMock).toHaveBeenCalled();
     });
   });

@@ -56,7 +56,7 @@ describe("parseMFCSV — 資産推移月次形式", () => {
       "2025/04/01,1000000,500,1000000",
     ].join("\n");
     const r = parseMFCSV(csv);
-    // 合計とポイントは accounts に含まれない
+    // Total and points are not included in accounts
     expect(r.accounts.find((a) => a.name.includes("合計"))).toBeUndefined();
     expect(r.accounts.find((a) => a.name.includes("ポイント"))).toBeUndefined();
   });
@@ -153,14 +153,14 @@ describe("parseMFCSV — 口座一覧形式", () => {
   });
 
   it("isAccount=true だが口座名カラムが取れない → findCol -1 で warning", () => {
-    // ヘッダーに "残高" は含まれるが "口座名/口座/名称/金融機関" は含まれない
+    // The header contains "残高" but none of "口座名/口座/名称/金融機関"
     const csv = "保有残高,foo\n100,bar";
     const r = parseMFCSV(csv);
     expect(r.warnings.some((w) => w.includes("口座名または残高"))).toBe(true);
   });
 
   it("データ行はあるが全空フィールドなら warning", () => {
-    // 全空文字列の行は parseAccountFormat 内でスキップ → 口座0件 → warning
+    // A row of all-empty strings is skipped in parseAccountFormat → 0 accounts → warning
     const csv = "口座名,残高\n , ";
     const r = parseMFCSV(csv);
     expect(r.warnings.some((w) => w.includes("口座データ"))).toBe(true);

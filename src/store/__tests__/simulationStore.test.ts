@@ -4,7 +4,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useSimulationStore } from "../simulationStore";
 
-// 各テスト前にストアを初期化
+// Reset the store before each test
 beforeEach(() => {
   localStorage.clear();
   useSimulationStore.setState({
@@ -29,7 +29,7 @@ describe("simulationStore", () => {
   it("updateInput: 部分パッチで状態更新", () => {
     useSimulationStore.getState().updateInput({ annualIncome: 700 });
     expect(useSimulationStore.getState().input.annualIncome).toBe(700);
-    // 他フィールドは保持
+    // Other fields are kept
     expect(useSimulationStore.getState().input.retirementAge).toBe(65);
   });
 
@@ -100,7 +100,7 @@ describe("simulationStore", () => {
   it("deleteSimulation: 指定IDを削除", () => {
     useSimulationStore.getState().calculate();
     useSimulationStore.getState().saveSimulation("A");
-    // saveSimulation の id は Date.now() ベースなので人為的に書き換えて衝突回避
+    // saveSimulation's id is based on Date.now(), so rewrite it by hand to avoid collisions
     const state = useSimulationStore.getState();
     useSimulationStore.setState({
       savedSimulations: [
@@ -131,7 +131,7 @@ describe("simulationStore", () => {
   });
 
   it("calculate: runSimulation が throw すると isCalculating だけ false に", () => {
-    // 不正な input で内部 throw を狙う（実際は throw しないため、軽い確認のみ）
+    // Aim for an internal throw with invalid input (it does not actually throw, so this is only a light check)
     useSimulationStore.setState({ input: {}, isCalculating: true });
     useSimulationStore.getState().calculate();
     expect(useSimulationStore.getState().isCalculating).toBe(false);

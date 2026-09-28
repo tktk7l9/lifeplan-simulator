@@ -143,7 +143,7 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
 
         {!result ? (
           <>
-            {/* ドロップゾーン */}
+            {/* Drop zone */}
             <div
               className={cn(
                 "mt-4 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
@@ -211,7 +211,7 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
               <p className="mt-3 text-xs text-gray-500">データ更新日: {result.updateDate}</p>
             )}
 
-            {/* サマリー */}
+            {/* Summary */}
             <div className="mt-3 grid grid-cols-3 gap-2">
               <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
                 <p className="text-xs text-blue-600 font-medium">預貯金合計</p>
@@ -227,7 +227,7 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
               </div>
             </div>
 
-            {/* 口座一覧 + チェックボックス */}
+            {/* Account list + checkboxes */}
             {result.accounts.length > 0 && (
               <div className="mt-4">
                 <p className="text-sm font-medium text-gray-700 mb-2">
@@ -287,7 +287,7 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
               </div>
             )}
 
-            {/* アクション */}
+            {/* Actions */}
             <div className="mt-6 flex justify-between gap-3">
               <Button
                 variant="outline"

@@ -1,9 +1,9 @@
 /**
- * /api/evaluate route handler のテスト
+ * Tests for the /api/evaluate route handler
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Anthropic SDK を mock
+// Mock the Anthropic SDK
 const create = vi.fn();
 vi.mock("@anthropic-ai/sdk", () => ({
   default: class Anthropic {
@@ -11,7 +11,7 @@ vi.mock("@anthropic-ai/sdk", () => ({
   },
 }));
 
-// route.ts は client を init するため、re-import を強制
+// route.ts initializes the client, so force a re-import
 let POST: typeof import("../route").POST;
 
 async function loadRoute() {
@@ -97,8 +97,8 @@ describe("POST /api/evaluate", () => {
   });
 
   it("rank が不正値でも score から再計算", async () => {
-    // Zod schema が rank の enum 制約を持つので、不正な rank は validation で弾かれる
-    // 妥当な rank と score を返すケースのみテスト
+    // The Zod schema has an enum constraint on rank, so an invalid rank is rejected by validation
+    // Only test the case that returns a valid rank and score
     create.mockResolvedValueOnce({
       content: [{
         type: "text",

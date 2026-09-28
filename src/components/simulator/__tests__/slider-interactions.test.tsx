@@ -1,12 +1,12 @@
 /**
- * ui/slider を素の <input type="range"> に差し替え、Radix Slider の
- * onValueChange ハンドラ群を発火させて各ステップのカバレッジを引き上げる。
+ * Replaces ui/slider with a plain <input type="range"> and fires the Radix Slider
+ * onValueChange handlers to raise coverage of each step.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
 
-// Slider → 素の input[type=range] (value=[number] / onValueChange=([n])=>void)
+// Slider → plain input[type=range] (value=[number] / onValueChange=([n])=>void)
 vi.mock("@/components/ui/slider", () => {
   type SliderProps = {
     value?: number[];
@@ -77,7 +77,7 @@ describe("InsuranceStep sliders", () => {
     // toggle off
     if (toggleBtn) {
       await act(async () => { fireEvent.click(toggleBtn); });
-      // 再度クリックで on
+      // Click again to turn it on
       await act(async () => { fireEvent.click(toggleBtn); });
     }
   });
@@ -120,7 +120,7 @@ describe("InvestmentStep sliders", () => {
   it("NISA 商品を順番に切替", async () => {
     render(<InvestmentStep onNext={() => {}} />);
     const productButtons = document.querySelectorAll('button[type="button"]');
-    // 最低 2つ以上の商品ボタンがあれば切り替える
+    // If there are at least 2 product buttons, switch between them
     if (productButtons.length >= 4) {
       for (let i = 1; i < Math.min(productButtons.length, 6); i++) {
         await act(async () => { fireEvent.click(productButtons[i]); });
@@ -165,7 +165,7 @@ describe("ExpenseStep sliders", () => {
 describe("HousingStep sliders (buy)", () => {
   it("購入モードの全スライダーを変更", async () => {
     render(<HousingStep onNext={() => {}} />);
-    // 購入に切替
+    // Switch to buy
     await act(async () => {
       fireEvent.click(screen.getByText("購入").closest("button")!);
     });

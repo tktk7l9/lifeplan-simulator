@@ -1,6 +1,6 @@
 /**
- * 各ステップコンポーネントの smoke + 基本インタラクション。
- * react-hook-form + Radix Select の組み合わせ。
+ * Smoke + basic interaction for each step component.
+ * A combination of react-hook-form + Radix Select.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -25,7 +25,7 @@ vi.mock("recharts", async (importOriginal) => {
 
 beforeEach(() => {
   localStorage.clear();
-  // 初期状態に戻す
+  // Reset to the initial state
   useSimulationStore.setState({
     currentStep: 0,
     input: useSimulationStore.getInitialState().input,

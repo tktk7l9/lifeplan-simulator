@@ -1,13 +1,13 @@
 /**
- * Three.js コンポーネントの init() 経路を実行するテスト。
- * requestIdleCallback が jsdom にないため setTimeout fallback が使われる。
- * fake timers で setTimeout を進めれば init() が実行され、ほぼ全コードがカバーされる。
+ * Tests that run the init() path of the Three.js components.
+ * jsdom has no requestIdleCallback, so the setTimeout fallback is used.
+ * Advancing setTimeout with fake timers runs init(), which covers almost all of the code.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React from "react";
 import { render, act } from "@testing-library/react";
 
-// three の汎用 stub — three-rest.test.tsx と同等
+// Generic stub for three — equivalent to three-rest.test.tsx
 vi.mock("three", async (importOriginal) => {
   const actual = await importOriginal<typeof import("three")>();
   class Vec3 {
@@ -161,8 +161,8 @@ import { SidebarMountain3D } from "../three/SidebarMountain3D";
 
 beforeEach(() => {
   vi.useFakeTimers();
-  // requestIdleCallback を未定義に保つ (jsdom default)
-  // (Window).requestIdleCallback は undefined のままで setTimeout fallback が使われる
+  // Keep requestIdleCallback undefined (jsdom default)
+  // (Window).requestIdleCallback stays undefined, so the setTimeout fallback is used
 });
 
 afterEach(() => {
@@ -173,7 +173,7 @@ describe("HeroCanvas init() 経路", () => {
   it("mount → setTimeout(200) で init() が renderer の canvas を差す", () => {
     const { container } = render(<HeroCanvas />);
     act(() => { vi.advanceTimersByTime(300); });
-    // ラッパ div は init 前から在るので、init の成否は appendChild された canvas で見る。
+    // The wrapper div exists before init, so judge init success by the canvas that gets appended via appendChild.
     expect(container.querySelector("canvas")).toBeTruthy();
   });
 

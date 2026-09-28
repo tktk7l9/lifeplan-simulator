@@ -24,7 +24,7 @@ export async function readFileAsText(file: File): Promise<string> {
   }
   try {
     const utf8Text = await file.text();
-    // UTF-8として読めた場合、文字化けチェック（Shift-JIS由来の文字化けパターン）
+    // If it decoded as UTF-8, check for mojibake (garbling patterns that come from Shift-JIS)
     if (!utf8Text.includes("\uFFFD") && !/[\x80-\x9F]/.test(utf8Text)) {
       return utf8Text;
     }
@@ -32,7 +32,7 @@ export async function readFileAsText(file: File): Promise<string> {
     // fall through to Shift-JIS
   }
 
-  // Shift-JIS フォールバック
+  // Shift-JIS fallback
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -46,15 +46,15 @@ export async function readFileAsText(file: File): Promise<string> {
 function parseJapaneseDate(s: string): { year: number; month: number } | null {
   const cleaned = s.trim().replace(/\s+/g, "");
 
-  // 令和N年M月
+  // Reiwa (令和) year N, month M
   let m = cleaned.match(/令和(\d+)年(\d+)月/);
   if (m) return { year: 2018 + parseInt(m[1]), month: parseInt(m[2]) };
 
-  // 平成N年M月
+  // Heisei (平成) year N, month M
   m = cleaned.match(/平成(\d+)年(\d+)月/);
   if (m) return { year: 1988 + parseInt(m[1]), month: parseInt(m[2]) };
 
-  // 昭和N年M月
+  // Showa (昭和) year N, month M
   m = cleaned.match(/昭和(\d+)年(\d+)月/);
   if (m) return { year: 1925 + parseInt(m[1]), month: parseInt(m[2]) };
 
@@ -68,7 +68,7 @@ function parseJapaneseDate(s: string): { year: number; month: number } | null {
   m = cleaned.match(/^S(\d+)\.(\d+)$/);
   if (m) return { year: 1925 + parseInt(m[1]), month: parseInt(m[2]) };
 
-  // YYYY/MM または YYYY-MM
+  // YYYY/MM or YYYY-MM
   m = cleaned.match(/^(\d{4})[\/\-](\d{1,2})$/);
   if (m) return { year: parseInt(m[1]), month: parseInt(m[2]) };
 
@@ -132,7 +132,7 @@ export function parseNenkinCSV(text: string): NenkinParseResult {
   const cleaned = removeBOM(text);
   const lines = cleaned.split(/\r?\n/).filter((l) => l.trim().length > 0);
 
-  // ヘッダー行を探す
+  // Find the header row
   const headerKeywords = ["種別", "勤務先", "資格取得", "加入", "期間", "標準報酬", "月数"];
   let headerIndex = -1;
   let headerCols: string[] = [];
@@ -160,7 +160,7 @@ export function parseNenkinCSV(text: string): NenkinParseResult {
     };
   }
 
-  // カラムインデックスを推定
+  // Infer column indexes
   const findCol = (keywords: string[]): number => {
     for (const kw of keywords) {
       const idx = headerCols.findIndex((h) => h.includes(kw));
@@ -189,7 +189,7 @@ export function parseNenkinCSV(text: string): NenkinParseResult {
     const stdMonthlyRaw = get(stdMonthlyIdx);
     const monthsRaw = get(monthsIdx);
 
-    // 全フィールドが空の行はスキップ
+    // Skip rows whose fields are all empty
     if (!typeRaw && !employerRaw && !startRaw && !endRaw) continue;
 
     const startDate = parseJapaneseDate(startRaw);
@@ -224,7 +224,7 @@ export function parseNenkinCSV(text: string): NenkinParseResult {
     warnings.push("データ行が見つかりませんでした。");
   }
 
-  // 集計
+  // Totals
   const empRecords = records.filter((r) => r.type === "厚生年金" || r.type === "共済");
   const citizenRecords = records.filter((r) => r.type === "国民年金");
 
@@ -232,14 +232,14 @@ export function parseNenkinCSV(text: string): NenkinParseResult {
   const citizenMonths = citizenRecords.reduce((sum, r) => sum + r.months, 0);
   const totalMonths = records.reduce((sum, r) => sum + r.months, 0);
 
-  // 平均標準報酬月額（厚生年金・共済のみ）
+  // Average standard monthly remuneration (employees' pension / mutual aid only)
   const weightedSum = empRecords.reduce((sum, r) => sum + r.standardMonthly * r.months, 0);
   const avgStandardMonthly = empMonths > 0 ? Math.round(weightedSum / empMonths) : 0;
 
-  // 推計年金月額
-  // 基礎年金: 6.8万円 × min(totalMonths / 480, 1)
+  // Estimated monthly pension
+  // Basic pension: 68k yen × min(totalMonths / 480, 1)
   const basicPension = 68000 * Math.min(totalMonths / 480, 1);
-  // 厚生年金報酬比例部分: avgStd円 × 0.005481 × empMonths
+  // Earnings-related part of employees' pension: avgStd yen × 0.005481 × empMonths
   const empPension = avgStandardMonthly * 0.005481 * empMonths;
   const pensionMonthlyEst = Math.round((basicPension + empPension) / 10000) * 10000;
 

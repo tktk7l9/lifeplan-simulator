@@ -44,7 +44,7 @@ export function ActionPlan({ result, input }: Props) {
     const yearsToRet = Math.max(1, retAge - curAge);
     const list: Action[] = [];
 
-    // ── 1. 緊急資金チェック ─────────────────────────────────────────────────
+    // ── 1. Emergency fund check ─────────────────────────────────────────────
     const monthlyExpense = input.monthlyLivingExpense ?? 20;
     const emergencyTarget = monthlyExpense * 6;
     const savings = input.currentSavings ?? 0;
@@ -60,9 +60,9 @@ export function ActionPlan({ result, input }: Props) {
       });
     }
 
-    // ── 2. NISA 積立枠の活用チェック ──────────────────────────────────────
+    // ── 2. NISA tsumitate (installment) allowance usage check ───────────────
     const nisaUsed = (input.nisaAccumulationMonthly ?? 0) + (input.nisaGrowthMonthly ?? 0);
-    const NISA_ACCUM_MAX = 10; // 新NISA積立枠 月10万円
+    const NISA_ACCUM_MAX = 10; // New NISA tsumitate allowance: 100k yen/month
     if (nisaUsed < NISA_ACCUM_MAX) {
       const addNisa = Math.min(3, NISA_ACCUM_MAX - nisaUsed);
       const after = safeRun({ ...full, nisaAccumulationMonthly: (input.nisaAccumulationMonthly ?? 0) + addNisa });
@@ -78,7 +78,7 @@ export function ActionPlan({ result, input }: Props) {
       });
     }
 
-    // ── 3. iDeCo 活用チェック ──────────────────────────────────────────────
+    // ── 3. iDeCo usage check ────────────────────────────────────────────────
     const idecoUsed = input.monthlyIdeco ?? 0;
     const empType = input.employmentType ?? "employee";
     const idecoMax = empType === "self_employed" || empType === "freelance" ? 6.8
@@ -99,9 +99,9 @@ export function ActionPlan({ result, input }: Props) {
       });
     }
 
-    // ── 4. 月次投資額の増加効果 ─────────────────────────────────────────────
+    // ── 4. Effect of increasing the monthly investment ──────────────────────
     if (yearsToRet >= 5) {
-      const ADD = 1; // 月1万円追加
+      const ADD = 1; // add 10k yen/month
       const after = safeRun({ ...full, monthlyInvestment: (input.monthlyInvestment ?? 0) + ADD });
       const delta = after != null ? after - base : null;
       if (delta != null && delta > 0) {
@@ -117,7 +117,7 @@ export function ActionPlan({ result, input }: Props) {
       }
     }
 
-    // ── 5. 退職時期の延長効果 ──────────────────────────────────────────────
+    // ── 5. Effect of delaying retirement ────────────────────────────────────
     const DELAY = 3;
     if (!result.isRetirementSafe && retAge < 70 && curAge < retAge) {
       const after = safeRun({ ...full, retirementAge: retAge + DELAY });
@@ -133,7 +133,7 @@ export function ActionPlan({ result, input }: Props) {
       });
     }
 
-    // ── 6. 老後就労収入の追加 ──────────────────────────────────────────────
+    // ── 6. Adding post-retirement work income ───────────────────────────────
     const postWork = input.postRetirementIncomeMonthly ?? 0;
     if (postWork < 5 && retAge < 70) {
       const ADD_WORK = 5;
@@ -155,7 +155,7 @@ export function ActionPlan({ result, input }: Props) {
       });
     }
 
-    // ── 7. 生活費の最適化 ──────────────────────────────────────────────────
+    // ── 7. Optimizing living expenses ───────────────────────────────────────
     if (monthlyExpense >= 30) {
       const CUT = 2;
       const after = safeRun({ ...full, monthlyLivingExpense: monthlyExpense - CUT });

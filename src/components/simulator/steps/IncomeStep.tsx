@@ -174,7 +174,7 @@ export function IncomeStep({ onNext }: Props) {
   const totalMonthly = Math.round(annualIncome / 12 * 10) / 10;
   const officerMonthly = Math.round(officerAnnualIncome / 12 * 10) / 10;
 
-  // 手取り推計 (代表年齢35歳で計算)
+  // Estimated take-home pay (computed at a representative age of 35)
   const estimatedNetAnnual = (isFreelanceType && hasOfficerIncome && officerAnnualIncome > 0)
     ? Math.round(calcFreelanceOfficerNetIncome(annualIncome, officerAnnualIncome, 35, 0))
     : Math.round(calcNetIncome(annualIncome, watchedEmploymentType, 35, 0));
@@ -216,7 +216,7 @@ export function IncomeStep({ onNext }: Props) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
-        {/* ── ねんきんネット連携バナー ── */}
+        {/* ── Nenkin Net (ねんきんネット) import banner ── */}
         <div className="space-y-2">
           <div className="rounded-xl bg-green-50 border border-green-200 p-4 flex items-center justify-between gap-4">
             <div>
@@ -251,11 +251,11 @@ export function IncomeStep({ onNext }: Props) {
           )}
         </div>
 
-        {/* ── あなたの収入 ── */}
+        {/* ── Your income ── */}
         <div className="space-y-6">
           <h2 className="font-semibold text-foreground">あなたの収入</h2>
 
-          {/* 雇用形態 */}
+          {/* Employment type */}
           <FormField
             control={form.control}
             name="employmentType"
@@ -290,7 +290,7 @@ export function IncomeStep({ onNext }: Props) {
             )}
           />
 
-          {/* 年収 / 事業収入 */}
+          {/* Annual income / business income */}
           <FormField
             control={form.control}
             name="annualIncome"
@@ -347,7 +347,7 @@ export function IncomeStep({ onNext }: Props) {
             )}
           />
 
-          {/* 役員報酬（フリーランス/自営業のみ表示） */}
+          {/* Officer compensation (shown only for freelance / self-employed) */}
           {isFreelanceType && (
             <div className="space-y-4">
               <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
@@ -418,7 +418,7 @@ export function IncomeStep({ onNext }: Props) {
             </div>
           )}
 
-          {/* 年収上昇率 */}
+          {/* Annual income growth rate */}
           <FormField
             control={form.control}
             name="incomeGrowthRate"
@@ -440,7 +440,7 @@ export function IncomeStep({ onNext }: Props) {
             )}
           />
 
-          {/* 副業収入 */}
+          {/* Side-job income */}
           <div className="space-y-3">
             <FormField
               control={form.control}
@@ -476,7 +476,7 @@ export function IncomeStep({ onNext }: Props) {
             )}
           </div>
 
-          {/* 退職後の再雇用 */}
+          {/* Re-employment after retirement */}
           <div className="space-y-3">
             <FormField
               control={form.control}
@@ -538,7 +538,7 @@ export function IncomeStep({ onNext }: Props) {
             )}
           </div>
 
-          {/* 退職金 */}
+          {/* Retirement allowance */}
           <FormField
             control={form.control}
             name="retirementAllowance"
@@ -560,14 +560,14 @@ export function IncomeStep({ onNext }: Props) {
           />
         </div>
 
-        {/* ── 配偶者の収入 ── */}
+        {/* ── Spouse's income ── */}
         {input.hasSpouse && (
           <>
             <Separator />
             <div className="space-y-6">
               <h2 className="font-semibold text-foreground">配偶者の収入</h2>
 
-              {/* 配偶者の雇用形態 */}
+              {/* Spouse's employment type */}
               <FormField
                 control={form.control}
                 name="spouseEmploymentType"
@@ -599,7 +599,7 @@ export function IncomeStep({ onNext }: Props) {
                 )}
               />
 
-              {/* 配偶者の年収（専業主婦以外） */}
+              {/* Spouse's annual income (except full-time homemaker) */}
               {spouseEmploymentType !== "homemaker" && (
                 <>
                   <FormField
@@ -641,7 +641,7 @@ export function IncomeStep({ onNext }: Props) {
                     )}
                   />
 
-                  {/* キャリアブレーク */}
+                  {/* Career break */}
                   <div className="space-y-3">
                     <FormField
                       control={form.control}

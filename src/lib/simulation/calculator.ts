@@ -1,20 +1,20 @@
 import type { SimulationInput, SimulationResult, YearlyData, ChildInfo } from "./types";
 
 // ── Constants ─────────────────────────────────────────────────────────────
-const KISO_NENKIN_MONTHLY  = 6.8;    // 万円/月 (2024年度国民年金満額)
-const STD_REM_CAP_MONTHLY  = 65;     // 万円/月 (標準報酬月額上限)
-const PROPERTY_TAX_RATE    = 0.008;  // 固定資産税+都市計画税 ≈ 物件価格の0.8%/年
-const NISA_LIFETIME_CAP    = 1800;   // 万円 (新NISA生涯投資枠)
-const SAVINGS_INTEREST_RATE = 0.001; // 0.1% 普通預金金利
-const AFTER_TAX_RATE       = 0.7921; // (1 - 20.315%) 課税口座の税後リターン率
+const KISO_NENKIN_MONTHLY  = 6.8;    // 10k yen/month (FY2024 full National Pension amount)
+const STD_REM_CAP_MONTHLY  = 65;     // 10k yen/month (cap on standard monthly remuneration)
+const PROPERTY_TAX_RATE    = 0.008;  // fixed asset tax + city planning tax ≈ 0.8% of the property price per year
+const NISA_LIFETIME_CAP    = 1800;   // 10k yen (new NISA lifetime investment cap)
+const SAVINGS_INTEREST_RATE = 0.001; // 0.1% ordinary deposit interest rate
+const AFTER_TAX_RATE       = 0.7921; // (1 - 20.315%) after-tax return ratio for a taxable account
 
-// ── Education costs (万円/year) ───────────────────────────────────────────
+// ── Education costs (10k yen/year) ───────────────────────────────────────────
 const EDUCATION_COSTS = {
   public:  { nursery: 25, elementary: 32, middle: 53, high: 51, university: 535 / 4 },
   private: { nursery: 53, elementary: 166, middle: 143, high: 104, university: 730 / 4 },
 };
 
-// 高齢期の生活費低下係数 (70代以降は支出が減少する)
+// Spending reduction factor for old age (spending declines from the 70s onward)
 function getSpendingAgeCoeff(age: number): number {
   if (age >= 80) return 0.65;
   if (age >= 75) return 0.75;
@@ -49,35 +49,35 @@ function calcMonthlyMortgage(principal: number, annualRate: number, periodYears:
 }
 
 // ── After-tax income ──────────────────────────────────────────────────────
-// 日本の所得税・住民税・社会保険料を控除した手取り年収を返す (万円)
+// Returns annual take-home pay (10k yen) after Japanese income tax, resident tax and social insurance
 export function calcNetIncome(
   grossAnnual: number,
   employmentType: string,
   age: number,
   idecoMonthly: number = 0,
-  additionalDeductions: number = 0, // 配偶者控除・扶養控除・小規模企業共済等
+  additionalDeductions: number = 0, // spouse deduction, dependent deduction, Small Business Mutual Aid, etc.
 ): number {
   if (grossAnnual <= 0) return 0;
   if (employmentType === "homemaker") return 0;
 
-  // 社会保険料 (被保険者負担分)
+  // Social insurance premiums (insured person's share)
   let siRate = 0, siFlat = 0;
   if (["employee", "civil_servant", "employee_freelance"].includes(employmentType)) {
-    // 健保5.0% + 厚生年金9.15% + 雇用保険0.3% = 14.45%
-    // + 介護保険0.91% (40歳以上)
+    // health insurance 5.0% + employees' pension 9.15% + employment insurance 0.3% = 14.45%
+    // + long-term care insurance 0.91% (age 40 and over)
     siRate = age >= 40 ? 0.1536 : 0.1445;
   } else if (["self_employed", "freelance"].includes(employmentType)) {
-    siRate = 0.08;  // 国民健康保険 (概算)
-    siFlat = 20.4;  // 国民年金 (2024: 16,980円 × 12ヶ月)
+    siRate = 0.08;  // National Health Insurance (rough estimate)
+    siFlat = 20.4;  // National Pension (2024: 16,980 yen × 12 months)
   } else {
-    siRate = 0.05;  // パート等 (簡易)
+    siRate = 0.05;  // part-time etc. (simplified)
   }
   const socialInsurance = Math.min(grossAnnual * siRate + siFlat, grossAnnual * 0.28);
 
-  // iDeCo掛金の所得控除
+  // Income deduction for iDeCo contributions
   const idecoDeduction = idecoMonthly * 12;
 
-  // 給与所得控除 / 青色申告特別控除
+  // Employment income deduction / blue-return special deduction
   const isEmployee = ["employee", "civil_servant", "employee_freelance"].includes(employmentType);
   let incomeDeduction = 0;
   if (isEmployee) {
@@ -87,18 +87,18 @@ export function calcNetIncome(
     else if (grossAnnual <= 850) incomeDeduction = grossAnnual * 0.10 + 110;
     else                         incomeDeduction = 195;
   } else {
-    incomeDeduction = 65; // 青色申告特別控除（e-Tax申告、一律65万円）
+    incomeDeduction = 65; // blue-return special deduction (e-Tax filing, flat 650k yen)
   }
 
-  // 基礎控除
+  // Basic deduction
   const basicDeduction = grossAnnual <= 2400 ? 48 : grossAnnual <= 2450 ? 32 : grossAnnual <= 2500 ? 16 : 0;
 
-  // 課税所得
+  // Taxable income
   const taxableIncome = Math.max(0,
     grossAnnual - socialInsurance - incomeDeduction - idecoDeduction - basicDeduction - additionalDeductions
   );
 
-  // 所得税 (累進課税)
+  // Income tax (progressive)
   let incomeTax = 0;
   const bands: [number, number][] = [
     [195, 0.05], [330, 0.10], [695, 0.20], [900, 0.23], [1800, 0.33], [4000, 0.40],
@@ -110,22 +110,22 @@ export function calcNetIncome(
     prev = cap;
   }
   if (taxableIncome > 4000) incomeTax += (taxableIncome - 4000) * 0.45;
-  incomeTax *= 1.021; // 復興特別所得税
+  incomeTax *= 1.021; // special income tax for reconstruction
 
-  // 住民税 (10% + 均等割約5,000円)
+  // Resident tax (10% + per-capita levy of about 5,000 yen)
   const residentTax = taxableIncome * 0.10 + 0.5;
 
   return Math.max(0, grossAnnual - socialInsurance - incomeTax - residentTax);
 }
 
 // ── After-tax retirement allowance ───────────────────────────────────────
-// 退職所得控除を適用した手取り退職金 (万円)
+// Take-home retirement allowance (10k yen) after the retirement income deduction
 function calcRetirementAllowanceNet(allowance: number, workYears: number): number {
   if (allowance <= 0) return 0;
   const deduction = workYears <= 20
     ? Math.max(80, 40 * workYears)
     : 800 + 70 * (workYears - 20);
-  const taxableRetirement = Math.max(0, (allowance - deduction) * 0.5); // 退職所得×1/2課税
+  const taxableRetirement = Math.max(0, (allowance - deduction) * 0.5); // retirement income taxed at 1/2
   let tax = 0;
   const bands: [number, number][] = [[195,0.05],[330,0.10],[695,0.20],[900,0.23],[1800,0.33],[4000,0.40]];
   let prev = 0;
@@ -136,28 +136,28 @@ function calcRetirementAllowanceNet(allowance: number, workYears: number): numbe
   }
   if (taxableRetirement > 4000) tax += (taxableRetirement - 4000) * 0.45;
   tax *= 1.021;
-  tax += taxableRetirement * 0.10; // 住民税
+  tax += taxableRetirement * 0.10; // resident tax
   return Math.max(0, allowance - tax);
 }
 
 // ── Freelance + corporate officer combined net income ─────────────────────
-// フリーランス事業収入 + 会社役員報酬の合算手取りを計算する (万円)
-// 役員がある場合は法人社保（健保+厚生年金）を役員報酬に適用し合算課税
+// Computes combined take-home pay (10k yen) of freelance business income + company officer compensation
+// With officer compensation, corporate social insurance (health + employees' pension) applies to it and the two are taxed together
 export function calcFreelanceOfficerNetIncome(
-  businessIncome: number,   // 事業収入（フリーランス）万円/年
-  officerIncome: number,    // 役員報酬（年額）万円
+  businessIncome: number,   // business income (freelance), 10k yen/year
+  officerIncome: number,    // officer compensation (annual), 10k yen
   age: number,
   idecoMonthly: number = 0,
-  additionalDeductions: number = 0, // 配偶者控除・扶養控除等
+  additionalDeductions: number = 0, // spouse deduction, dependent deduction, etc.
 ): number {
   if (businessIncome <= 0 && officerIncome <= 0) return 0;
 
-  // 事業所得: 青色申告特別控除65万 + iDeCo掛金控除
+  // Business income: blue-return special deduction of 650k yen + iDeCo contribution deduction
   const aoiro = Math.min(65, businessIncome);
   const idecoDeduction = idecoMonthly * 12;
   const businessNetIncome = Math.max(0, businessIncome - aoiro - idecoDeduction);
 
-  // 役員報酬の給与所得: 給与所得控除を適用
+  // Employment income from officer compensation: apply the employment income deduction
   let incomeDeduction = 0;
   if (officerIncome > 0) {
     if      (officerIncome <= 180) incomeDeduction = Math.max(55, officerIncome * 0.40);
@@ -168,24 +168,24 @@ export function calcFreelanceOfficerNetIncome(
   }
   const officerSalaryIncome = Math.max(0, officerIncome - incomeDeduction);
 
-  // 社会保険料: 役員として法人社保適用（役員報酬に対して健保+厚生年金）
-  // フリーランス事業収入は社保の対象外（法人側の社保でカバー）
+  // Social insurance: corporate social insurance applies as an officer (health + employees' pension on officer compensation)
+  // Freelance business income is not subject to social insurance (covered by the company-side insurance)
   const siRate = age >= 40 ? 0.1536 : 0.1445;
   const socialInsurance = officerIncome > 0
     ? officerIncome * siRate
-    : Math.min(businessIncome * 0.08 + 20.4, businessIncome * 0.28); // 役員なし: 国民健保+国民年金
+    : Math.min(businessIncome * 0.08 + 20.4, businessIncome * 0.28); // no officer role: National Health Insurance + National Pension
 
-  // 合算所得 = 事業所得 + 給与所得
+  // Combined income = business income + employment income
   const totalNetIncome = businessNetIncome + officerSalaryIncome;
   const totalGross = businessIncome + officerIncome;
 
-  // 基礎控除（合算収入で判定）
+  // Basic deduction (determined by combined income)
   const basicDeduction = totalGross <= 2400 ? 48 : totalGross <= 2450 ? 32 : totalGross <= 2500 ? 16 : 0;
 
-  // 課税所得
+  // Taxable income
   const taxableIncome = Math.max(0, totalNetIncome - socialInsurance - basicDeduction - additionalDeductions);
 
-  // 所得税（累進課税・復興特別所得税込み）
+  // Income tax (progressive, including the special income tax for reconstruction)
   let incomeTax = 0;
   const bands: [number, number][] = [
     [195, 0.05], [330, 0.10], [695, 0.20], [900, 0.23], [1800, 0.33], [4000, 0.40],
@@ -199,13 +199,13 @@ export function calcFreelanceOfficerNetIncome(
   if (taxableIncome > 4000) incomeTax += (taxableIncome - 4000) * 0.45;
   incomeTax *= 1.021;
 
-  // 住民税 10% + 均等割
+  // Resident tax 10% + per-capita levy
   const residentTax = taxableIncome * 0.10 + 0.5;
 
   return Math.max(0, totalGross - socialInsurance - incomeTax - residentTax);
 }
 
-// ── Pension estimate (万円/月) ─────────────────────────────────────────────
+// ── Pension estimate (10k yen/month) ─────────────────────────────────────────────
 function calcPensionMonthly(
   annualIncomeMean: number,
   workYears: number,
@@ -218,13 +218,13 @@ function calcPensionMonthly(
     return basicPension;
   }
   if (employmentType === "part_time") {
-    // パート労働者は国民年金のみ（厚生年金非適用が多い）。拠出年数はworkYearsに反映済み
+    // Part-time workers get National Pension only (employees' pension often does not apply). Contribution years are already reflected in workYears
     return basicPension;
   }
-  // 厚生年金: 標準報酬月額 × 5.481‰ × 加入月数 (月額換算)
+  // Employees' pension: standard monthly remuneration × 5.481‰ × months enrolled (monthly amount)
   const stdMonthly = Math.min(annualIncomeMean / 12, STD_REM_CAP_MONTHLY);
   const earningsRelated = (stdMonthly * 10000 * 0.005481 * workYears * 12) / 12 / 10000;
-  // 公的年金は性別で支給額が変わらない（男女差は就労年数・賃金の差として既にworkYears・annualIncomeMeanに反映）
+  // Public pension amounts do not depend on gender (gender gaps already show up as differences in work years and wages in workYears / annualIncomeMean)
   return basicPension + earningsRelated;
 }
 
@@ -257,7 +257,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
     useAgeBasedSpendingCurve = true,
   } = input;
 
-  // フリーランス/自営業で役員報酬がある場合、厚生年金適用（役員報酬ベース）
+  // Freelance / self-employed with officer compensation: employees' pension applies (based on officer compensation)
   const isFreelanceWithOfficer = officerAnnualIncome > 0 &&
     (employmentType === "freelance" || employmentType === "self_employed");
 
@@ -272,30 +272,30 @@ export function runSimulation(input: SimulationInput): SimulationResult {
   let investmentAssets = currentInvestmentAssets;
   let cumulativeIncome  = 0;
   let cumulativeExpense = 0;
-  let assetsDepleted   = false; // 資産が実際に枯渇した場合 true
+  let assetsDepleted   = false; // true when assets actually run out
 
   const loanAmount = Math.max(0, propertyPrice - downPayment);
   const monthlyMortgagePayment = (housingType === "buy" && loanAmount > 0)
     ? calcMonthlyMortgage(loanAmount, mortgageRate, mortgagePeriod) : 0;
 
-  // 企業型DC: 投資資産に追加
+  // Corporate DC: add to investment assets
   investmentAssets += corporateDCBalance;
 
-  // 月次投資合計 (退職後は積立停止だが利回り計算の分母として使用)
+  // Total monthly investment (contributions stop after retirement, but it is still used as the denominator for the return calculation)
   const totalMonthlyInvestment = monthlyInvestment + nisaAccumulationMonthly + nisaGrowthMonthly
     + monthlyIdeco + shokiboKigyoMonthly + corporateDCMonthly;
   const nisaMonthlyBase = nisaAccumulationMonthly + nisaGrowthMonthly;
 
-  // NISA生涯投資枠トラッカー (ループ内で更新)
+  // New NISA lifetime cap tracker (updated inside the loop)
   let nisaTotalContributed = 0;
   let nisaCapHit = false;
 
-  // 年金計算用の累計
+  // Running totals for the pension calculation
   let totalWorkYears         = 0;
   let totalIncomeForPension  = 0;
   let spouseTotalWorkYears         = 0;
   let spouseTotalIncomeForPension  = 0;
-  let spousePensionMonthly = 0; // 配偶者退職時に確定
+  let spousePensionMonthly = 0; // fixed when the spouse retires
 
   for (let currentAge = age; currentAge <= 100; currentAge++) {
     const yearsElapsed = currentAge - age;
@@ -305,29 +305,29 @@ export function runSimulation(input: SimulationInput): SimulationResult {
     const isSpouseRetired = (hasSpouse && spouseCurrentAge !== null)
       ? spouseCurrentAge >= effectiveSpouseRetirementAge : true;
 
-    // ── 所得控除・税額控除の計算 ──────────────────────────────────
-    // 配偶者控除 (本人が現役で配偶者が専業主婦/低収入の場合)
+    // ── Income deductions and tax credits ──────────────────────────────────
+    // Spouse deduction (user still working and spouse is a full-time homemaker / low income)
     let additionalDeductions = 0;
     if (!isRetired && hasSpouse && spouseCurrentAge !== null) {
       const spouseIsDependent = spouseEmploymentType === "homemaker" || spouseAnnualIncome <= 103;
       if (spouseIsDependent) {
-        additionalDeductions += spouseCurrentAge >= 70 ? 48 : 38; // 老人配偶者控除 or 通常
+        additionalDeductions += spouseCurrentAge >= 70 ? 48 : 38; // elderly spouse deduction or the regular one
       }
     }
-    // 扶養控除 (16-22歳の子ども: 15歳以下は児童手当があり控除対象外)
+    // Dependent deduction (children aged 16-22; 15 and under get child allowance and are not eligible)
     if (!isRetired) {
       for (const child of children) {
         const childAge = currentAge - child.birthAge;
-        if (childAge >= 19 && childAge <= 22) additionalDeductions += 63; // 特定扶養控除
-        else if (childAge >= 16 && childAge <= 18) additionalDeductions += 38; // 一般扶養控除
+        if (childAge >= 19 && childAge <= 22) additionalDeductions += 63; // specified dependent deduction
+        else if (childAge >= 16 && childAge <= 18) additionalDeductions += 38; // general dependent deduction
       }
     }
-    // 小規模企業共済掛金控除 (自営業・フリーランスの全額所得控除)
+    // Small Business Mutual Aid contribution deduction (full income deduction for self-employed / freelancers)
     if (!isRetired && (employmentType === "self_employed" || employmentType === "freelance")) {
       additionalDeductions += shokiboKigyoMonthly * 12;
     }
 
-    // 住宅ローン控除 (残高×0.7%、上限21万/年、購入後13年間の税額控除)
+    // Housing loan tax credit (balance × 0.7%, up to 210k yen/year, tax credit for 13 years after purchase)
     let housingLoanCredit = 0;
     if (housingType === "buy" && loanAmount > 0 && currentAge >= purchaseAge) {
       const loanAge = currentAge - purchaseAge;
@@ -337,52 +337,52 @@ export function runSimulation(input: SimulationInput): SimulationResult {
       }
     }
 
-    // ── 本人の収入 ─────────────────────────────────────────────
+    // ── User's income ─────────────────────────────────────────────
     let income = 0;
     if (!isRetired) {
       const grossPrimary = annualIncome * Math.pow(1 + incomeGrowthRate / 100, yearsElapsed);
       totalWorkYears++;
 
       if (isFreelanceWithOfficer) {
-        // フリーランス兼役員: 合算計算
+        // Freelancer who is also an officer: combined calculation
         const officerGross = officerAnnualIncome * Math.pow(1 + officerIncomeGrowthRate / 100, yearsElapsed);
         income += calcFreelanceOfficerNetIncome(grossPrimary, officerGross, currentAge, monthlyIdeco, additionalDeductions);
-        // 年金計算用: 役員報酬を厚生年金の標準報酬月額として使用
+        // For the pension calculation: use officer compensation as the standard monthly remuneration for employees' pension
         totalIncomeForPension += Math.min(officerGross, STD_REM_CAP_MONTHLY * 12);
       } else {
-        // 通常の計算
+        // Regular calculation
         totalIncomeForPension += Math.min(grossPrimary, STD_REM_CAP_MONTHLY * 12);
         income += calcNetIncome(grossPrimary, employmentType, currentAge, monthlyIdeco, additionalDeductions);
         if (sideIncomeMonthly > 0) {
           income += calcNetIncome(sideIncomeMonthly * 12, "freelance", currentAge, 0);
         }
       }
-      income += housingLoanCredit; // 住宅ローン控除（税額控除分を手取りに加算）
+      income += housingLoanCredit; // housing loan tax credit (add the credited amount to take-home pay)
     }
 
-    // 退職後の収入 (就労 + 年金)
+    // Post-retirement income (work + pension)
     let pensionEstimate: number | undefined;
     if (isRetired) {
       if (postRetirementIncomeMonthly > 0 && currentAge <= postRetirementIncomeUntilAge) {
         income += calcNetIncome(postRetirementIncomeMonthly * 12, "part_time", currentAge, 0);
       }
-      // 公的年金 (公的年金等控除で概ね非課税のため額面で計上)
+      // Public pension (counted at face value since the public pension deduction makes it roughly tax-free)
       const avgIncome = totalWorkYears > 0 ? totalIncomeForPension / totalWorkYears : 0;
-      // フリーランス兼役員は厚生年金適用（role: employee相当）
+      // Freelancer who is also an officer gets employees' pension (equivalent to role: employee)
       const effectiveEmpType = isFreelanceWithOfficer ? "employee" : employmentType;
       const monthly = calcPensionMonthly(avgIncome, totalWorkYears, gender, effectiveEmpType);
-      // 企業年金・確定給付年金
+      // Corporate pension / defined benefit pension
       const corpPension = corporatePensionMonthly > 0 ? corporatePensionMonthly * 12 : 0;
       pensionEstimate = monthly * 12 + corpPension;
       income += pensionEstimate;
     }
 
-    // 退職金 (退職年に一括)
+    // Retirement allowance (lump sum in the retirement year)
     if (currentAge === retirementAge && retirementAllowance > 0) {
       savingsAssets += calcRetirementAllowanceNet(retirementAllowance, totalWorkYears);
     }
 
-    // ── 配偶者の収入 ───────────────────────────────────────────
+    // ── Spouse's income ───────────────────────────────────────────
     let spouseIncome = 0;
     if (hasSpouse && spouseCurrentAge !== null) {
       if (!isSpouseRetired) {
@@ -403,13 +403,13 @@ export function runSimulation(input: SimulationInput): SimulationResult {
           }
         }
       } else {
-        // 配偶者退職後の年金
+        // Pension after the spouse retires
         if (spouseEmploymentType === "homemaker") {
-          // 第3号被保険者 → 国民年金 (基礎年金)
+          // Category 3 insured person → National Pension (basic pension)
           const enrollYears = Math.min(Math.max(effectiveSpouseRetirementAge - 20, 0), 40);
           spouseIncome = KISO_NENKIN_MONTHLY * (enrollYears / 40) * 12;
         } else {
-          // 就労歴あり → 厚生年金 or 国民年金
+          // Has work history → employees' pension or National Pension
           if (spousePensionMonthly === 0 && spouseTotalWorkYears > 0) {
             const avgSpouseIncome = spouseTotalIncomeForPension / spouseTotalWorkYears;
             const spouseGender: "male" | "female" = gender === "male" ? "female" : "male";
@@ -422,7 +422,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
       }
     }
 
-    // ── NISA枠チェックと動的ブレンド利回り ─────────────────────
+    // ── NISA cap check and dynamically blended return ─────────────────────
     const nisaMonthlyEffective = (!isRetired && nisaMonthlyBase > 0)
       ? Math.min(nisaMonthlyBase, Math.max(0, NISA_LIFETIME_CAP - nisaTotalContributed) / 12)
       : 0;
@@ -441,47 +441,47 @@ export function runSimulation(input: SimulationInput): SimulationResult {
       : investmentReturnRate;
     const effectiveMonthlyReturn = effectiveBlendedRate / 100 / 12;
 
-    // ── 支出 ───────────────────────────────────────────────────
-    // 生活費 (物価上昇率で毎年増加、高齢期は支出低下係数を適用)
+    // ── Expenses ───────────────────────────────────────────────────
+    // Living expenses (grow each year with inflation; the old-age spending factor applies later)
     const ageCoeff = useAgeBasedSpendingCurve ? getSpendingAgeCoeff(currentAge) : 1.0;
     const livingExpense = monthlyLivingExpense * 12 * Math.pow(1 + inflRate, yearsElapsed) * ageCoeff;
 
-    // 住居費
+    // Housing cost
     let housingCost = 0;
     if (housingType === "rent") {
-      // 家賃も物価上昇率に連動
+      // Rent also tracks inflation
       housingCost = monthlyRent * 12 * Math.pow(1 + inflRate, yearsElapsed);
     } else if (housingType === "buy") {
       if (currentAge >= purchaseAge) {
         const loanAge = currentAge - purchaseAge;
         housingCost = loanAge < mortgagePeriod
           ? monthlyMortgagePayment * 12
-          : 30; // ローン完済後: 修繕・維持費 30万/年
-        housingCost += propertyPrice * PROPERTY_TAX_RATE; // 固定資産税
+          : 30; // after the loan is paid off: repairs and upkeep 300k yen/year
+        housingCost += propertyPrice * PROPERTY_TAX_RATE; // fixed asset tax
         if (currentAge === purchaseAge) {
-          savingsAssets -= downPayment; // 頭金
+          savingsAssets -= downPayment; // down payment
         }
       }
     } else {
-      // 持ち家: 維持費 + 固定資産税
+      // Owned home: upkeep + fixed asset tax
       housingCost = 30 + propertyPrice * PROPERTY_TAX_RATE;
     }
 
-    // 教育費
+    // Education costs
     let educationCost = 0;
     for (const child of children) educationCost += calcChildEducationCost(child, currentAge);
 
-    // ライフイベント
+    // Life events
     let lifeEventCost = 0;
     for (const event of lifeEvents) {
       if (event.age === currentAge) lifeEventCost += event.cost;
     }
 
-    // 生命保険料 (退職前のみ)
+    // Life insurance premiums (before retirement only)
     const insuranceCost = (!isRetired && lifeInsurancePremiumMonthly > 0)
       ? lifeInsurancePremiumMonthly * 12 : 0;
 
-    // 医療・介護費 (70歳以降)
+    // Medical and nursing care costs (age 70 and over)
     let medicalCost = 0;
     if (currentAge >= 70 && medicalCostMonthlyAt70 > 0) {
       medicalCost += medicalCostMonthlyAt70 * 12 * Math.pow(1 + inflRate, currentAge - 70);
@@ -494,7 +494,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
     const totalIncome  = income + spouseIncome;
     const netCashFlow  = totalIncome - totalExpense;
 
-    // ── 投資資産 (月次複利・退職後も継続) ─────────────────────
+    // ── Investment assets (monthly compounding, continues after retirement) ─────────────────────
     let yearInvestment = investmentAssets;
     if (!isRetired) {
       for (let m = 0; m < 12; m++) {
@@ -507,29 +507,29 @@ export function runSimulation(input: SimulationInput): SimulationResult {
     }
     investmentAssets = Math.max(0, yearInvestment);
 
-    // ── 貯蓄更新 ───────────────────────────────────────────────
+    // ── Savings update ───────────────────────────────────────────────
     savingsAssets = savingsAssets + netCashFlow;
     if (!isRetired) savingsAssets -= totalMonthlyInvestment * 12;
 
-    // 貯蓄がマイナスなら投資から補填
+    // If savings go negative, cover them from investments
     if (savingsAssets < 0 && investmentAssets > 0) {
       const draw = Math.min(-savingsAssets, investmentAssets);
       investmentAssets -= draw;
       savingsAssets    += draw;
     }
 
-    // 資産枯渇チェック: 貯蓄がマイナスかつ投資資産もゼロなら実質破綻
+    // Asset depletion check: savings negative and investment assets at zero means effectively broke
     if (savingsAssets < 0 && investmentAssets === 0) assetsDepleted = true;
 
-    // 普通預金利息 (0.1%/年)
+    // Ordinary deposit interest (0.1%/year)
     if (savingsAssets > 0) savingsAssets += savingsAssets * SAVINGS_INTEREST_RATE;
 
-    // 実際の総資産（負値もそのまま表示してグラフに枯渇を反映）
+    // Actual total assets (negative values kept as-is so the chart shows depletion)
     const cumulativeAssets = savingsAssets + investmentAssets;
     cumulativeIncome  += totalIncome;
     cumulativeExpense += totalExpense;
 
-    // 住宅資産価値: 土地60%は価値維持、建物40%は築年数で償却（2%/年）
+    // Home value: land (60%) keeps its value, building (40%) depreciates with age (2%/year)
     let propertyValue: number | undefined;
     if (housingType === "buy" || housingType === "own") {
       const buildingAge = housingType === "buy"
@@ -544,9 +544,9 @@ export function runSimulation(input: SimulationInput): SimulationResult {
       year, age: currentAge, income, spouseIncome,
       livingExpense, housingCost, educationCost, lifeEventCost, medicalCost,
       totalExpense, netCashFlow,
-      cumulativeAssets,                          // 負値を含む実際の総資産
+      cumulativeAssets,                          // actual total assets, including negative values
       investmentAssets: Math.max(0, investmentAssets),
-      savingsAssets: Math.max(0, savingsAssets), // 表示用（0フロア）
+      savingsAssets: Math.max(0, savingsAssets), // for display (floored at 0)
       propertyValue, pensionEstimate,
     });
   }
@@ -560,7 +560,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
   const finalEffectiveEmpType = isFreelanceWithOfficer ? "employee" : employmentType;
   const pensionMonthly = calcPensionMonthly(avgIncome, totalWorkYears, gender, finalEffectiveEmpType);
 
-  // 配偶者年金月額を確定
+  // Fix the spouse's monthly pension
   let finalSpousePensionMonthly = 0;
   if (hasSpouse) {
     if (spouseEmploymentType === "homemaker") {
@@ -578,7 +578,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
   }
   const householdPensionMonthly = pensionMonthly + finalSpousePensionMonthly;
 
-  // ── 診断メモ ────────────────────────────────────────────────
+  // ── Diagnostic notes ────────────────────────────────────────────────
   const notes: string[] = [];
   notes.push("収入は所得税・住民税・社会保険料控除後の手取りでシミュレーションしています。");
   if (retirementAssets < 0)   notes.push("退職時点で資産がマイナスになる見込みです。早期の対策が必要です。");
@@ -597,7 +597,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
 
   return {
     yearlyData, retirementAssets, finalAssets,
-    // シミュレーション期間中に一度も資産が枯渇しなかった場合のみ「安全」
+    // "Safe" only if assets never ran out during the simulation period
     isRetirementSafe: !assetsDepleted && finalAssets >= 0,
     pensionMonthly, spousePensionMonthly: finalSpousePensionMonthly,
     totalIncome: cumulativeIncome, totalExpense: cumulativeExpense, notes,

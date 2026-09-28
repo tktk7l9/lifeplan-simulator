@@ -31,12 +31,12 @@ export const IDECO_PRODUCTS: InvestmentProduct[] = [
 ];
 
 export type EmploymentType =
-  | "employee"           // 会社員（正社員）
-  | "civil_servant"      // 公務員
-  | "employee_freelance" // 会社員兼フリーランス
-  | "self_employed"      // 自営業
-  | "freelance"          // フリーランス
-  | "part_time";         // パート・アルバイト
+  | "employee"           // company employee (full-time)
+  | "civil_servant"      // civil servant
+  | "employee_freelance" // company employee + freelancer
+  | "self_employed"      // self-employed
+  | "freelance"          // freelancer
+  | "part_time";         // part-time / side job
 
 export type SpouseEmploymentType = EmploymentType | "homemaker";
 
@@ -74,7 +74,7 @@ export interface SimulationInput {
   children: ChildInfo[];
 
   // Simulation options
-  useAgeBasedSpendingCurve?: boolean; // 年齢別支出カーブ（70代以降の支出低下）
+  useAgeBasedSpendingCurve?: boolean; // age-based spending curve (spending declines from the 70s onward)
 
   // Income
   employmentType: EmploymentType;
@@ -119,28 +119,28 @@ export interface SimulationInput {
   monthlyIdeco: number;
   idecoProductId: string;
   idecoReturnRate: number;
-  // 小規模企業共済
+  // Small Business Mutual Aid (小規模企業共済)
   shokiboKigyoMonthly: number;
 
   // Simulation parameters
-  inflationRate: number;        // 物価上昇率 (% / year, default 1.5)
-  spouseRetirementAge: number;  // 配偶者の退職年齢 (0 = 本人と同じ)
-  retirementAllowance: number;  // 退職金 (万円)
+  inflationRate: number;        // inflation rate (% / year, default 1.5)
+  spouseRetirementAge: number;  // spouse's retirement age (0 = same as the user)
+  retirementAllowance: number;  // retirement allowance (10k yen)
 
   // Insurance & healthcare
-  lifeInsurancePremiumMonthly: number;  // 生命保険料 (万円/月)
-  medicalCostMonthlyAt70: number;       // 70歳以降の医療費追加分 (万円/月)
-  nursingCareStartAge: number;          // 介護開始年齢 (0=なし)
-  nursingCareCostMonthly: number;       // 介護費用 (万円/月)
+  lifeInsurancePremiumMonthly: number;  // life insurance premium (10k yen/month)
+  medicalCostMonthlyAt70: number;       // additional medical costs from age 70 (10k yen/month)
+  nursingCareStartAge: number;          // nursing care start age (0 = none)
+  nursingCareCostMonthly: number;       // nursing care cost (10k yen/month)
 
   // Corporate pension & DC
-  corporatePensionMonthly: number;      // 企業年金/確定給付年金 (万円/月、退職後)
-  corporateDCBalance: number;           // 企業型DC現在残高 (万円)
-  corporateDCMonthly: number;           // 企業型DC掛金 (万円/月)
+  corporatePensionMonthly: number;      // corporate pension / defined benefit pension (10k yen/month, after retirement)
+  corporateDCBalance: number;           // current corporate DC balance (10k yen)
+  corporateDCMonthly: number;           // corporate DC contribution (10k yen/month)
 
-  // Freelance + officer income (フリーランス兼会社役員)
-  officerAnnualIncome: number;          // 役員報酬 (万円/年) — フリーランス/自営業者が法人役員も兼ねる場合
-  officerIncomeGrowthRate: number;      // 役員報酬の年増加率 (%)
+  // Freelance + officer income (freelancer who is also a company officer)
+  officerAnnualIncome: number;          // officer compensation (10k yen/year) — when a freelancer / self-employed person is also a company officer
+  officerIncomeGrowthRate: number;      // annual growth rate of officer compensation (%)
 }
 
 export interface YearlyData {
