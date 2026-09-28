@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
+import "@/lib/zod-ja";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
   Form,
@@ -13,9 +14,10 @@ import {
   FormDescription,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { useStoreSync } from "./useStoreSync";
 import { Separator } from "@/components/ui/separator";
 import { NISA_PRODUCTS, IDECO_PRODUCTS, type InvestmentProduct } from "@/lib/simulation/types";
 import { MoneyForwardImportDialog } from "@/components/simulator/import/MoneyForwardImportDialog";
@@ -35,19 +37,23 @@ function ProductPicker({
   products,
   selectedId,
   onSelect,
+  label,
 }: {
+  label: string;
   products: InvestmentProduct[];
   selectedId: string;
   onSelect: (product: InvestmentProduct) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-2">
+    <div role="radiogroup" aria-label={label} className="grid grid-cols-1 gap-2">
       {products.map((p) => {
         const isSelected = selectedId === p.id;
         return (
           <button
             key={p.id}
             type="button"
+            role="radio"
+            aria-checked={isSelected}
             onClick={() => onSelect(p)}
             className={`text-left px-3 py-2.5 rounded-lg border-2 transition-all ${
               isSelected
@@ -146,6 +152,8 @@ export function InvestmentStep({ onNext }: Props) {
     form.setValue("idecoReturnRate", product.expectedReturn);
   }
 
+  useStoreSync(form, (values) => values);
+
   function onSubmit(values: FormValues) {
     updateInput(values);
     onNext();
@@ -182,19 +190,18 @@ export function InvestmentStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">現在の貯蓄額</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-28 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0}
-                    />
-                    <span className="text-sm text-muted-foreground">万円</span>
-                  </div>
+                  <NumberInput
+                    label="現在の貯蓄額"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={100000}
+                    unit="万円"
+                    className="w-28"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="現在の貯蓄額"
                     min={0} max={5000} step={50}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}
@@ -217,19 +224,18 @@ export function InvestmentStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">現在の投資資産</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-28 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0}
-                    />
-                    <span className="text-sm text-muted-foreground">万円</span>
-                  </div>
+                  <NumberInput
+                    label="現在の投資資産"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={100000}
+                    unit="万円"
+                    className="w-28"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="現在の投資資産"
                     min={0} max={5000} step={50}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}
@@ -259,6 +265,7 @@ export function InvestmentStep({ onNext }: Props) {
           <div>
             <p className="text-sm font-medium text-muted-foreground mb-2">投資商品を選択</p>
             <ProductPicker
+              label="NISAの投資商品"
               products={NISA_PRODUCTS}
               selectedId={nisaProductId}
               onSelect={handleNisaProductSelect}
@@ -276,19 +283,18 @@ export function InvestmentStep({ onNext }: Props) {
                     <FormLabel className="text-base font-semibold">積立投資枠</FormLabel>
                     <span className="ml-2 text-xs text-muted-foreground">年120万円上限</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-24 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0} max={10} step={0.5}
-                    />
-                    <span className="text-sm text-muted-foreground">万円 / 月</span>
-                  </div>
+                  <NumberInput
+                    label="積立投資枠"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={10}
+                    unit="万円 / 月"
+                    className="w-24"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="積立投資枠"
                     min={0} max={10} step={0.5}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}
@@ -314,19 +320,18 @@ export function InvestmentStep({ onNext }: Props) {
                     <FormLabel className="text-base font-semibold">成長投資枠</FormLabel>
                     <span className="ml-2 text-xs text-muted-foreground">年240万円上限</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-24 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0} max={20} step={0.5}
-                    />
-                    <span className="text-sm text-muted-foreground">万円 / 月</span>
-                  </div>
+                  <NumberInput
+                    label="成長投資枠"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={20}
+                    unit="万円 / 月"
+                    className="w-24"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="成長投資枠"
                     min={0} max={20} step={0.5}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}
@@ -357,6 +362,7 @@ export function InvestmentStep({ onNext }: Props) {
           <div>
             <p className="text-sm font-medium text-muted-foreground mb-2">投資商品を選択</p>
             <ProductPicker
+              label="iDeCoの投資商品"
               products={IDECO_PRODUCTS}
               selectedId={idecoProductId}
               onSelect={handleIdecoProductSelect}
@@ -370,19 +376,18 @@ export function InvestmentStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">iDeCo月額</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-24 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0} max={6.8} step={0.1}
-                    />
-                    <span className="text-sm text-muted-foreground">万円 / 月</span>
-                  </div>
+                  <NumberInput
+                    label="iDeCo月額"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={6.8}
+                    unit="万円 / 月"
+                    className="w-24"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="iDeCo月額"
                     min={0} max={6.8} step={0.1}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(Math.round(v * 10) / 10)}
@@ -421,19 +426,18 @@ export function InvestmentStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">月額掛金</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-24 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0} max={7} step={0.1}
-                    />
-                    <span className="text-sm text-muted-foreground">万円 / 月</span>
-                  </div>
+                  <NumberInput
+                    label="小規模企業共済の月額掛金"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={7}
+                    unit="万円 / 月"
+                    className="w-24"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="小規模企業共済の月額掛金"
                     min={0} max={7} step={0.1}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(Math.round(v * 10) / 10)}
@@ -462,19 +466,18 @@ export function InvestmentStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">月の投資額</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-24 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0} step={0.5}
-                    />
-                    <span className="text-sm text-muted-foreground">万円 / 月</span>
-                  </div>
+                  <NumberInput
+                    label="月の投資額"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={100}
+                    unit="万円 / 月"
+                    className="w-24"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="月の投資額"
                     min={0} max={50} step={0.5}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}
@@ -496,19 +499,18 @@ export function InvestmentStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">一般投資の期待利回り</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-20 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0} max={30} step={0.1}
-                    />
-                    <span className="text-sm text-muted-foreground">% / 年</span>
-                  </div>
+                  <NumberInput
+                    label="一般投資の期待利回り"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={30}
+                    unit="% / 年"
+                    className="w-20"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="一般投資の期待利回り"
                     min={0} max={15} step={0.1}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}

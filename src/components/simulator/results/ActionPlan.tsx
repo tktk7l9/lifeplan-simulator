@@ -181,7 +181,7 @@ export function ActionPlan({ result, input }: Props) {
   if (!actions.length) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
+    <div id="action-plan" className="scroll-mt-20 bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
       <div className="px-6 pt-5 pb-4 border-b border-border">
         <h3 className="font-semibold text-foreground">今すぐできるアクションプラン</h3>
         <p className="text-sm text-muted-foreground mt-0.5">

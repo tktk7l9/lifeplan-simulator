@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
+import "@/lib/zod-ja";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
   Form,
@@ -13,13 +14,15 @@ import {
   FormDescription,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { useStoreSync } from "./useStoreSync";
 
 const schema = z.object({
   housingType: z.enum(["rent", "buy", "own"]),
+  monthlyRent: z.number().min(0).max(100),
   purchaseAge: z.number().min(18).max(80),
   propertyPrice: z.number().min(0).max(100000),
   downPayment: z.number().min(0).max(50000),
@@ -73,6 +76,7 @@ export function HousingStep({ onNext }: Props) {
     resolver: standardSchemaResolver(schema),
     defaultValues: {
       housingType: input.housingType ?? "rent",
+      monthlyRent: input.monthlyRent ?? 10,
       purchaseAge: input.purchaseAge ?? 35,
       propertyPrice: input.propertyPrice ?? 4000,
       downPayment: input.downPayment ?? 400,
@@ -93,6 +97,8 @@ export function HousingStep({ onNext }: Props) {
       ? calcPMT(loanAmount, mortgageRate, mortgagePeriod)
       : 0;
 
+  useStoreSync(form, (values) => values);
+
   function onSubmit(values: FormValues) {
     updateInput(values);
     onNext();
@@ -107,14 +113,16 @@ export function HousingStep({ onNext }: Props) {
           name="housingType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base font-semibold">
+              <FormLabel className="text-base font-semibold" id="housing-type-label">
                 住居タイプ
               </FormLabel>
-              <div className="grid grid-cols-3 gap-3 mt-2">
+              <div role="radiogroup" aria-labelledby="housing-type-label" className="grid grid-cols-3 gap-3 mt-2">
                 {HOUSING_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     type="button"
+                    role="radio"
+                    aria-checked={field.value === opt.value}
                     onClick={() => field.onChange(opt.value)}
                     className={cn(
                       "flex flex-col items-center gap-2 p-4 rounded-xl border-2 font-medium text-sm transition-all duration-150",
@@ -123,7 +131,7 @@ export function HousingStep({ onNext }: Props) {
                         : "border-border text-muted-foreground hover:border-amber-300"
                     )}
                   >
-                    <span className="text-2xl">{opt.icon}</span>
+                    <span className="text-2xl" aria-hidden="true">{opt.icon}</span>
                     <span className="font-bold">{opt.label}</span>
                     <span className="text-xs text-center">{opt.description}</span>
                   </button>
@@ -151,7 +159,7 @@ export function HousingStep({ onNext }: Props) {
                     </span>
                   </div>
                   <FormControl>
-                    <Slider
+                    <Slider thumbLabel="購入予定年齢"
                       min={20}
                       max={70}
                       step={1}
@@ -178,20 +186,18 @@ export function HousingStep({ onNext }: Props) {
                     <FormLabel className="text-base font-semibold">
                       物件価格
                     </FormLabel>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        className="w-28 text-right font-bold text-amber-600"
-                        value={field.value}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        min={0}
-                        max={100000}
-                      />
-                      <span className="text-sm text-muted-foreground">万円</span>
-                    </div>
+                    <NumberInput
+                      label="物件価格"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      min={0}
+                      max={100000}
+                      unit="万円"
+                      className="w-28"
+                    />
                   </div>
                   <FormControl>
-                    <Slider
+                    <Slider thumbLabel="物件価格"
                       min={500}
                       max={20000}
                       step={100}
@@ -218,20 +224,18 @@ export function HousingStep({ onNext }: Props) {
                     <FormLabel className="text-base font-semibold">
                       頭金
                     </FormLabel>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        className="w-28 text-right font-bold text-amber-600"
-                        value={field.value}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        min={0}
-                        max={propertyPrice}
-                      />
-                      <span className="text-sm text-muted-foreground">万円</span>
-                    </div>
+                    <NumberInput
+                      label="頭金"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      min={0}
+                      max={propertyPrice}
+                      unit="万円"
+                      className="w-28"
+                    />
                   </div>
                   <FormControl>
-                    <Slider
+                    <Slider thumbLabel="頭金"
                       min={0}
                       max={Math.max(0, propertyPrice)}
                       step={50}
@@ -265,18 +269,16 @@ export function HousingStep({ onNext }: Props) {
                     <FormLabel className="text-base font-semibold">
                       金利
                     </FormLabel>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Input
-                        type="number"
-                        className="font-bold text-amber-600"
-                        value={field.value}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        min={0}
-                        max={10}
-                        step={0.01}
-                      />
-                      <span className="text-sm text-muted-foreground shrink-0">% / 年</span>
-                    </div>
+                    <NumberInput
+                      label="金利"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      min={0}
+                      max={10}
+                      unit="% / 年"
+                      className="w-24"
+                      wrapperClassName="mt-2"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -290,17 +292,16 @@ export function HousingStep({ onNext }: Props) {
                     <FormLabel className="text-base font-semibold">
                       返済期間
                     </FormLabel>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Input
-                        type="number"
-                        className="font-bold text-amber-600"
-                        value={field.value}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        min={5}
-                        max={50}
-                      />
-                      <span className="text-sm text-muted-foreground shrink-0">年</span>
-                    </div>
+                    <NumberInput
+                      label="返済期間"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      min={5}
+                      max={50}
+                      unit="年"
+                      className="w-24"
+                      wrapperClassName="mt-2"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -350,10 +351,47 @@ export function HousingStep({ onNext }: Props) {
           </>
         )}
 
+        {/* Rent is asked here, right after choosing 賃貸 (SHIG 40, 32) */}
         {housingType === "rent" && (
-          <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-700">
-            家賃は前のステップ「支出」で設定した内容が使用されます。
-          </div>
+          <FormField
+            control={form.control}
+            name="monthlyRent"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
+                  <FormLabel className="text-base font-semibold">月額家賃</FormLabel>
+                  <NumberInput
+                    label="月額家賃"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={100}
+                    unit="万円 / 月"
+                    className="w-24"
+                  />
+                </div>
+                <FormControl>
+                  <Slider
+                    thumbLabel="月額家賃"
+                    min={3}
+                    max={50}
+                    step={0.5}
+                    value={[field.value]}
+                    onValueChange={([v]) => field.onChange(v)}
+                    className="mb-2"
+                  />
+                </FormControl>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>3万円</span>
+                  <span>50万円</span>
+                </div>
+                <FormDescription>
+                  管理費・共益費を含む月額賃料。年間では{(field.value * 12).toLocaleString("ja-JP")}万円になります
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         )}
 
         {housingType === "own" && (

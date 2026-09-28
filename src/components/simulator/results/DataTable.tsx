@@ -154,7 +154,10 @@ export function DataTable({ data, input }: Props) {
         <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 text-amber-800">現役期</span>
         <span className="inline-flex items-center gap-1 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5 text-blue-700">退職後</span>
         <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-100 rounded px-1.5 py-0.5 text-emerald-700">年金期</span>
-        <span className="inline-flex items-center gap-1 bg-red-50 border border-red-100 rounded px-1.5 py-0.5 text-red-600">CF赤字年</span>
+        <span className="inline-flex items-center gap-1">
+          <span className="bg-red-50 border border-red-200 rounded px-1 py-0.5 font-semibold text-red-700">赤字</span>
+          収支がマイナスの年
+        </span>
       </div>
 
       <div className="overflow-auto max-h-[560px]">
@@ -246,6 +249,10 @@ export function DataTable({ data, input }: Props) {
                     )}>
                       <span className="font-bold text-foreground">{row.age}歳</span>
                       <span className="text-xs text-muted-foreground ml-1.5">{row.year}</span>
+                      {/* Text marker so deficit years do not rely on the red background alone (SHIG 96) */}
+                      {isNegativeCF && (
+                        <span className="ml-1.5 rounded border border-red-200 bg-red-50 px-1 text-[10px] font-semibold text-red-700">赤字</span>
+                      )}
                     </td>
 
                     {/* Income */}

@@ -3,10 +3,30 @@ import { persist } from "zustand/middleware";
 import type { SimulationInput, SimulationResult, SavedSimulation, AIEvaluation } from "@/lib/simulation/types";
 import { runSimulation } from "@/lib/simulation/calculator";
 
+/** Index of the result ("summit") step; steps 0-6 are input forms. */
+export const RESULT_STEP = 7;
+
+/** What the user was looking at; handed back by destructive actions so they can be undone. */
+export interface SessionSnapshot {
+  currentStep: number;
+  input: Partial<SimulationInput>;
+  result: SimulationResult | null;
+  resultKey: string | null;
+  aiEvaluation: AIEvaluation | null;
+}
+
 interface SimulationStore {
   currentStep: number;
   input: Partial<SimulationInput>;
   result: SimulationResult | null;
+  /** Serialized input the current result was computed from. */
+  resultKey: string | null;
+  /**
+   * Bumped whenever the whole input is replaced from outside the forms (load, reset,
+   * undo, rehydration). Step forms are keyed on it so they re-read the store instead
+   * of showing, and later writing back, stale values.
+   */
+  sessionId: number;
   isCalculating: boolean;
   savedSimulations: SavedSimulation[];
   aiEvaluation: AIEvaluation | null;
@@ -15,8 +35,14 @@ interface SimulationStore {
   setStep: (step: number) => void;
   calculate: () => void;
   saveSimulation: (name: string) => void;
-  loadSimulation: (id: string) => void;
-  deleteSimulation: (id: string) => void;
+  /** Loads a saved simulation and returns the replaced session (for undo), or null if not found. */
+  loadSimulation: (id: string) => SessionSnapshot | null;
+  /** Deletes a saved simulation and returns it with its position (for undo), or null if not found. */
+  deleteSimulation: (id: string) => { sim: SavedSimulation; index: number } | null;
+  restoreSimulation: (sim: SavedSimulation, index: number) => void;
+  /** Starts over with default input and returns the discarded session (for undo). */
+  resetInput: () => SessionSnapshot;
+  restoreSession: (snapshot: SessionSnapshot) => void;
   setAiEvaluation: (evaluation: AIEvaluation | null) => void;
 }
 
@@ -87,12 +113,82 @@ const defaultInput: Partial<SimulationInput> = {
   useAgeBasedSpendingCurve: true,
 };
 
+/** Fill every missing field with its default so the calculator gets a complete input. */
+export function toFullInput(input: Partial<SimulationInput>): SimulationInput {
+  return {
+    age: input.age ?? 30,
+    retirementAge: input.retirementAge ?? 65,
+    gender: input.gender ?? "male",
+    hasSpouse: input.hasSpouse ?? false,
+    spouseAge: input.spouseAge ?? 30,
+    children: input.children ?? [],
+    employmentType: input.employmentType ?? "employee",
+    annualIncome: input.annualIncome ?? 500,
+    incomeGrowthRate: input.incomeGrowthRate ?? 2,
+    sideIncomeMonthly: input.sideIncomeMonthly ?? 0,
+    postRetirementIncomeMonthly: input.postRetirementIncomeMonthly ?? 0,
+    postRetirementIncomeUntilAge: input.postRetirementIncomeUntilAge ?? 70,
+    spouseEmploymentType: input.spouseEmploymentType ?? "employee",
+    spouseAnnualIncome: input.spouseAnnualIncome ?? 0,
+    spouseIncomeGrowthRate: input.spouseIncomeGrowthRate ?? 1,
+    spouseCareerBreakStartAge: input.spouseCareerBreakStartAge ?? 0,
+    spouseCareerBreakEndAge: input.spouseCareerBreakEndAge ?? 0,
+    spouseCareerBreakIncomeMonthly: input.spouseCareerBreakIncomeMonthly ?? 0,
+    monthlyLivingExpense: input.monthlyLivingExpense ?? 20,
+    monthlyRent: input.monthlyRent ?? 10,
+    housingType: input.housingType ?? "rent",
+    purchaseAge: input.purchaseAge ?? 35,
+    propertyPrice: input.propertyPrice ?? 4000,
+    downPayment: input.downPayment ?? 400,
+    mortgageRate: input.mortgageRate ?? 1.0,
+    mortgagePeriod: input.mortgagePeriod ?? 35,
+    lifeEvents: input.lifeEvents ?? [],
+    currentSavings: input.currentSavings ?? 200,
+    currentInvestmentAssets: input.currentInvestmentAssets ?? 0,
+    monthlyInvestment: input.monthlyInvestment ?? 3,
+    investmentReturnRate: input.investmentReturnRate ?? 5,
+    nisaAccumulationMonthly: input.nisaAccumulationMonthly ?? 0,
+    nisaGrowthMonthly: input.nisaGrowthMonthly ?? 0,
+    nisaProductId: input.nisaProductId ?? "allworld",
+    nisaReturnRate: input.nisaReturnRate ?? 6.5,
+    monthlyIdeco: input.monthlyIdeco ?? 0,
+    idecoProductId: input.idecoProductId ?? "allworld",
+    idecoReturnRate: input.idecoReturnRate ?? 6.5,
+    shokiboKigyoMonthly: input.shokiboKigyoMonthly ?? 0,
+    inflationRate: input.inflationRate ?? 1.5,
+    spouseRetirementAge: input.spouseRetirementAge ?? 0,
+    retirementAllowance: input.retirementAllowance ?? 0,
+    lifeInsurancePremiumMonthly: input.lifeInsurancePremiumMonthly ?? 0.8,
+    medicalCostMonthlyAt70: input.medicalCostMonthlyAt70 ?? 1.5,
+    nursingCareStartAge: input.nursingCareStartAge ?? 0,
+    nursingCareCostMonthly: input.nursingCareCostMonthly ?? 0,
+    corporatePensionMonthly: input.corporatePensionMonthly ?? 0,
+    corporateDCBalance: input.corporateDCBalance ?? 0,
+    corporateDCMonthly: input.corporateDCMonthly ?? 0,
+    officerAnnualIncome: input.officerAnnualIncome ?? 0,
+    officerIncomeGrowthRate: input.officerIncomeGrowthRate ?? 0,
+    useAgeBasedSpendingCurve: input.useAgeBasedSpendingCurve ?? true,
+  };
+}
+
+function snapshotOf(state: SessionSnapshot): SessionSnapshot {
+  const { currentStep, input, result, resultKey, aiEvaluation } = state;
+  return { currentStep, input, result, resultKey, aiEvaluation };
+}
+
+/** Stable key of the input a result was computed from; used to skip needless recalculation. */
+function inputKey(input: Partial<SimulationInput>): string {
+  return JSON.stringify(input);
+}
+
 export const useSimulationStore = create<SimulationStore>()(
   persist(
     (set, get) => ({
       currentStep: 0,
       input: defaultInput,
       result: null,
+      resultKey: null,
+      sessionId: 0,
       isCalculating: false,
       savedSimulations: [],
       aiEvaluation: null,
@@ -100,68 +196,22 @@ export const useSimulationStore = create<SimulationStore>()(
       updateInput: (patch) =>
         set((state) => ({ input: { ...state.input, ...patch } })),
 
-      setStep: (step) => set({ currentStep: step }),
+      setStep: (step) => {
+        set({ currentStep: step });
+        // The result view always reflects the current input (SHIG 35); recompute only when it changed.
+        if (step === RESULT_STEP) {
+          const { result, resultKey, input } = get();
+          if (!result || resultKey !== inputKey(input)) get().calculate();
+        }
+      },
 
       calculate: () => {
         set({ isCalculating: true });
         try {
           const { input } = get();
-          const fullInput: SimulationInput = {
-            age: input.age ?? 30,
-            retirementAge: input.retirementAge ?? 65,
-            gender: input.gender ?? "male",
-            hasSpouse: input.hasSpouse ?? false,
-            spouseAge: input.spouseAge ?? 30,
-            children: input.children ?? [],
-            employmentType: input.employmentType ?? "employee",
-            annualIncome: input.annualIncome ?? 500,
-            incomeGrowthRate: input.incomeGrowthRate ?? 2,
-            sideIncomeMonthly: input.sideIncomeMonthly ?? 0,
-            postRetirementIncomeMonthly: input.postRetirementIncomeMonthly ?? 0,
-            postRetirementIncomeUntilAge: input.postRetirementIncomeUntilAge ?? 70,
-            spouseEmploymentType: input.spouseEmploymentType ?? "employee",
-            spouseAnnualIncome: input.spouseAnnualIncome ?? 0,
-            spouseIncomeGrowthRate: input.spouseIncomeGrowthRate ?? 1,
-            spouseCareerBreakStartAge: input.spouseCareerBreakStartAge ?? 0,
-            spouseCareerBreakEndAge: input.spouseCareerBreakEndAge ?? 0,
-            spouseCareerBreakIncomeMonthly: input.spouseCareerBreakIncomeMonthly ?? 0,
-            monthlyLivingExpense: input.monthlyLivingExpense ?? 20,
-            monthlyRent: input.monthlyRent ?? 10,
-            housingType: input.housingType ?? "rent",
-            purchaseAge: input.purchaseAge ?? 35,
-            propertyPrice: input.propertyPrice ?? 4000,
-            downPayment: input.downPayment ?? 400,
-            mortgageRate: input.mortgageRate ?? 1.0,
-            mortgagePeriod: input.mortgagePeriod ?? 35,
-            lifeEvents: input.lifeEvents ?? [],
-            currentSavings: input.currentSavings ?? 200,
-            currentInvestmentAssets: input.currentInvestmentAssets ?? 0,
-            monthlyInvestment: input.monthlyInvestment ?? 3,
-            investmentReturnRate: input.investmentReturnRate ?? 5,
-            nisaAccumulationMonthly: input.nisaAccumulationMonthly ?? 0,
-            nisaGrowthMonthly: input.nisaGrowthMonthly ?? 0,
-            nisaProductId: input.nisaProductId ?? "allworld",
-            nisaReturnRate: input.nisaReturnRate ?? 6.5,
-            monthlyIdeco: input.monthlyIdeco ?? 0,
-            idecoProductId: input.idecoProductId ?? "allworld",
-            idecoReturnRate: input.idecoReturnRate ?? 6.5,
-            shokiboKigyoMonthly: input.shokiboKigyoMonthly ?? 0,
-            inflationRate: input.inflationRate ?? 1.5,
-            spouseRetirementAge: input.spouseRetirementAge ?? 0,
-            retirementAllowance: input.retirementAllowance ?? 0,
-            lifeInsurancePremiumMonthly: input.lifeInsurancePremiumMonthly ?? 0.8,
-            medicalCostMonthlyAt70: input.medicalCostMonthlyAt70 ?? 1.5,
-            nursingCareStartAge: input.nursingCareStartAge ?? 0,
-            nursingCareCostMonthly: input.nursingCareCostMonthly ?? 0,
-            corporatePensionMonthly: input.corporatePensionMonthly ?? 0,
-            corporateDCBalance: input.corporateDCBalance ?? 0,
-            corporateDCMonthly: input.corporateDCMonthly ?? 0,
-            officerAnnualIncome: input.officerAnnualIncome ?? 0,
-            officerIncomeGrowthRate: input.officerIncomeGrowthRate ?? 0,
-            useAgeBasedSpendingCurve: input.useAgeBasedSpendingCurve ?? true,
-          };
+          const fullInput = toFullInput(input);
           const result = runSimulation(fullInput);
-          set({ result, isCalculating: false, aiEvaluation: null });
+          set({ result, resultKey: inputKey(input), isCalculating: false, aiEvaluation: null });
         } catch {
           set({ isCalculating: false });
         }
@@ -170,60 +220,7 @@ export const useSimulationStore = create<SimulationStore>()(
       saveSimulation: (name: string) => {
         const { input, result } = get();
         if (!result) return;
-        const fullInput: SimulationInput = {
-          age: input.age ?? 30,
-          retirementAge: input.retirementAge ?? 65,
-          gender: input.gender ?? "male",
-          hasSpouse: input.hasSpouse ?? false,
-          spouseAge: input.spouseAge ?? 30,
-          children: input.children ?? [],
-          employmentType: input.employmentType ?? "employee",
-          annualIncome: input.annualIncome ?? 500,
-          incomeGrowthRate: input.incomeGrowthRate ?? 2,
-          sideIncomeMonthly: input.sideIncomeMonthly ?? 0,
-          postRetirementIncomeMonthly: input.postRetirementIncomeMonthly ?? 0,
-          postRetirementIncomeUntilAge: input.postRetirementIncomeUntilAge ?? 70,
-          spouseEmploymentType: input.spouseEmploymentType ?? "employee",
-          spouseAnnualIncome: input.spouseAnnualIncome ?? 0,
-          spouseIncomeGrowthRate: input.spouseIncomeGrowthRate ?? 1,
-          spouseCareerBreakStartAge: input.spouseCareerBreakStartAge ?? 0,
-          spouseCareerBreakEndAge: input.spouseCareerBreakEndAge ?? 0,
-          spouseCareerBreakIncomeMonthly: input.spouseCareerBreakIncomeMonthly ?? 0,
-          monthlyLivingExpense: input.monthlyLivingExpense ?? 20,
-          monthlyRent: input.monthlyRent ?? 10,
-          housingType: input.housingType ?? "rent",
-          purchaseAge: input.purchaseAge ?? 35,
-          propertyPrice: input.propertyPrice ?? 4000,
-          downPayment: input.downPayment ?? 400,
-          mortgageRate: input.mortgageRate ?? 1.0,
-          mortgagePeriod: input.mortgagePeriod ?? 35,
-          lifeEvents: input.lifeEvents ?? [],
-          currentSavings: input.currentSavings ?? 200,
-          currentInvestmentAssets: input.currentInvestmentAssets ?? 0,
-          monthlyInvestment: input.monthlyInvestment ?? 3,
-          investmentReturnRate: input.investmentReturnRate ?? 5,
-          nisaAccumulationMonthly: input.nisaAccumulationMonthly ?? 0,
-          nisaGrowthMonthly: input.nisaGrowthMonthly ?? 0,
-          nisaProductId: input.nisaProductId ?? "allworld",
-          nisaReturnRate: input.nisaReturnRate ?? 6.5,
-          monthlyIdeco: input.monthlyIdeco ?? 0,
-          idecoProductId: input.idecoProductId ?? "allworld",
-          idecoReturnRate: input.idecoReturnRate ?? 6.5,
-          shokiboKigyoMonthly: input.shokiboKigyoMonthly ?? 0,
-          inflationRate: input.inflationRate ?? 1.5,
-          spouseRetirementAge: input.spouseRetirementAge ?? 0,
-          retirementAllowance: input.retirementAllowance ?? 0,
-          lifeInsurancePremiumMonthly: input.lifeInsurancePremiumMonthly ?? 0.8,
-          medicalCostMonthlyAt70: input.medicalCostMonthlyAt70 ?? 1.5,
-          nursingCareStartAge: input.nursingCareStartAge ?? 0,
-          nursingCareCostMonthly: input.nursingCareCostMonthly ?? 0,
-          corporatePensionMonthly: input.corporatePensionMonthly ?? 0,
-          corporateDCBalance: input.corporateDCBalance ?? 0,
-          corporateDCMonthly: input.corporateDCMonthly ?? 0,
-          officerAnnualIncome: input.officerAnnualIncome ?? 0,
-          officerIncomeGrowthRate: input.officerIncomeGrowthRate ?? 0,
-          useAgeBasedSpendingCurve: input.useAgeBasedSpendingCurve ?? true,
-        };
+        const fullInput = toFullInput(input);
         const saved: SavedSimulation = {
           id: `sim_${Date.now()}`,
           name,
@@ -237,28 +234,72 @@ export const useSimulationStore = create<SimulationStore>()(
       },
 
       loadSimulation: (id: string) => {
-        const { savedSimulations } = get();
-        const sim = savedSimulations.find((s) => s.id === id);
-        if (!sim) return;
+        const state = get();
+        const sim = state.savedSimulations.find((s) => s.id === id);
+        if (!sim) return null;
+        const previous = snapshotOf(state);
         set({
           input: sim.input,
           result: sim.result,
-          currentStep: 7,
+          resultKey: inputKey(sim.input),
+          aiEvaluation: null,
+          currentStep: RESULT_STEP,
+          sessionId: state.sessionId + 1,
         });
+        return previous;
       },
 
       deleteSimulation: (id: string) => {
-        set((state) => ({
-          savedSimulations: state.savedSimulations.filter((s) => s.id !== id),
-        }));
+        const list = get().savedSimulations;
+        const index = list.findIndex((s) => s.id === id);
+        if (index < 0) return null;
+        const sim = list[index];
+        set({ savedSimulations: list.filter((s) => s.id !== id) });
+        return { sim, index };
       },
+
+      restoreSimulation: (sim, index) => {
+        set((state) => {
+          if (state.savedSimulations.some((s) => s.id === sim.id)) return state;
+          const next = [...state.savedSimulations];
+          next.splice(Math.min(index, next.length), 0, sim);
+          return { savedSimulations: next };
+        });
+      },
+
+      resetInput: () => {
+        const previous = snapshotOf(get());
+        set((state) => ({
+          input: defaultInput,
+          result: null,
+          resultKey: null,
+          aiEvaluation: null,
+          currentStep: 0,
+          sessionId: state.sessionId + 1,
+        }));
+        return previous;
+      },
+
+      restoreSession: (snapshot) => set((state) => ({ ...snapshot, sessionId: state.sessionId + 1 })),
 
       setAiEvaluation: (evaluation) => set({ aiEvaluation: evaluation }),
     }),
     {
       name: "lifeplan-simulator-store",
+      // Keep what the user typed across reloads (SHIG 38, 97). The result is recomputed on demand.
       partialize: (state) => ({
         savedSimulations: state.savedSimulations,
+        input: state.input,
+        currentStep: state.currentStep,
+        result: state.result,
+        resultKey: state.resultKey,
+      }),
+      // During hydration React renders the pre-rehydration state; bumping the id makes a
+      // form mounted in that pass remount with the persisted input.
+      merge: (persisted, current) => ({
+        ...current,
+        ...(persisted as Partial<SimulationStore>),
+        sessionId: current.sessionId + 1,
       }),
     }
   )

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
+import { showToast } from "@/components/ui/undo-toast";
 import {
   Select,
   SelectContent,
@@ -37,7 +38,8 @@ function getEventLabel(type: LifeEventType): string {
 
 export function LifeEventsStep({ onNext }: Props) {
   const { input, updateInput } = useSimulationStore();
-  const [events, setEvents] = useState<LifeEvent[]>(
+  // The store is the single source of truth, so edits survive step jumps (SHIG 38, 9).
+  const events: LifeEvent[] =
     input.lifeEvents ?? [
       {
         id: "default-wedding",
@@ -53,8 +55,12 @@ export function LifeEventsStep({ onNext }: Props) {
         cost: 300,
         label: "マイカー購入",
       },
-    ]
-  );
+    ];
+
+  function setEvents(update: (prev: LifeEvent[]) => LifeEvent[]) {
+    const current = useSimulationStore.getState().input.lifeEvents ?? events;
+    updateInput({ lifeEvents: update(current) });
+  }
 
   function addEvent() {
     const newEvent: LifeEvent = {
@@ -67,8 +73,22 @@ export function LifeEventsStep({ onNext }: Props) {
     setEvents((prev) => [...prev, newEvent]);
   }
 
+  // Remove at once and offer undo instead of asking first (SHIG 57, 54).
   function removeEvent(id: string) {
+    const index = events.findIndex((e) => e.id === id);
+    const removed = events[index];
     setEvents((prev) => prev.filter((e) => e.id !== id));
+    showToast({
+      message: `${removed.label || getEventLabel(removed.type)}を削除しました`,
+      actionLabel: "元に戻す",
+      onAction: () =>
+        setEvents((prev) => {
+          if (prev.some((e) => e.id === removed.id)) return prev;
+          const next = [...prev];
+          next.splice(Math.min(index, next.length), 0, removed);
+          return next;
+        }),
+    });
   }
 
   function updateEvent(id: string, patch: Partial<LifeEvent>) {
@@ -151,6 +171,7 @@ export function LifeEventsStep({ onNext }: Props) {
                         ラベル（メモ）
                       </label>
                       <Input
+                        aria-label={`イベント${index + 1}のラベル`}
                         value={event.label}
                         onChange={(e) =>
                           updateEvent(event.id, { label: e.target.value })
@@ -163,45 +184,32 @@ export function LifeEventsStep({ onNext }: Props) {
                       <label className="text-xs font-medium text-muted-foreground block mb-1">
                         発生時の年齢
                       </label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          value={event.age}
-                          onChange={(e) =>
-                            updateEvent(event.id, {
-                              age: Number(e.target.value),
-                            })
-                          }
-                          min={18}
-                          max={100}
-                          className="font-semibold"
-                        />
-                        <span className="text-sm text-muted-foreground shrink-0">
-                          歳
-                        </span>
-                      </div>
+                      <NumberInput
+                        label={`イベント${index + 1}の発生時の年齢`}
+                        value={event.age}
+                        onValueChange={(age) => updateEvent(event.id, { age })}
+                        min={18}
+                        max={100}
+                        unit="歳"
+                        className="w-24"
+                        wrapperClassName="items-start"
+                      />
                     </div>
 
                     <div>
                       <label className="text-xs font-medium text-muted-foreground block mb-1">
                         費用
                       </label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          value={event.cost}
-                          onChange={(e) =>
-                            updateEvent(event.id, {
-                              cost: Number(e.target.value),
-                            })
-                          }
-                          min={0}
-                          className="font-semibold"
-                        />
-                        <span className="text-sm text-muted-foreground shrink-0">
-                          万円
-                        </span>
-                      </div>
+                      <NumberInput
+                        label={`イベント${index + 1}の費用`}
+                        value={event.cost}
+                        onValueChange={(cost) => updateEvent(event.id, { cost })}
+                        min={0}
+                        max={100000}
+                        unit="万円"
+                        className="w-28"
+                        wrapperClassName="items-start"
+                      />
                     </div>
                   </div>
                 </div>
@@ -209,9 +217,11 @@ export function LifeEventsStep({ onNext }: Props) {
                 <button
                   type="button"
                   onClick={() => removeEvent(event.id)}
-                  className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  aria-label={`イベント${index + 1}（${event.label || getEventLabel(event.type)}）を削除`}
+                  className="shrink-0 w-11 h-11 -m-1.5 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                 >
                   <svg
+                    aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
                     height="16"

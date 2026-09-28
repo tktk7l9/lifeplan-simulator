@@ -137,31 +137,15 @@ describe("SavedSimulationsDrawer interactions", () => {
     expect(s.currentStep).toBe(7);
   });
 
-  it("削除ボタン: 一度押すと「本当に削除」になり、もう一度で削除", async () => {
+  it("削除ボタンで即削除され、ダイアログ内の「元に戻す」で復元 (SHIG 57, 54)", async () => {
     useSimulationStore.setState({
       savedSimulations: [makeSim("e")],
     });
     render(<SavedSimulationsDrawer />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
-    const del = screen.getByText("削除").closest("button")!;
-    await act(async () => { fireEvent.click(del); });
-    expect(screen.getAllByText(/本当に削除/).length).toBeGreaterThan(0);
-    const confirm = screen.getByText("本当に削除").closest("button")!;
-    await act(async () => { fireEvent.click(confirm); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "保存-eを削除" })); });
     expect(useSimulationStore.getState().savedSimulations.length).toBe(0);
-  });
-
-  it("削除キャンセルボタンで confirmDelete リセット", async () => {
-    useSimulationStore.setState({
-      savedSimulations: [makeSim("f")],
-    });
-    render(<SavedSimulationsDrawer />);
-    await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
-    const del = screen.getByText("削除").closest("button")!;
-    await act(async () => { fireEvent.click(del); });
-    const cancel = screen.getByText("キャンセル").closest("button")!;
-    await act(async () => { fireEvent.click(cancel); });
-    // Not deleted
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "元に戻す" })); });
     expect(useSimulationStore.getState().savedSimulations.length).toBe(1);
   });
 

@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { TinySpinner } from "@/components/three/TinySpinner";
+import { showToast } from "@/components/ui/undo-toast";
+import { findDepletion } from "@/lib/simulation/depletion";
 import type { MonteCarloResult, SensitivityDataPoint, SimulationResult } from "@/lib/simulation/types";
 
 interface Props {
@@ -38,6 +40,7 @@ function PrintReport({ visible }: { visible: boolean }) {
 
   const now = new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
   const retirementAge = input.retirementAge ?? 65;
+  const depletion = findDepletion(result.yearlyData);
 
   const EMP_LABELS: Record<string, string> = {
     employee: "会社員（正社員）", civil_servant: "公務員",
@@ -179,7 +182,13 @@ function PrintReport({ visible }: { visible: boolean }) {
             { label: "退職時資産", value: formatManYen(result.retirementAssets), sub: `${retirementAge}歳時点`, ok: result.retirementAssets >= 0 },
             { label: "100歳時の資産", value: formatManYen(result.finalAssets), sub: "100歳時点", ok: result.finalAssets >= 0 },
             { label: "年金月額（概算）", value: `${result.pensionMonthly.toFixed(1)}万円/月`, sub: "公的年金+企業年金", ok: true },
-            { label: "老後安全診断", value: result.isRetirementSafe ? "安全 ✓" : "要注意 !", sub: result.isRetirementSafe ? "100歳まで資産維持" : "資産が枯渇する可能性", ok: result.isRetirementSafe },
+            // Plain words with the depletion age instead of ✓/! symbols (SHIG 70, 28)
+            {
+              label: "老後安全診断",
+              value: result.isRetirementSafe ? "100歳まで持続" : depletion ? `${depletion.age}歳で枯渇` : "要注意",
+              sub: result.isRetirementSafe ? "資産は100歳まで維持" : depletion ? `最大不足額 ${formatManYen(depletion.maxShortfall)}` : "資産が枯渇する可能性",
+              ok: result.isRetirementSafe,
+            },
           ].map((c) => (
             <div key={c.label} style={{ border: "1px solid #e5e7eb", borderRadius: 6, padding: "8px 10px", background: c.ok ? "#fffbeb" : "#fef2f2" }}>
               <div style={{ fontSize: "7pt", color: "#6b7280", marginBottom: 2 }}>{c.label}</div>
@@ -315,12 +324,14 @@ function ScenarioComparison({ baseInput, baseResult }: { baseInput: Partial<Simu
                 <div className="text-xs text-muted-foreground">退職時資産</div>
                 <div className={`text-lg font-bold ${sc.retirementAssets >= 0 ? sc.color : "text-red-600"}`}>
                   {formatManYen(sc.retirementAssets)}
+                  {sc.retirementAssets < 0 && <span className="ml-1.5 align-middle text-xs font-semibold">（不足）</span>}
                 </div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">100歳時資産</div>
                 <div className={`text-lg font-bold ${sc.finalAssets >= 0 ? sc.color : "text-red-600"}`}>
                   {formatManYen(sc.finalAssets)}
+                  {sc.finalAssets < 0 && <span className="ml-1.5 align-middle text-xs font-semibold">（不足）</span>}
                 </div>
               </div>
             </div>
@@ -345,22 +356,19 @@ function SaveDialog() {
   const { saveSimulation } = useSimulationStore();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [saved, setSaved] = useState(false);
 
+  // Close at once and confirm with a toast instead of making the user wait (SHIG 57, 66).
   function handleSave() {
     const trimmed = name.trim();
     if (!trimmed) return;
     saveSimulation(trimmed);
-    setSaved(true);
-    setTimeout(() => {
-      setOpen(false);
-      setSaved(false);
-      setName("");
-    }, 1200);
+    setOpen(false);
+    setName("");
+    showToast({ message: `「${trimmed}」を保存しました` });
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setSaved(false); setName(""); } }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setName(""); }}>
       <DialogTrigger asChild>
         <button className="inline-flex items-center gap-2 bg-white border border-border hover:border-amber-300 hover:bg-amber-50 text-foreground font-semibold text-sm rounded-xl px-4 py-2.5 transition-all shadow-sm">
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
@@ -375,45 +383,39 @@ function SaveDialog() {
         <DialogHeader>
           <DialogTitle>シミュレーションを保存</DialogTitle>
         </DialogHeader>
-        {saved ? (
-          <div className="py-6 flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center text-3xl">✅</div>
-            <div className="font-semibold text-emerald-700">保存しました！</div>
+        <div className="space-y-4 mt-2">
+          <div>
+            <label htmlFor="save-simulation-name" className="text-sm font-medium text-foreground block mb-1.5">
+              シミュレーション名
+            </label>
+            <input
+              id="save-simulation-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSave()}
+              placeholder="例: 楽観シナリオ、35歳時点のプランなど"
+              maxLength={30}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all"
+              autoFocus
+            />
+            <div className="text-right text-xs text-muted-foreground mt-1">{name.length}/30</div>
           </div>
-        ) : (
-          <div className="space-y-4 mt-2">
-            <div>
-              <label className="text-sm font-medium text-foreground block mb-1.5">
-                シミュレーション名
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                placeholder="例: 楽観シナリオ、35歳時点のプランなど"
-                maxLength={30}
-                className="w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all"
-                autoFocus
-              />
-              <div className="text-right text-xs text-muted-foreground mt-1">{name.length}/30</div>
-            </div>
-            <button
-              onClick={handleSave}
-              disabled={!name.trim()}
-              className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl py-2.5 transition-all"
-            >
-              保存する
-            </button>
-          </div>
-        )}
+          <button
+            onClick={handleSave}
+            disabled={!name.trim()}
+            className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl py-2.5 transition-all"
+          >
+            保存する
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );
 }
 
 export function ResultsView({ onBack }: Props) {
-  const { result, input, isCalculating } = useSimulationStore();
+  const { result, input, isCalculating, calculate } = useSimulationStore();
   const [monteCarloResult, setMonteCarloResult] = useState<MonteCarloResult | null>(null);
   const [sensitivityData, setSensitivityData] = useState<SensitivityDataPoint[] | null>(null);
   const [mcLoading, setMcLoading] = useState(false);
@@ -429,21 +431,32 @@ export function ResultsView({ onBack }: Props) {
     }, 120);
   }
 
-  // Preload both analyses immediately on mount so tabs show results on first click
+  const [analysisRun, setAnalysisRun] = useState(0);
+
+  // Preload both analyses so tabs show results on first click, and rerun them
+  // whenever the result changes so they never describe an older input (SHIG 35).
   useEffect(() => {
     if (!result) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional loading-state update to start an async preload on mount
+    let cancelled = false;
+    const current = { ...input } as SimulationInput;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional loading-state update to start an async preload
     setMcLoading(true);
+    setMonteCarloResult(null);
     import("@/lib/simulation/monteCarlo")
-      .then(({ runMonteCarlo }) => setMonteCarloResult(runMonteCarlo({ ...input } as SimulationInput)))
-      .finally(() => setMcLoading(false));
+      .then(({ runMonteCarlo }) => { if (!cancelled) setMonteCarloResult(runMonteCarlo(current)); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setMcLoading(false); });
 
     setSensLoading(true);
+    setSensitivityData(null);
     import("@/lib/simulation/sensitivityAnalysis")
-      .then(({ runSensitivityAnalysis }) => setSensitivityData(runSensitivityAnalysis({ ...input } as SimulationInput)))
-      .finally(() => setSensLoading(false));
+      .then(({ runSensitivityAnalysis }) => { if (!cancelled) setSensitivityData(runSensitivityAnalysis(current)); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setSensLoading(false); });
+    return () => { cancelled = true; };
+  // `input` is deliberately omitted: `result` changes whenever the input it was computed from changes.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [result, analysisRun]);
 
   if (isCalculating) {
     return (
@@ -459,9 +472,18 @@ export function ResultsView({ onBack }: Props) {
       <div className="bg-white rounded-2xl shadow-sm border border-border p-12 text-center">
         <div className="text-3xl mb-3">📊</div>
         <div className="font-semibold text-muted-foreground">シミュレーション結果がありません</div>
-        <button onClick={onBack} className="mt-4 text-amber-600 text-sm hover:underline">
-          前のステップに戻る
+        {/* Defaults are always available, so the one sensible action is to calculate (SHIG 29, 55) */}
+        <button
+          onClick={calculate}
+          className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-amber-700 px-5 text-sm font-semibold text-white hover:bg-amber-800"
+        >
+          この条件で計算する
         </button>
+        <div>
+          <button onClick={onBack} className="mt-3 min-h-11 text-amber-700 text-sm hover:underline">
+            前のステップに戻る
+          </button>
+        </div>
       </div>
     );
   }
@@ -517,7 +539,18 @@ export function ResultsView({ onBack }: Props) {
     ? (input.spouseAge ?? 0) - currentAge
     : undefined;
 
-  const summaryCards = [
+  const depletion = findDepletion(result.yearlyData);
+  const diagnosisValue = result.isRetirementSafe
+    ? "安全"
+    : depletion ? `${depletion.age}歳で資産が尽きる` : "要注意";
+  const diagnosisSub = result.isRetirementSafe
+    ? "資産は100歳まで持続"
+    : depletion ? `最大不足額 ${formatManYen(depletion.maxShortfall)}` : "資産が枯渇する可能性あり";
+
+  const summaryCards: {
+    label: string; value: string; subLabel: string; icon: string; color: string; bg: string;
+    spinnerShape: "peak" | "gem" | "coin" | "ring"; spinnerColor: number; valueClass?: string; link?: boolean;
+  }[] = [
     {
       label: "退職時資産",
       value: formatManYen(result.retirementAssets),
@@ -525,7 +558,7 @@ export function ResultsView({ onBack }: Props) {
       icon: "🏦",
       color: result.retirementAssets >= 0 ? "text-amber-600" : "text-destructive",
       bg: result.retirementAssets >= 0 ? "bg-amber-50" : "bg-red-50",
-      spinnerShape: "peak" as const,
+      spinnerShape: "peak",
       spinnerColor: 0xf59e0b,
     },
     {
@@ -535,7 +568,7 @@ export function ResultsView({ onBack }: Props) {
       icon: "📈",
       color: result.finalAssets >= 0 ? "text-emerald-600" : "text-destructive",
       bg: result.finalAssets >= 0 ? "bg-emerald-50" : "bg-red-50",
-      spinnerShape: "gem" as const,
+      spinnerShape: "gem",
       spinnerColor: result.finalAssets >= 0 ? 0x10b981 : 0xef4444,
     },
     {
@@ -545,17 +578,20 @@ export function ResultsView({ onBack }: Props) {
       icon: "🔖",
       color: "text-amber-600",
       bg: "bg-amber-50",
-      spinnerShape: "coin" as const,
+      spinnerShape: "coin",
       spinnerColor: 0xd97706,
     },
     {
       label: "老後安全診断",
-      value: result.isRetirementSafe ? "安全" : "要注意",
-      subLabel: result.isRetirementSafe ? "資産は100歳まで持続" : "資産が枯渇する可能性あり",
+      // The decisive information: at what age and by how much (SHIG 28, 20)
+      value: diagnosisValue,
+      subLabel: diagnosisSub,
+      valueClass: depletion && !result.isRetirementSafe ? "text-lg sm:text-xl" : undefined,
+      link: !result.isRetirementSafe,
       icon: result.isRetirementSafe ? "✅" : "⚠️",
       color: result.isRetirementSafe ? "text-emerald-600" : "text-destructive",
       bg: result.isRetirementSafe ? "bg-emerald-50" : "bg-red-50",
-      spinnerShape: "ring" as const,
+      spinnerShape: "ring",
       spinnerColor: result.isRetirementSafe ? 0x10b981 : 0xef4444,
     },
   ];
@@ -570,7 +606,7 @@ export function ResultsView({ onBack }: Props) {
       <div className="flex items-center justify-between flex-wrap gap-2 print:hidden">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -587,7 +623,7 @@ export function ResultsView({ onBack }: Props) {
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
               <rect x="6" y="14" width="12" height="8" />
             </svg>
-            PDF出力
+            印刷 / PDFに保存
           </button>
           <SaveDialog />
         </div>
@@ -604,8 +640,13 @@ export function ResultsView({ onBack }: Props) {
               {card.icon}
             </div>
             <div className="text-xs text-muted-foreground font-medium mb-1">{card.label}</div>
-            <div className={cn("text-2xl font-bold leading-tight", card.color)}>{card.value}</div>
+            <div className={cn("text-2xl font-bold leading-tight", card.valueClass, card.color)}>{card.value}</div>
             <div className="text-xs text-muted-foreground mt-1">{card.subLabel}</div>
+            {card.link && (
+              <a href="#action-plan" className="mt-1 inline-flex min-h-11 items-center text-xs font-semibold text-amber-700 underline underline-offset-2">
+                改善策を見る
+              </a>
+            )}
           </div>
         ))}
       </div>
@@ -643,8 +684,10 @@ export function ResultsView({ onBack }: Props) {
       {/* Charts and table */}
       <div className="bg-white rounded-2xl border border-border shadow-sm print:hidden">
         <Tabs defaultValue="asset-chart">
-          <div className="px-6 pt-5 border-b border-border overflow-x-auto">
-            <TabsList className="bg-muted/50 flex-wrap">
+          {/* One scrolling row with an edge fade instead of rows wrapping behind the panel (SHIG 52, 85) */}
+          <div className="relative border-b border-border">
+          <div className="px-4 sm:px-6 pt-5 overflow-x-auto">
+            <TabsList className="bg-muted/50 flex-nowrap justify-start w-max">
               <TabsTrigger value="asset-chart">資産推移</TabsTrigger>
               <TabsTrigger value="cashflow-chart">収支グラフ</TabsTrigger>
               <TabsTrigger value="table">年別データ</TabsTrigger>
@@ -653,6 +696,8 @@ export function ResultsView({ onBack }: Props) {
               <TabsTrigger value="montecarlo">モンテカルロ</TabsTrigger>
               <TabsTrigger value="sensitivity">感度分析</TabsTrigger>
             </TabsList>
+          </div>
+          <div aria-hidden="true" className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent lg:hidden" />
           </div>
           <TabsContent value="asset-chart" className="p-6">
             <div className="mb-4">
@@ -682,8 +727,8 @@ export function ResultsView({ onBack }: Props) {
               </div>
               <div className="flex items-center gap-3 text-xs">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded bg-red-100 border border-red-200 inline-block" />
-                  赤背景: キャッシュフローがマイナスの年
+                  <span className="rounded border border-red-200 bg-red-50 px-1 font-semibold text-red-700">赤字</span>
+                  収支がマイナスの年
                 </span>
               </div>
             </div>
@@ -719,7 +764,12 @@ export function ResultsView({ onBack }: Props) {
                 failureProbability={monteCarloResult.failureProbability}
               />
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">タブをクリックして計算します</p>
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                計算できませんでした。
+                <button type="button" onClick={() => setAnalysisRun((n) => n + 1)} className="ml-2 min-h-11 font-semibold text-amber-700 underline underline-offset-2">
+                  もう一度計算する
+                </button>
+              </div>
             )}
           </TabsContent>
           <TabsContent value="sensitivity" className="p-6">
@@ -735,7 +785,12 @@ export function ResultsView({ onBack }: Props) {
             ) : sensitivityData ? (
               <SensitivityAnalysis data={sensitivityData} base={result.finalAssets} />
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">タブをクリックして計算します</p>
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                計算できませんでした。
+                <button type="button" onClick={() => setAnalysisRun((n) => n + 1)} className="ml-2 min-h-11 font-semibold text-amber-700 underline underline-offset-2">
+                  もう一度計算する
+                </button>
+              </div>
             )}
           </TabsContent>
         </Tabs>

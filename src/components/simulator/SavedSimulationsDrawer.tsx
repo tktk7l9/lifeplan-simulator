@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { SavedSimulation } from "@/lib/simulation/types";
+import { TOAST_DURATION_MS } from "@/components/ui/undo-toast";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
   Dialog,
@@ -10,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { showToast } from "@/components/ui/undo-toast";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString("ja-JP", {
@@ -27,22 +30,48 @@ function formatManYen(value: number): string {
 }
 
 export function SavedSimulationsDrawer() {
-  const { savedSimulations, loadSimulation, deleteSimulation } = useSimulationStore();
+  const { savedSimulations, loadSimulation, deleteSimulation, restoreSimulation, restoreSession } = useSimulationStore();
   const [open, setOpen] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  // Undo for a delete is shown inside the dialog, next to the list it changed (SHIG 66);
+  // a page-level toast would sit behind the modal.
+  const [lastDeleted, setLastDeleted] = useState<{ sim: SavedSimulation; index: number } | null>(null);
 
-  function handleLoad(id: string) {
-    loadSimulation(id);
+  // The pressed delete button is gone with its row; hand keyboard focus to the undo
+  // button instead of letting it fall back to the dialog container.
+  const undoRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (lastDeleted) undoRef.current?.focus();
+  }, [lastDeleted]);
+
+  useEffect(() => {
+    if (!lastDeleted) return;
+    const timer = setTimeout(() => setLastDeleted(null), TOAST_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [lastDeleted]);
+
+  // Loading replaces the current input, so keep the way back (SHIG 54, 38).
+  function handleLoad(id: string, name: string) {
+    const previous = loadSimulation(id);
     setOpen(false);
+    if (previous) {
+      showToast({
+        message: `「${name}」を読み込みました`,
+        actionLabel: "元に戻す",
+        onAction: () => restoreSession(previous),
+      });
+    }
   }
 
+  // Delete at once and offer undo instead of a two-step confirmation (SHIG 57, 54).
   function handleDelete(id: string) {
-    if (confirmDelete === id) {
-      deleteSimulation(id);
-      setConfirmDelete(null);
-    } else {
-      setConfirmDelete(id);
-    }
+    const removed = deleteSimulation(id);
+    if (removed) setLastDeleted(removed);
+  }
+
+  function handleUndoDelete() {
+    if (!lastDeleted) return;
+    restoreSimulation(lastDeleted.sim, lastDeleted.index);
+    setLastDeleted(null);
   }
 
   return (
@@ -74,6 +103,22 @@ export function SavedSimulationsDrawer() {
           </DialogTitle>
         </DialogHeader>
 
+        <div role="status" aria-live="polite">
+          {lastDeleted && (
+            <div className="flex items-center justify-between gap-3 rounded-lg bg-stone-900 px-3 py-1 text-sm text-white">
+              <span className="min-w-0 truncate">「{lastDeleted.sim.name}」を削除しました</span>
+              <button
+                ref={undoRef}
+                type="button"
+                onClick={handleUndoDelete}
+                className="min-h-11 shrink-0 px-2 font-semibold text-amber-300 underline-offset-2 hover:underline"
+              >
+                元に戻す
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="flex-1 overflow-y-auto mt-2">
           {savedSimulations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -90,8 +135,21 @@ export function SavedSimulationsDrawer() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-foreground text-sm truncate">{sim.name}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{formatDate(sim.savedAt)}</div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-foreground text-sm truncate">{sim.name}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">{formatDate(sim.savedAt)}</div>
+                        </div>
+                        {/* Small, secondary and away from 読み込む (SHIG 16, 78, 13) */}
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(sim.id)}
+                          aria-label={`${sim.name}を削除`}
+                          className="-mr-2 -mt-2 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-xs text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                        >
+                          削除
+                        </button>
+                      </div>
                       <div className="mt-2 grid grid-cols-3 gap-2">
                         <div className="bg-white rounded-lg border border-border p-2 text-center">
                           <div className="text-[10px] text-muted-foreground">年収</div>
@@ -120,35 +178,16 @@ export function SavedSimulationsDrawer() {
                   </div>
                   <div className="flex items-center gap-2 mt-3">
                     <button
-                      onClick={() => handleLoad(sim.id)}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg px-3 py-2 transition-colors"
+                      onClick={() => handleLoad(sim.id, sim.name)}
+                      className="w-full min-h-11 inline-flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg px-3 py-2 transition-colors"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                         <polyline points="7 10 12 15 17 10" />
                         <line x1="12" y1="15" x2="12" y2="3" />
                       </svg>
                       読み込む
                     </button>
-                    <button
-                      onClick={() => handleDelete(sim.id)}
-                      className={cn(
-                        "inline-flex items-center justify-center gap-1.5 text-xs font-semibold rounded-lg px-3 py-2 transition-colors border",
-                        confirmDelete === sim.id
-                          ? "bg-red-600 text-white border-red-600 hover:bg-red-700"
-                          : "text-muted-foreground border-border hover:border-red-300 hover:text-red-600 hover:bg-red-50"
-                      )}
-                    >
-                      {confirmDelete === sim.id ? "本当に削除" : "削除"}
-                    </button>
-                    {confirmDelete === sim.id && (
-                      <button
-                        onClick={() => setConfirmDelete(null)}
-                        className="text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        キャンセル
-                      </button>
-                    )}
                   </div>
                 </div>
               ))}

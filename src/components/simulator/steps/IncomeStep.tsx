@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
+import "@/lib/zod-ja";
 import { useState } from "react";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
@@ -13,12 +14,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { cn } from "@/lib/utils";
+import { useStoreSync } from "./useStoreSync";
+import type { SimulationInput } from "@/lib/simulation/types";
 import type { EmploymentType, SpouseEmploymentType } from "@/lib/simulation/types";
 import { calcNetIncome, calcFreelanceOfficerNetIncome } from "@/lib/simulation/calculator";
 import { NenkinImportDialog } from "@/components/simulator/import/NenkinImportDialog";
@@ -84,6 +87,7 @@ function SliderField({
   displayMin,
   displayMax,
   inputWidth = "w-24",
+  inputMax,
   description,
 }: {
   label: string;
@@ -96,24 +100,23 @@ function SliderField({
   displayMin: string;
   displayMax: string;
   inputWidth?: string;
+  /** Upper bound for typed values when it is wider than the slider's range (SHIG 50). */
+  inputMax?: number;
   description?: string;
 }) {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
         <FormLabel className="text-base font-semibold">{label}</FormLabel>
-        <div className="flex items-center gap-2">
-          <Input
-            type="number"
-            className={cn(inputWidth, "text-right font-bold text-amber-600")}
-            value={value}
-            onChange={(e) => onChange(Number(e.target.value))}
-            min={min}
-            max={max}
-            step={step}
-          />
-          <span className="text-sm text-muted-foreground">{unit}</span>
-        </div>
+        <NumberInput
+          label={label}
+          value={value}
+          onValueChange={onChange}
+          min={min}
+          max={inputMax ?? max}
+          unit={unit}
+          className={inputWidth}
+        />
       </div>
       <Slider
         min={min} max={max} step={step}
@@ -129,6 +132,27 @@ function SliderField({
       {description && <p className="text-xs text-muted-foreground">{description}</p>}
     </div>
   );
+}
+
+/** Maps the form to the store, dropping values whose toggle is off. */
+function toPatch(values: FormValues): Partial<SimulationInput> {
+  return {
+    employmentType: values.employmentType,
+    annualIncome: values.annualIncome,
+    incomeGrowthRate: values.incomeGrowthRate,
+    sideIncomeMonthly: values.hasSideIncome ? values.sideIncomeMonthly : 0,
+    postRetirementIncomeMonthly: values.hasPostRetirementIncome ? values.postRetirementIncomeMonthly : 0,
+    postRetirementIncomeUntilAge: values.postRetirementIncomeUntilAge,
+    spouseEmploymentType: values.spouseEmploymentType,
+    spouseAnnualIncome: values.spouseEmploymentType === "homemaker" ? 0 : values.spouseAnnualIncome,
+    spouseIncomeGrowthRate: values.spouseIncomeGrowthRate,
+    spouseCareerBreakStartAge: values.hasSpouseCareerBreak ? values.spouseCareerBreakStartAge : 0,
+    spouseCareerBreakEndAge: values.hasSpouseCareerBreak ? values.spouseCareerBreakEndAge : 0,
+    spouseCareerBreakIncomeMonthly: values.hasSpouseCareerBreak ? values.spouseCareerBreakIncomeMonthly : 0,
+    retirementAllowance: values.retirementAllowance,
+    officerAnnualIncome: values.hasOfficerIncome ? values.officerAnnualIncome : 0,
+    officerIncomeGrowthRate: values.officerIncomeGrowthRate,
+  };
 }
 
 export function IncomeStep({ onNext }: Props) {
@@ -181,24 +205,10 @@ export function IncomeStep({ onNext }: Props) {
   const estimatedNetMonthly = Math.round(estimatedNetAnnual / 12 * 10) / 10;
   const totalGrossMonthly = Math.round((annualIncome + (hasOfficerIncome ? officerAnnualIncome : 0)) / 12 * 10) / 10;
 
+  useStoreSync(form, toPatch);
+
   function onSubmit(values: FormValues) {
-    updateInput({
-      employmentType: values.employmentType,
-      annualIncome: values.annualIncome,
-      incomeGrowthRate: values.incomeGrowthRate,
-      sideIncomeMonthly: values.hasSideIncome ? values.sideIncomeMonthly : 0,
-      postRetirementIncomeMonthly: values.hasPostRetirementIncome ? values.postRetirementIncomeMonthly : 0,
-      postRetirementIncomeUntilAge: values.postRetirementIncomeUntilAge,
-      spouseEmploymentType: values.spouseEmploymentType,
-      spouseAnnualIncome: values.spouseEmploymentType === "homemaker" ? 0 : values.spouseAnnualIncome,
-      spouseIncomeGrowthRate: values.spouseIncomeGrowthRate,
-      spouseCareerBreakStartAge: values.hasSpouseCareerBreak ? values.spouseCareerBreakStartAge : 0,
-      spouseCareerBreakEndAge: values.hasSpouseCareerBreak ? values.spouseCareerBreakEndAge : 0,
-      spouseCareerBreakIncomeMonthly: values.hasSpouseCareerBreak ? values.spouseCareerBreakIncomeMonthly : 0,
-      retirementAllowance: values.retirementAllowance,
-      officerAnnualIncome: values.hasOfficerIncome ? values.officerAnnualIncome : 0,
-      officerIncomeGrowthRate: values.officerIncomeGrowthRate,
-    });
+    updateInput(toPatch(values));
     onNext();
   }
 
@@ -216,41 +226,6 @@ export function IncomeStep({ onNext }: Props) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
-        {/* ── Nenkin Net (ねんきんネット) import banner ── */}
-        <div className="space-y-2">
-          <div className="rounded-xl bg-green-50 border border-green-200 p-4 flex items-center justify-between gap-4">
-            <div>
-              <p className="font-semibold text-sm text-green-800">ねんきんネット CSV 連携</p>
-              <p className="text-xs text-green-700 mt-0.5">
-                ねんきんネットの「年金記録照会」CSVをインポートすると、加入月数・標準報酬月額から推計年金額を自動計算します。
-              </p>
-            </div>
-            <NenkinImportDialog onApply={handleNenkinApply} />
-          </div>
-          {nenkinNotice && (
-            <div className="rounded-lg bg-green-100 border border-green-300 px-3 py-2.5 flex items-start gap-2">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              <div>
-                <p className="text-sm font-semibold text-green-800">読み込みました</p>
-                <p className="text-xs text-green-700 mt-0.5">{nenkinNotice}</p>
-                <p className="text-xs text-green-600/80 mt-0.5">※ 推計は参考値です。年金額の精緻化には雇用形態・年収の正確な入力が重要です。</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setNenkinNotice(null)}
-                className="ml-auto flex-shrink-0 text-green-600 hover:text-green-800"
-                aria-label="閉じる"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-          )}
-        </div>
-
         {/* ── Your income ── */}
         <div className="space-y-6">
           <h2 className="font-semibold text-foreground">あなたの収入</h2>
@@ -262,11 +237,13 @@ export function IncomeStep({ onNext }: Props) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-base font-semibold">雇用形態</FormLabel>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                <div role="radiogroup" aria-label="雇用形態" className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
                   {EMPLOYMENT_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
+                      role="radio"
+                      aria-checked={field.value === opt.value}
                       onClick={() => {
                         field.onChange(opt.value);
                         if (opt.value === "employee_freelance") form.setValue("hasSideIncome", true);
@@ -300,7 +277,7 @@ export function IncomeStep({ onNext }: Props) {
                   label={isFreelanceType ? "事業収入（年間・売上）" : "年収（額面）"}
                   value={field.value}
                   onChange={field.onChange}
-                  min={0} max={3000} step={10}
+                  min={0} max={3000} step={10} inputMax={10000}
                   unit="万円"
                   displayMin="0万円"
                   displayMax="3,000万円"
@@ -347,6 +324,39 @@ export function IncomeStep({ onNext }: Props) {
             )}
           />
 
+          {/* Optional pension CSV import, placed after the primary input (SHIG 20, 67) */}
+          <div className="space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border border-dashed border-green-300 px-3 py-2.5">
+              <p className="text-xs text-green-800">
+                <span className="font-semibold">ねんきんネット CSV 連携（任意）</span>
+                <span className="block text-green-700 mt-0.5">「年金記録照会」のCSVがあれば、加入記録から年金額を推計できます。</span>
+              </p>
+              <NenkinImportDialog onApply={handleNenkinApply} />
+            </div>
+            {nenkinNotice && (
+              <div className="rounded-lg bg-green-100 border border-green-300 px-3 py-2.5 flex items-start gap-2">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <div>
+                  <p className="text-sm font-semibold text-green-800">読み込みました</p>
+                  <p className="text-xs text-green-700 mt-0.5">{nenkinNotice}</p>
+                  <p className="text-xs text-green-600/80 mt-0.5">※ 推計は参考値です。年金額の精緻化には雇用形態・年収の正確な入力が重要です。</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNenkinNotice(null)}
+                  className="ml-auto flex-shrink-0 text-green-600 hover:text-green-800"
+                  aria-label="閉じる"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Officer compensation (shown only for freelance / self-employed) */}
           {isFreelanceType && (
             <div className="space-y-4">
@@ -382,7 +392,7 @@ export function IncomeStep({ onNext }: Props) {
                           label="役員報酬（年額）"
                           value={field.value}
                           onChange={field.onChange}
-                          min={0} max={2000} step={12}
+                          min={0} max={2000} step={12} inputMax={5000}
                           unit="万円 / 年"
                           displayMin="0万円"
                           displayMax="2,000万円"
@@ -464,7 +474,7 @@ export function IncomeStep({ onNext }: Props) {
                       label="副業月収"
                       value={field.value}
                       onChange={field.onChange}
-                      min={0} max={100} step={0.5}
+                      min={0} max={100} step={0.5} inputMax={200}
                       unit="万円 / 月"
                       displayMin="0万円"
                       displayMax="100万円"
@@ -520,7 +530,7 @@ export function IncomeStep({ onNext }: Props) {
                         <span className="font-bold text-amber-600">{field.value}歳まで</span>
                       </div>
                       <FormControl>
-                        <Slider
+                        <Slider thumbLabel="働く期間（終了年齢）"
                           min={60} max={80} step={1}
                           value={[field.value]}
                           onValueChange={([v]) => field.onChange(v)}
@@ -574,11 +584,13 @@ export function IncomeStep({ onNext }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-semibold">配偶者の雇用形態</FormLabel>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                    <div role="radiogroup" aria-label="配偶者の雇用形態" className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
                       {SPOUSE_EMPLOYMENT_OPTIONS.map((opt) => (
                         <button
                           key={opt.value}
                           type="button"
+                          role="radio"
+                          aria-checked={field.value === opt.value}
                           onClick={() => field.onChange(opt.value)}
                           className={cn(
                             "flex flex-col items-start px-3 py-2.5 rounded-xl border-2 text-left transition-all",
@@ -611,7 +623,7 @@ export function IncomeStep({ onNext }: Props) {
                           label="配偶者の年収（額面）"
                           value={field.value}
                           onChange={field.onChange}
-                          min={0} max={3000} step={10}
+                          min={0} max={3000} step={10} inputMax={10000}
                           unit="万円"
                           displayMin="0万円"
                           displayMax="3,000万円"
@@ -667,7 +679,7 @@ export function IncomeStep({ onNext }: Props) {
                                 <span className="font-bold text-amber-600">{field.value}歳</span>
                               </div>
                               <FormControl>
-                                <Slider min={20} max={55} step={1} value={[field.value]} onValueChange={([v]) => field.onChange(v)} className="mb-2" />
+                                <Slider thumbLabel="ブレーク開始年齢" min={20} max={55} step={1} value={[field.value]} onValueChange={([v]) => field.onChange(v)} className="mb-2" />
                               </FormControl>
                               <div className="flex justify-between text-xs text-muted-foreground"><span>20歳</span><span>55歳</span></div>
                               <FormMessage />
@@ -684,7 +696,7 @@ export function IncomeStep({ onNext }: Props) {
                                 <span className="font-bold text-amber-600">{field.value}歳</span>
                               </div>
                               <FormControl>
-                                <Slider min={20} max={60} step={1} value={[field.value]} onValueChange={([v]) => field.onChange(v)} className="mb-2" />
+                                <Slider thumbLabel="復帰年齢" min={20} max={60} step={1} value={[field.value]} onValueChange={([v]) => field.onChange(v)} className="mb-2" />
                               </FormControl>
                               <div className="flex justify-between text-xs text-muted-foreground"><span>20歳</span><span>60歳</span></div>
                               <FormMessage />
