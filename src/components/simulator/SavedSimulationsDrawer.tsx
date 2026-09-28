@@ -34,20 +34,23 @@ export function SavedSimulationsDrawer() {
   const [open, setOpen] = useState(false);
   // Undo for a delete is shown inside the dialog, next to the list it changed (SHIG 66);
   // a page-level toast would sit behind the modal.
-  const [lastDeleted, setLastDeleted] = useState<{ sim: SavedSimulation; index: number } | null>(null);
+  // Deletes made in a row are gathered into one notice so none of them loses its
+  // way back (SHIG 54); each entry keeps the index it had when it was removed.
+  const [deleted, setDeleted] = useState<{ sim: SavedSimulation; index: number }[]>([]);
 
   // The pressed delete button is gone with its row; hand keyboard focus to the undo
   // button instead of letting it fall back to the dialog container.
   const undoRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (lastDeleted) undoRef.current?.focus();
-  }, [lastDeleted]);
+    if (deleted.length > 0) undoRef.current?.focus();
+  }, [deleted]);
 
+  // The undo window restarts with every delete.
   useEffect(() => {
-    if (!lastDeleted) return;
-    const timer = setTimeout(() => setLastDeleted(null), TOAST_DURATION_MS);
+    if (deleted.length === 0) return;
+    const timer = setTimeout(() => setDeleted([]), TOAST_DURATION_MS);
     return () => clearTimeout(timer);
-  }, [lastDeleted]);
+  }, [deleted]);
 
   // Loading replaces the current input, so keep the way back (SHIG 54, 38).
   function handleLoad(id: string, name: string) {
@@ -65,13 +68,14 @@ export function SavedSimulationsDrawer() {
   // Delete at once and offer undo instead of a two-step confirmation (SHIG 57, 54).
   function handleDelete(id: string) {
     const removed = deleteSimulation(id);
-    if (removed) setLastDeleted(removed);
+    if (removed) setDeleted((prev) => [...prev, removed]);
   }
 
+  // Put them back newest first, so every recorded index refers to the same list
+  // it was taken from.
   function handleUndoDelete() {
-    if (!lastDeleted) return;
-    restoreSimulation(lastDeleted.sim, lastDeleted.index);
-    setLastDeleted(null);
+    for (const { sim, index } of [...deleted].reverse()) restoreSimulation(sim, index);
+    setDeleted([]);
   }
 
   return (
@@ -104,16 +108,18 @@ export function SavedSimulationsDrawer() {
         </DialogHeader>
 
         <div role="status" aria-live="polite">
-          {lastDeleted && (
+          {deleted.length > 0 && (
             <div className="flex items-center justify-between gap-3 rounded-lg bg-stone-900 px-3 py-1 text-sm text-white">
-              <span className="min-w-0 truncate">「{lastDeleted.sim.name}」を削除しました</span>
+              <span className="min-w-0 truncate">
+                {deleted.length === 1 ? `「${deleted[0].sim.name}」を削除しました` : `${deleted.length}件を削除しました`}
+              </span>
               <button
                 ref={undoRef}
                 type="button"
                 onClick={handleUndoDelete}
                 className="min-h-11 shrink-0 px-2 font-semibold text-amber-300 underline-offset-2 hover:underline"
               >
-                元に戻す
+                {deleted.length === 1 ? "元に戻す" : "すべて元に戻す"}
               </button>
             </div>
           )}
