@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
+import "@/lib/zod-ja";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
   Form,
@@ -13,13 +14,13 @@ import {
   FormDescription,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { useStoreSync } from "./useStoreSync";
 
 const schema = z.object({
   monthlyLivingExpense: z.number().min(0).max(200),
-  monthlyRent: z.number().min(0).max(100),
   inflationRate: z.number().min(0).max(5),
 });
 
@@ -36,12 +37,11 @@ export function ExpenseStep({ onNext }: Props) {
     resolver: standardSchemaResolver(schema),
     defaultValues: {
       monthlyLivingExpense: input.monthlyLivingExpense ?? 20,
-      monthlyRent: input.monthlyRent ?? 10,
       inflationRate: input.inflationRate ?? 1.5,
     },
   });
 
-  const housingType = input.housingType ?? "rent";
+  useStoreSync(form, (values) => values);
 
   function onSubmit(values: FormValues) {
     updateInput(values);
@@ -64,20 +64,18 @@ export function ExpenseStep({ onNext }: Props) {
                 <FormLabel className="text-base font-semibold">
                   月の生活費
                 </FormLabel>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    className="w-24 text-right font-bold text-amber-600"
-                    value={field.value}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                    min={0}
-                    max={200}
-                  />
-                  <span className="text-sm text-muted-foreground">万円 / 月</span>
-                </div>
+                <NumberInput
+                  label="月の生活費"
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  min={0}
+                  max={200}
+                  unit="万円 / 月"
+                  className="w-24"
+                />
               </div>
               <FormControl>
-                <Slider
+                <Slider thumbLabel="月の生活費"
                   min={5}
                   max={80}
                   step={1}
@@ -100,53 +98,6 @@ export function ExpenseStep({ onNext }: Props) {
           )}
         />
 
-        {housingType === "rent" && (
-          <FormField
-            control={form.control}
-            name="monthlyRent"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
-                  <FormLabel className="text-base font-semibold">
-                    月額家賃
-                  </FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-24 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0}
-                      max={100}
-                    />
-                    <span className="text-sm text-muted-foreground">万円 / 月</span>
-                  </div>
-                </div>
-                <FormControl>
-                  <Slider
-                    min={3}
-                    max={50}
-                    step={0.5}
-                    value={[field.value]}
-                    onValueChange={([v]) => field.onChange(v)}
-                    className="mb-2"
-                  />
-                </FormControl>
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>3万円</span>
-                  <span>50万円</span>
-                </div>
-                <FormDescription>
-                  管理費・共益費を含む月額賃料
-                  <br />
-                  年間では{(field.value * 12).toLocaleString("ja-JP")}万円になります
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-
         {/* Inflation rate */}
         <FormField
           control={form.control}
@@ -161,7 +112,7 @@ export function ExpenseStep({ onNext }: Props) {
                 </div>
               </div>
               <FormControl>
-                <Slider
+                <Slider thumbLabel="物価上昇率（インフレ率）"
                   min={0} max={5} step={0.1}
                   value={[field.value]}
                   onValueChange={([v]) => field.onChange(v)}
@@ -184,7 +135,7 @@ export function ExpenseStep({ onNext }: Props) {
         {/* Summary card */}
         <div className="rounded-xl bg-slate-50 border border-border p-4">
           <div className="text-sm font-semibold text-muted-foreground mb-3">
-            年間支出の概算
+            年間支出の概算（住居費を除く）
           </div>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
@@ -196,23 +147,10 @@ export function ExpenseStep({ onNext }: Props) {
                 万円
               </span>
             </div>
-            {housingType === "rent" && (
-              <div className="flex justify-between">
-                <span>家賃</span>
-                <span className="font-semibold">
-                  {(form.watch("monthlyRent") * 12).toLocaleString("ja-JP")}万円
-                </span>
-              </div>
-            )}
             <div className="border-t border-border pt-2 flex justify-between font-bold">
               <span>合計</span>
               <span className="text-amber-600">
-                {(
-                  form.watch("monthlyLivingExpense") * 12 +
-                  (housingType === "rent"
-                    ? form.watch("monthlyRent") * 12
-                    : 0)
-                ).toLocaleString("ja-JP")}
+                {(form.watch("monthlyLivingExpense") * 12).toLocaleString("ja-JP")}
                 万円 / 年
               </span>
             </div>

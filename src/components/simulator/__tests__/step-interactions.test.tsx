@@ -53,14 +53,10 @@ describe("HousingStep interactions", () => {
   it("購入: 物件価格 input 変更", async () => {
     render(<HousingStep onNext={() => {}} />);
     await act(async () => { fireEvent.click(screen.getByText("購入").closest("button")!); });
-    const inputs = document.querySelectorAll('input[type="number"]') as NodeListOf<HTMLInputElement>;
-    // Find the input for the property price (4000)
-    const price = Array.from(inputs).find((i) => Number(i.value) === 4000);
-    if (price) {
-      await act(async () => { fireEvent.change(price, { target: { value: "5000" } }); });
-      // The value of the same input changes
-    }
-    expect(inputs.length).toBeGreaterThan(0);
+    const price = screen.getByRole("textbox", { name: "物件価格" }) as HTMLInputElement;
+    expect(price.value).toBe("4000");
+    await act(async () => { fireEvent.change(price, { target: { value: "5000" } }); });
+    expect(useSimulationStore.getState().input.propertyPrice).toBe(5000);
   });
 
   it("持ち家を選ぶと持ち家用ヒントが見える", async () => {
@@ -115,7 +111,7 @@ describe("LifeEventsStep interactions", () => {
 
   it("年齢 input 変更で updateEvent", async () => {
     render(<LifeEventsStep onNext={() => {}} />);
-    const numberInputs = document.querySelectorAll('input[type="number"]') as NodeListOf<HTMLInputElement>;
+    const numberInputs = document.querySelectorAll('input[inputmode="decimal"]') as NodeListOf<HTMLInputElement>;
     const age32 = Array.from(numberInputs).find((i) => i.value === "32");
     if (age32) {
       await act(async () => { fireEvent.change(age32, { target: { value: "40" } }); });
@@ -170,9 +166,9 @@ describe("InsuranceStep interactions", () => {
 });
 
 describe("ExpenseStep interactions", () => {
-  it("housingType=rent (デフォルト) では家賃フィールド表示", () => {
+  it("housingType=rent (デフォルト) でも家賃は住宅ステップで聞くので表示しない (SHIG 40)", () => {
     render(<ExpenseStep onNext={() => {}} />);
-    expect(screen.getAllByText(/月額家賃/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/月額家賃/)).toBeNull();
   });
 
   it("housingType=buy では家賃フィールド非表示", () => {

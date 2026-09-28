@@ -12,6 +12,7 @@ import { LifeEventsStep } from "./steps/LifeEventsStep";
 import { InvestmentStep } from "./steps/InvestmentStep";
 import { InsuranceStep } from "./steps/InsuranceStep";
 import { SavedSimulationsDrawer } from "./SavedSimulationsDrawer";
+import { Toaster } from "@/components/ui/undo-toast";
 import { cn } from "@/lib/utils";
 import type { SimulationInput } from "@/lib/simulation/types";
 
@@ -402,6 +403,7 @@ export function SimulatorApp() {
           )}
         </main>
       </div>
+      <Toaster />
     </div>
   );
 }

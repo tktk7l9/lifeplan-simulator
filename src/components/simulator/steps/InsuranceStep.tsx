@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
+import "@/lib/zod-ja";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
   Form,
@@ -13,9 +14,10 @@ import {
   FormDescription,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { useStoreSync } from "./useStoreSync";
 
 const schema = z.object({
   lifeInsurancePremiumMonthly: z.number().min(0).max(20),
@@ -55,6 +57,8 @@ export function InsuranceStep({ onNext }: Props) {
   const nursingCareCostMonthly = form.watch("nursingCareCostMonthly");
   const useAgeBasedSpendingCurve = form.watch("useAgeBasedSpendingCurve");
 
+  useStoreSync(form, (values) => values);
+
   function onSubmit(values: FormValues) {
     updateInput(values);
     onNext();
@@ -76,19 +80,18 @@ export function InsuranceStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">月額保険料</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-24 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0} max={20} step={0.1}
-                    />
-                    <span className="text-sm text-muted-foreground">万円 / 月</span>
-                  </div>
+                  <NumberInput
+                    label="月額保険料"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={20}
+                    unit="万円 / 月"
+                    className="w-24"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="月額保険料"
                     min={0} max={5} step={0.1}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}
@@ -121,19 +124,18 @@ export function InsuranceStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">70歳以降の月額医療費（追加分）</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-24 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0} max={30} step={0.5}
-                    />
-                    <span className="text-sm text-muted-foreground">万円 / 月</span>
-                  </div>
+                  <NumberInput
+                    label="70歳以降の月額医療費（追加分）"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={30}
+                    unit="万円 / 月"
+                    className="w-24"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="70歳以降の月額医療費（追加分）"
                     min={0} max={10} step={0.5}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}
@@ -165,7 +167,7 @@ export function InsuranceStep({ onNext }: Props) {
                   </span>
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="介護開始年齢"
                     min={0} max={95} step={1}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}
@@ -192,19 +194,18 @@ export function InsuranceStep({ onNext }: Props) {
                 <FormItem>
                   <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                     <FormLabel className="text-base font-semibold">月額介護費用</FormLabel>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        className="w-24 text-right font-bold text-amber-600"
-                        value={field.value}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        min={0} max={50} step={0.5}
-                      />
-                      <span className="text-sm text-muted-foreground">万円 / 月</span>
-                    </div>
+                    <NumberInput
+                      label="月額介護費用"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      min={0}
+                      max={50}
+                      unit="万円 / 月"
+                      className="w-24"
+                    />
                   </div>
                   <FormControl>
-                    <Slider
+                    <Slider thumbLabel="月額介護費用"
                       min={0} max={30} step={0.5}
                       value={[field.value]}
                       onValueChange={([v]) => field.onChange(v)}
@@ -240,19 +241,18 @@ export function InsuranceStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">企業型DC 現在残高</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-24 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0} max={5000} step={10}
-                    />
-                    <span className="text-sm text-muted-foreground">万円</span>
-                  </div>
+                  <NumberInput
+                    label="企業型DC 現在残高"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={5000}
+                    unit="万円"
+                    className="w-24"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="企業型DC 現在残高"
                     min={0} max={2000} step={10}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}
@@ -278,19 +278,18 @@ export function InsuranceStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">企業型DC 月額拠出（会社負担含む）</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-24 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0} max={10} step={0.1}
-                    />
-                    <span className="text-sm text-muted-foreground">万円 / 月</span>
-                  </div>
+                  <NumberInput
+                    label="企業型DC 月額拠出（会社負担含む）"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={10}
+                    unit="万円 / 月"
+                    className="w-24"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="企業型DC 月額拠出（会社負担含む）"
                     min={0} max={5.5} step={0.1}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}
@@ -316,19 +315,18 @@ export function InsuranceStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">確定給付年金（DB）月額</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      className="w-24 text-right font-bold text-amber-600"
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      min={0} max={50} step={0.5}
-                    />
-                    <span className="text-sm text-muted-foreground">万円 / 月</span>
-                  </div>
+                  <NumberInput
+                    label="確定給付年金（DB）月額"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    min={0}
+                    max={50}
+                    unit="万円 / 月"
+                    className="w-24"
+                  />
                 </div>
                 <FormControl>
-                  <Slider
+                  <Slider thumbLabel="確定給付年金（DB）月額"
                     min={0} max={20} step={0.5}
                     value={[field.value]}
                     onValueChange={([v]) => field.onChange(v)}
@@ -370,6 +368,9 @@ export function InsuranceStep({ onNext }: Props) {
                   </div>
                   <button
                     type="button"
+                    role="switch"
+                    aria-checked={field.value}
+                    aria-label="年齢別支出カーブを使用する"
                     onClick={() => field.onChange(!field.value)}
                     className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${field.value ? "bg-amber-500" : "bg-gray-300"}`}
                   >
