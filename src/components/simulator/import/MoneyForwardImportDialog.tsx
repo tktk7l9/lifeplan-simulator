@@ -146,12 +146,23 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
             {/* Drop zone */}
             <div
               className={cn(
-                "mt-4 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+                "mt-4 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 dragging
                   ? "border-blue-500 bg-blue-50"
                   : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
               )}
+              // Keyboard users must be able to reach the file picker too; the input itself is hidden.
+              role="button"
+              tabIndex={0}
+              aria-label="CSV ファイルを選択"
               onClick={() => inputRef.current?.click()}
+              onKeyDown={(e) => {
+                if (e.target !== e.currentTarget) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  inputRef.current?.click();
+                }
+              }}
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}

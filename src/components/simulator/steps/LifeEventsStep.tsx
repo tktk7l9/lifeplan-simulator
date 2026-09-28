@@ -153,7 +153,7 @@ export function LifeEventsStep({ onNext }: Props) {
                           updateEvent(event.id, { type: v as LifeEventType })
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger aria-label={`イベント${index + 1}の種類`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
