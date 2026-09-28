@@ -12,7 +12,7 @@
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.127.0",
+    "@anthropic-ai/sdk": "^0.128.0",
     "@hookform/resolvers": "^5.9.1",
     "@radix-ui/react-accordion": "^1.2.20",
     "@radix-ui/react-alert-dialog": "^1.1.23",
@@ -59,11 +59,5 @@
     "typescript": "^6.0.3",
     "vitest": "^5.0.0",
     "wrangler": "^4.135.0"
-  },
-  "overrides": {
-    "postcss": "^8.5.10",
-    "sharp": "^0.35.0",
-    "minimatch": "^10.2.4",
-    "brace-expansion": "^5.0.9"
   }
 }
