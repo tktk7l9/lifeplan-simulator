@@ -160,6 +160,35 @@ describe("saved simulations: undo instead of confirm, delete kept apart (SHIG 57
     expect(screen.queryByText(/削除しました/)).toBeNull();
   });
 
+  it("closing the dialog mid-window hands pending deletes to the page toast (SHIG 54)", async () => {
+    useSimulationStore.setState({ savedSimulations: [makeSim("a"), makeSim("b"), makeSim("c")] });
+    render(<><SavedSimulationsDrawer /><Toaster /></>);
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /保存済み/ })); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "保存-aを削除" })); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "保存-cを削除" })); });
+    await act(async () => { fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" }); });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    // Exactly one notice remains and it is outside the closed dialog.
+    expect(screen.getAllByText(/2件を削除しました/)).toHaveLength(1);
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "すべて元に戻す" })); });
+    expect(useSimulationStore.getState().savedSimulations.map((s) => s.id)).toEqual(["a", "b", "c"]);
+    expect(screen.queryByText(/削除しました/)).toBeNull();
+    // Reopening does not show a stale in-dialog notice for the already handed-off deletes.
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /保存済み/ })); });
+    expect(screen.queryByText(/削除しました/)).toBeNull();
+  });
+
+  it("closing the dialog after a single delete keeps that one undoable", async () => {
+    useSimulationStore.setState({ savedSimulations: [makeSim("a"), makeSim("b")] });
+    render(<><SavedSimulationsDrawer /><Toaster /></>);
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /保存済み/ })); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "保存-bを削除" })); });
+    await act(async () => { fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" }); });
+    expect(screen.getByText("「保存-b」を削除しました")).toBeTruthy();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "元に戻す" })); });
+    expect(useSimulationStore.getState().savedSimulations.map((s) => s.id)).toEqual(["a", "b"]);
+  });
+
   it("the merged undo window restarts with each delete and then closes", async () => {
     vi.useFakeTimers();
     try {
