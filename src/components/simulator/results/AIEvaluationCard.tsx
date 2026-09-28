@@ -60,7 +60,8 @@ function ScoreCircle({ score, rank }: { score: number; rank: AIRank }) {
 
 export function AIEvaluationCard() {
   const { input, result, setAiEvaluation, aiEvaluation } = useSimulationStore();
-  const [evaluation, setEvaluation] = useState<AIEvaluation | null>(aiEvaluation);
+  // Read from the store so a recalculated result (which clears it) never shows an old evaluation (SHIG 35).
+  const evaluation = aiEvaluation;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -116,7 +117,6 @@ export function AIEvaluationCard() {
       }
 
       const data: AIEvaluation = await res.json();
-      setEvaluation(data);
       setAiEvaluation(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
@@ -158,7 +158,7 @@ export function AIEvaluationCard() {
     );
   }
 
-  if (isLoading) {
+  if (isLoading && !evaluation) {
     return (
       <div className="bg-white rounded-2xl border border-border shadow-sm p-8">
         <div className="flex flex-col items-center gap-4">
@@ -199,13 +199,21 @@ export function AIEvaluationCard() {
             <p className="text-amber-200 text-xs">FPの視点による総合評価</p>
           </div>
         </div>
+        {/* Actually re-runs; the current evaluation stays until the new one arrives (SHIG 11, 47, 54) */}
         <button
-          onClick={() => { setEvaluation(null); setAiEvaluation(null); setError(null); }}
-          className="text-amber-200 hover:text-white text-xs underline transition-colors"
+          onClick={handleEvaluate}
+          disabled={isLoading}
+          aria-label={isLoading ? "再評価中" : "再評価"}
+          className="min-h-11 px-2 text-amber-100 hover:text-white text-xs underline transition-colors disabled:opacity-70"
         >
-          再評価
+          {isLoading ? "再評価中…" : "再評価"}
         </button>
       </div>
+      {error && (
+        <div className="mx-6 mt-4 text-sm text-destructive bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {error}
+        </div>
+      )}
 
       <div className="p-6 space-y-6">
         {/* Score + Rank */}

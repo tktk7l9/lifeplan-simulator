@@ -49,10 +49,8 @@ describe("SaveDialog full flow", () => {
     await waitFor(() => {
       expect(useSimulationStore.getState().savedSimulations.length).toBe(1);
     });
-    // "保存しました！" is shown
-    expect(screen.getAllByText(/保存しました/).length).toBeGreaterThan(0);
-    // The dialog closes after 1.2s
-    await act(async () => { vi.advanceTimersByTime(1300); });
+    // The dialog closes at once (confirmation is a toast, SHIG 57)
+    await waitFor(() => expect(screen.queryByPlaceholderText(/楽観シナリオ/)).toBeNull());
   });
 
   it("名前が空欄では保存ボタンが disabled", async () => {
@@ -88,12 +86,12 @@ describe("SaveDialog full flow", () => {
     expect(saveBtn.disabled).toBe(true);
   });
 
-  it("PDF出力ボタンクリックで window.print", async () => {
+  it("印刷 / PDFに保存ボタンクリックで window.print", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const printSpy = vi.fn();
     Object.defineProperty(window, "print", { value: printSpy, writable: true, configurable: true });
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
-    const print = screen.getByText("PDF出力").closest("button")!;
+    const print = screen.getByText("印刷 / PDFに保存").closest("button")!;
     await act(async () => { fireEvent.click(print); });
     await act(async () => { vi.advanceTimersByTime(200); });
     expect(printSpy).toHaveBeenCalled();
