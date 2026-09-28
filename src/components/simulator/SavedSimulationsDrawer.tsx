@@ -24,6 +24,16 @@ function formatDate(iso: string): string {
   });
 }
 
+type DeletedEntry = { sim: SavedSimulation; index: number };
+
+function deletedMessage(deleted: DeletedEntry[]): string {
+  return deleted.length === 1 ? `「${deleted[0].sim.name}」を削除しました` : `${deleted.length}件を削除しました`;
+}
+
+function undoLabel(deleted: DeletedEntry[]): string {
+  return deleted.length === 1 ? "元に戻す" : "すべて元に戻す";
+}
+
 function formatManYen(value: number): string {
   if (Math.abs(value) >= 10000) return `${(value / 10000).toFixed(1)}億円`;
   return `${Math.round(value).toLocaleString("ja-JP")}万円`;
@@ -34,20 +44,23 @@ export function SavedSimulationsDrawer() {
   const [open, setOpen] = useState(false);
   // Undo for a delete is shown inside the dialog, next to the list it changed (SHIG 66);
   // a page-level toast would sit behind the modal.
-  const [lastDeleted, setLastDeleted] = useState<{ sim: SavedSimulation; index: number } | null>(null);
+  // Deletes made in a row are gathered into one notice so none of them loses its
+  // way back (SHIG 54); each entry keeps the index it had when it was removed.
+  const [deleted, setDeleted] = useState<DeletedEntry[]>([]);
 
   // The pressed delete button is gone with its row; hand keyboard focus to the undo
   // button instead of letting it fall back to the dialog container.
   const undoRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (lastDeleted) undoRef.current?.focus();
-  }, [lastDeleted]);
+    if (deleted.length > 0) undoRef.current?.focus();
+  }, [deleted]);
 
+  // The undo window restarts with every delete.
   useEffect(() => {
-    if (!lastDeleted) return;
-    const timer = setTimeout(() => setLastDeleted(null), TOAST_DURATION_MS);
+    if (deleted.length === 0) return;
+    const timer = setTimeout(() => setDeleted([]), TOAST_DURATION_MS);
     return () => clearTimeout(timer);
-  }, [lastDeleted]);
+  }, [deleted]);
 
   // Loading replaces the current input, so keep the way back (SHIG 54, 38).
   function handleLoad(id: string, name: string) {
@@ -65,17 +78,37 @@ export function SavedSimulationsDrawer() {
   // Delete at once and offer undo instead of a two-step confirmation (SHIG 57, 54).
   function handleDelete(id: string) {
     const removed = deleteSimulation(id);
-    if (removed) setLastDeleted(removed);
+    if (removed) setDeleted((prev) => [...prev, removed]);
+  }
+
+  // Put them back newest first, so every recorded index refers to the same list
+  // it was taken from.
+  function restoreDeleted(entries: DeletedEntry[]) {
+    for (const { sim, index } of [...entries].reverse()) restoreSimulation(sim, index);
   }
 
   function handleUndoDelete() {
-    if (!lastDeleted) return;
-    restoreSimulation(lastDeleted.sim, lastDeleted.index);
-    setLastDeleted(null);
+    restoreDeleted(deleted);
+    setDeleted([]);
+  }
+
+  // Closing the dialog (Esc, ×, outside tap) would hide the in-dialog notice while its
+  // undo window is still open; hand pending deletes to the page-level toast so the way
+  // back stays visible (SHIG 54, 60).
+  function handleOpenChange(next: boolean) {
+    setOpen(next);
+    if (next || deleted.length === 0) return;
+    const pending = deleted;
+    setDeleted([]);
+    showToast({
+      message: deletedMessage(pending),
+      actionLabel: undoLabel(pending),
+      onAction: () => restoreDeleted(pending),
+    });
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <button className="relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -104,16 +137,16 @@ export function SavedSimulationsDrawer() {
         </DialogHeader>
 
         <div role="status" aria-live="polite">
-          {lastDeleted && (
+          {deleted.length > 0 && (
             <div className="flex items-center justify-between gap-3 rounded-lg bg-stone-900 px-3 py-1 text-sm text-white">
-              <span className="min-w-0 truncate">「{lastDeleted.sim.name}」を削除しました</span>
+              <span className="min-w-0 truncate">{deletedMessage(deleted)}</span>
               <button
                 ref={undoRef}
                 type="button"
                 onClick={handleUndoDelete}
                 className="min-h-11 shrink-0 px-2 font-semibold text-amber-300 underline-offset-2 hover:underline"
               >
-                元に戻す
+                {undoLabel(deleted)}
               </button>
             </div>
           )}
