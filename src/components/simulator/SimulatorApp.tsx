@@ -2,7 +2,7 @@
 
 import { lazy, Suspense } from "react";
 import Link from "next/link";
-import { useSimulationStore } from "@/store/simulationStore";
+import { useSimulationStore, RESULT_STEP } from "@/store/simulationStore";
 import { BasicInfoStep } from "./steps/BasicInfoStep";
 import { TinySpinner, type SpinnerShape } from "@/components/three/TinySpinner";
 import { IncomeStep } from "./steps/IncomeStep";
@@ -12,7 +12,7 @@ import { LifeEventsStep } from "./steps/LifeEventsStep";
 import { InvestmentStep } from "./steps/InvestmentStep";
 import { InsuranceStep } from "./steps/InsuranceStep";
 import { SavedSimulationsDrawer } from "./SavedSimulationsDrawer";
-import { Toaster } from "@/components/ui/undo-toast";
+import { Toaster, showToast } from "@/components/ui/undo-toast";
 import { cn } from "@/lib/utils";
 import type { SimulationInput } from "@/lib/simulation/types";
 
@@ -246,24 +246,27 @@ function MobileTrailBar({ currentStep, onJumpTo }: { currentStep: number; onJump
                 const isActive = i === currentStep;
                 const isDone = i < currentStep;
                 return (
+                  // 40x44px hit area around the 24px dot (SHIG 78, 93)
                   <button
                     key={i}
                     onClick={() => onJumpTo(i)}
-                    className={cn(
-                      "w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-black border-2 transition-all",
-                      isActive && "bg-amber-500 border-amber-400 text-white scale-110 shadow-md shadow-amber-200/60",
-                      isDone && !isActive && "bg-white border-amber-400 text-amber-800",
-                      !isDone && !isActive && "bg-white border-amber-200 text-amber-700 hover:border-amber-300",
-                    )}
+                    className="group min-w-10 min-h-11 -mx-1 flex items-center justify-center"
                     title={step.sublabel}
                     aria-label={`${step.short !== step.icon ? step.short + ": " : ""}${step.sublabel}`}
                     aria-current={isActive ? "step" : undefined}
                   >
-                    {isDone && !isActive ? (
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    ) : isActive ? "🥾" : step.short}
+                    <span className={cn(
+                      "w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-black border-2 transition-all",
+                      isActive && "bg-amber-500 border-amber-400 text-white scale-110 shadow-md shadow-amber-200/60",
+                      isDone && !isActive && "bg-white border-amber-400 text-amber-800",
+                      !isDone && !isActive && "bg-white border-amber-200 text-amber-700 group-hover:border-amber-300",
+                    )}>
+                      {isDone && !isActive ? (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : isActive ? "🥾" : step.short}
+                    </span>
                   </button>
                 );
               })}
@@ -277,9 +280,8 @@ function MobileTrailBar({ currentStep, onJumpTo }: { currentStep: number; onJump
 
 /* ── Main ────────────────────────────────────────────────── */
 export function SimulatorApp() {
-  const { currentStep, setStep, calculate } = useSimulationStore();
+  const { currentStep, setStep, resetInput, restoreSession } = useSimulationStore();
 
-  const RESULT_STEP = 7;
   const isResultStep = currentStep === RESULT_STEP;
   const StepComponent = !isResultStep && currentStep < STEP_COMPONENTS.length
     ? STEP_COMPONENTS[currentStep] : null;
@@ -288,10 +290,21 @@ export function SimulatorApp() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // Entering the result step recalculates in the store, so every path to it is the same (SHIG 35).
   function handleNext() {
-    if (currentStep === RESULT_STEP - 1) { calculate(); setStep(RESULT_STEP); }
-    else if (currentStep < RESULT_STEP) setStep(currentStep + 1);
+    if (currentStep < RESULT_STEP) setStep(currentStep + 1);
     scrollToTop();
+  }
+
+  // Quiet reset with undo rather than a confirmation (SHIG 54, 60).
+  function handleReset() {
+    const previous = resetInput();
+    scrollToTop();
+    showToast({
+      message: "入力を初期値に戻しました",
+      actionLabel: "元に戻す",
+      onAction: () => restoreSession(previous),
+    });
   }
   function handleBack() {
     if (currentStep > 0) setStep(currentStep - 1);
@@ -401,6 +414,15 @@ export function SimulatorApp() {
               </div>
             </div>
           )}
+          <div className="mt-4 flex justify-end print:hidden">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="min-h-11 px-2 text-xs text-stone-500 underline-offset-2 hover:text-stone-700 hover:underline"
+            >
+              最初からやり直す
+            </button>
+          </div>
         </main>
       </div>
       <Toaster />
