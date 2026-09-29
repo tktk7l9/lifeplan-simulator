@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +62,7 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
   const [includeMap, setIncludeMap] = useState<IncludeMap>({});
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hintId = useId();
 
   const handleFile = async (file: File) => {
     setError(null);
@@ -146,17 +147,30 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
             {/* Drop zone */}
             <div
               className={cn(
-                "mt-4 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+                "mt-4 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 dragging
                   ? "border-blue-500 bg-blue-50"
                   : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
               )}
+              // Keyboard users must be able to reach the file picker too; the input itself is hidden.
+              role="button"
+              tabIndex={0}
+              aria-label="CSV ファイルを選択"
+              // The short name replaces the zone text, so keep the formats and privacy note as its description.
+              aria-describedby={hintId}
               onClick={() => inputRef.current?.click()}
+              onKeyDown={(e) => {
+                if (e.target !== e.currentTarget) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  inputRef.current?.click();
+                }
+              }}
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
             >
-              <div className="flex flex-col items-center gap-3">
+              <div id={hintId} className="flex flex-col items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
                   <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />

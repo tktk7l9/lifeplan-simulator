@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 interface ToggleSwitchProps {
@@ -11,18 +12,24 @@ interface ToggleSwitchProps {
 }
 
 export function ToggleSwitch({ checked, onChange, label, description, disabled }: ToggleSwitchProps) {
+  // The visible label names the switch for assistive tech; without it only "switch, off" is announced.
+  const id = useId();
+  const labelId = label ? `${id}-label` : undefined;
+  const descriptionId = description ? `${id}-description` : undefined;
   return (
     <div className="flex items-center justify-between">
       {(label || description) && (
         <div className="mr-4">
-          {label && <p className="font-semibold text-sm">{label}</p>}
-          {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+          {label && <p id={labelId} className="font-semibold text-sm">{label}</p>}
+          {description && <p id={descriptionId} className="text-xs text-muted-foreground mt-0.5">{description}</p>}
         </div>
       )}
       <button
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-labelledby={labelId}
+        aria-describedby={descriptionId}
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cn(

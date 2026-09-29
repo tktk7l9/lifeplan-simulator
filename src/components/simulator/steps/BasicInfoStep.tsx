@@ -142,7 +142,15 @@ function ChoiceGroup<T extends string | boolean | number>({
 }
 
 const schema = z.object({
-  birthDate: z.string().min(1, "生年月日を入力してください"),
+  // A date restored from an old save can fall outside the picker's range; block it on submit
+  // rather than silently saving an age the rest of the form rejects (SHIG 13, 45).
+  birthDate: z
+    .string()
+    .min(1, "生年月日を入力してください")
+    .refine((v) => {
+      const age = calcAge(v);
+      return age >= MIN_AGE && age <= MAX_AGE;
+    }, "18〜80歳の範囲で選んでください"),
   retirementAge: z.number().min(50).max(80),
   gender: z.enum(["male", "female"]),
   hasSpouse: z.boolean(),
