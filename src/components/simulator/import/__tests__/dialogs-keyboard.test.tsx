@@ -51,6 +51,9 @@ describe.each(DIALOGS)("$name import dialog", ({ trigger, el }) => {
     const dialog = await openDialog(trigger);
     const zone = within(dialog).getByRole("button", { name: "CSV ファイルを選択" });
     expect(zone.tabIndex).toBe(0);
+    // The short name must not hide the supported formats and the privacy note
+    const hint = document.getElementById(zone.getAttribute("aria-describedby") ?? "");
+    expect(hint?.textContent).toContain("ファイルはブラウザ内のみで処理されます");
 
     const input = dialog.querySelector('input[type="file"]') as HTMLInputElement;
     const pick = vi.spyOn(input, "click").mockImplementation(() => {});
