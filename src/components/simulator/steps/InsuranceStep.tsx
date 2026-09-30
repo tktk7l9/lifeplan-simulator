@@ -162,7 +162,7 @@ export function InsuranceStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                   <FormLabel className="text-base font-semibold">介護開始年齢</FormLabel>
-                  <span className="text-2xl font-bold text-amber-600">
+                  <span className="text-2xl font-bold text-amber-700">
                     {field.value === 0 ? "なし" : `${field.value}歳〜`}
                   </span>
                 </div>

@@ -101,7 +101,7 @@ export function NumberInput({
           onFocus={(e) => e.target.select()}
           onBlur={handleBlur}
           className={cn(
-            "flex h-10 w-24 rounded-md border border-input bg-background px-3 py-2 text-right text-base font-bold text-amber-600 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm",
+            "flex h-10 w-24 rounded-md border border-input bg-background px-3 py-2 text-right text-base font-bold text-amber-700 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm",
             notice && "border-destructive",
             className
           )}

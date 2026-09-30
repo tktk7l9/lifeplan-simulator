@@ -257,7 +257,7 @@ export function BasicInfoStep({ onNext }: Props) {
               <div className="flex items-center justify-between mb-2">
                 <FormLabel className="text-base font-semibold">生まれた年月</FormLabel>
                 {currentAge !== null && currentAge >= 18 && currentAge <= 80 && (
-                  <span className="text-2xl font-bold text-amber-600">{currentAge}歳</span>
+                  <span className="text-2xl font-bold text-amber-700">{currentAge}歳</span>
                 )}
                 {currentAge !== null && (currentAge < 18 || currentAge > 80) && (
                   <span className="text-sm text-destructive font-medium">18〜80歳の範囲で入力</span>
@@ -277,7 +277,7 @@ export function BasicInfoStep({ onNext }: Props) {
             <FormItem>
               <div className="flex items-center justify-between mb-2">
                 <FormLabel className="text-base font-semibold">退職年齢</FormLabel>
-                <span className="text-2xl font-bold text-amber-600">{field.value}歳</span>
+                <span className="text-2xl font-bold text-amber-700">{field.value}歳</span>
               </div>
               <FormControl>
                 <Slider
@@ -351,7 +351,7 @@ export function BasicInfoStep({ onNext }: Props) {
                 <div className="flex items-center justify-between mb-2">
                   <FormLabel className="text-base font-semibold">配偶者の生まれた年月</FormLabel>
                   {spouseCurrentAge !== null && spouseCurrentAge >= 18 && spouseCurrentAge <= 80 && (
-                    <span className="text-2xl font-bold text-amber-600">{spouseCurrentAge}歳</span>
+                    <span className="text-2xl font-bold text-amber-700">{spouseCurrentAge}歳</span>
                   )}
                   {spouseCurrentAge !== null && (spouseCurrentAge < 18 || spouseCurrentAge > 80) && (
                     <span className="text-sm text-destructive font-medium">18〜80歳の範囲で入力</span>
@@ -372,7 +372,7 @@ export function BasicInfoStep({ onNext }: Props) {
               <FormItem>
                 <div className="flex items-center justify-between mb-2">
                   <FormLabel className="text-base font-semibold">配偶者の退職年齢</FormLabel>
-                  <span className="text-2xl font-bold text-amber-600">{field.value}歳</span>
+                  <span className="text-2xl font-bold text-amber-700">{field.value}歳</span>
                 </div>
                 <FormControl>
                   <Slider
@@ -423,7 +423,7 @@ export function BasicInfoStep({ onNext }: Props) {
                     <FormItem>
                       <div className="flex items-center justify-between mb-1">
                         <FormLabel className="text-sm">生まれた時の親の年齢</FormLabel>
-                        <span className="text-base font-bold text-amber-600">{field.value}歳</span>
+                        <span className="text-base font-bold text-amber-700">{field.value}歳</span>
                       </div>
                       <FormControl>
                         <Slider

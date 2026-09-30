@@ -154,12 +154,12 @@ export function SensitivityAnalysis({ data, base }: Props) {
                 />
                 {/* Delta labels inside/outside */}
                 <div className="absolute right-1/2 inset-y-0 flex items-center justify-end pr-2 pointer-events-none">
-                  <span className="text-[11px] font-bold text-red-600 bg-white/80 rounded px-0.5 leading-tight">
+                  <span className="text-[11px] font-bold text-red-700 bg-white/80 rounded px-0.5 leading-tight">
                     {fmtDelta(d.worseDelta)}
                   </span>
                 </div>
                 <div className="absolute left-1/2 inset-y-0 flex items-center pl-2 pointer-events-none">
-                  <span className="text-[11px] font-bold text-emerald-600 bg-white/80 rounded px-0.5 leading-tight">
+                  <span className="text-[11px] font-bold text-emerald-700 bg-white/80 rounded px-0.5 leading-tight">
                     {fmtDelta(d.betterDelta)}
                   </span>
                 </div>
@@ -167,11 +167,11 @@ export function SensitivityAnalysis({ data, base }: Props) {
 
               {/* Scenario labels */}
               <div className="flex justify-between text-[11px] mt-1 px-0.5">
-                <span className="text-red-500 flex items-center gap-1">
+                <span className="text-red-700 flex items-center gap-1">
                   <span>←</span>
                   <span className="text-muted-foreground">{worseScenario}</span>
                 </span>
-                <span className="text-emerald-600 flex items-center gap-1">
+                <span className="text-emerald-700 flex items-center gap-1">
                   <span className="text-muted-foreground">{betterScenario}</span>
                   <span>→</span>
                 </span>

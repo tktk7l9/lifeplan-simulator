@@ -132,7 +132,7 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
           variant="outline"
           className="gap-2 border-blue-500 text-blue-700 hover:bg-blue-50"
         >
-          <Badge className="bg-blue-500 text-white text-xs px-1.5 py-0">CSV</Badge>
+          <Badge className="bg-blue-700 text-white text-xs px-1.5 py-0">CSV</Badge>
           マネーフォワード連携
         </Button>
       </DialogTrigger>
@@ -183,14 +183,14 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
                   <p className="text-sm text-gray-500 mt-1">
                     またはクリックしてファイルを選択（.csv / .txt）
                   </p>
-                  <p className="text-xs text-blue-500 mt-2 font-medium">
+                  <p className="text-xs text-blue-700 mt-2 font-medium">
                     対応形式：「資産推移月次」CSV / 「資産（口座一覧）」CSV
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-gray-500 mt-1">
                     PC版 マネーフォワード ME →「資産」→「資産推移」→「月次」→「CSVダウンロード」
                   </p>
                 </div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500">
                   ファイルはブラウザ内のみで処理されます。サーバーには送信されません。
                 </p>
               </div>

@@ -76,7 +76,7 @@ function ProductPicker({
                 >
                   リスク{RISK_LABEL[p.riskLevel]}
                 </span>
-                <span className="font-bold text-amber-600 text-sm whitespace-nowrap">
+                <span className="font-bold text-amber-700 text-sm whitespace-nowrap">
                   {p.expectedReturn}%
                 </span>
               </div>
@@ -552,7 +552,7 @@ export function InvestmentStep({ onNext }: Props) {
             </div>
             <div className="border-t border-amber-300 pt-1.5 mt-1 flex justify-between font-bold">
               <span>月次合計</span>
-              <span className="text-amber-600">{totalMonthly.toFixed(1)}万円 / 月</span>
+              <span className="text-amber-700">{totalMonthly.toFixed(1)}万円 / 月</span>
             </div>
             <div className="flex justify-between text-muted-foreground">
               <span>年間合計</span>

@@ -133,7 +133,7 @@ export function AIEvaluationCard() {
             🤖
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-foreground text-lg mb-1">AI総評</h3>
+            <h2 className="font-bold text-foreground text-lg mb-1">AI総評</h2>
             <p className="text-sm text-muted-foreground mb-4">
               あなたのライフプランをFPの視点でAIが総合評価します。スコア（0〜100）とランク（S〜F）、改善アドバイスをお届けします。
             </p>
@@ -144,7 +144,7 @@ export function AIEvaluationCard() {
             )}
             <button
               onClick={handleEvaluate}
-              className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm rounded-xl px-5 py-2.5 transition-all hover:scale-105 shadow-sm"
+              className="inline-flex items-center gap-2 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-sm rounded-xl px-5 py-2.5 transition-all hover:scale-105 shadow-sm"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2a10 10 0 1 0 10 10" />
@@ -195,7 +195,7 @@ export function AIEvaluationCard() {
         <div className="flex items-center gap-3">
           <span className="text-2xl">🤖</span>
           <div>
-            <h3 className="font-bold text-white text-lg">AI総評</h3>
+            <h2 className="font-bold text-white text-lg">AI総評</h2>
             <p className="text-amber-200 text-xs">FPの視点による総合評価</p>
           </div>
         </div>
@@ -229,14 +229,14 @@ export function AIEvaluationCard() {
 
         {/* Strengths */}
         <div>
-          <h4 className="font-semibold text-emerald-700 text-sm flex items-center gap-2 mb-2.5">
+          <h3 className="font-semibold text-emerald-700 text-sm flex items-center gap-2 mb-2.5">
             <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-xs">✓</span>
             優れている点
-          </h4>
+          </h3>
           <ul className="space-y-2">
             {evaluation.strengths.map((s, i) => (
               <li key={i} className="flex items-start gap-2.5 text-sm text-foreground">
-                <span className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-xs text-emerald-600 font-bold shrink-0 mt-0.5">
+                <span className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-xs text-emerald-700 font-bold shrink-0 mt-0.5">
                   {i + 1}
                 </span>
                 {s}
@@ -247,14 +247,14 @@ export function AIEvaluationCard() {
 
         {/* Improvements */}
         <div>
-          <h4 className="font-semibold text-amber-700 text-sm flex items-center gap-2 mb-2.5">
+          <h3 className="font-semibold text-amber-700 text-sm flex items-center gap-2 mb-2.5">
             <span className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center text-xs">!</span>
             改善ポイント
-          </h4>
+          </h3>
           <ul className="space-y-2">
             {evaluation.improvements.map((s, i) => (
               <li key={i} className="flex items-start gap-2.5 text-sm text-foreground">
-                <span className="w-5 h-5 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-xs text-amber-600 font-bold shrink-0 mt-0.5">
+                <span className="w-5 h-5 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-xs text-amber-700 font-bold shrink-0 mt-0.5">
                   {i + 1}
                 </span>
                 {s}

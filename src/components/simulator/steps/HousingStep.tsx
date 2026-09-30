@@ -154,7 +154,7 @@ export function HousingStep({ onNext }: Props) {
                     <FormLabel className="text-base font-semibold">
                       購入予定年齢
                     </FormLabel>
-                    <span className="text-2xl font-bold text-amber-600">
+                    <span className="text-2xl font-bold text-amber-700">
                       {field.value}歳
                     </span>
                   </div>
@@ -316,7 +316,7 @@ export function HousingStep({ onNext }: Props) {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <div className="text-muted-foreground">月々の返済額</div>
-                  <div className="text-xl font-bold text-amber-600">
+                  <div className="text-xl font-bold text-amber-700">
                     {monthlyPayment > 0
                       ? `${Math.round(monthlyPayment).toLocaleString("ja-JP")}万円`
                       : "-"}
@@ -324,7 +324,7 @@ export function HousingStep({ onNext }: Props) {
                 </div>
                 <div>
                   <div className="text-muted-foreground">総返済額</div>
-                  <div className="text-xl font-bold text-amber-600">
+                  <div className="text-xl font-bold text-amber-700">
                     {monthlyPayment > 0
                       ? `${Math.round(monthlyPayment * mortgagePeriod * 12).toLocaleString("ja-JP")}万円`
                       : "-"}

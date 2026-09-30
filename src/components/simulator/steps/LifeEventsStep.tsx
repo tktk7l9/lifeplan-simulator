@@ -245,7 +245,7 @@ export function LifeEventsStep({ onNext }: Props) {
       <button
         type="button"
         onClick={addEvent}
-        className="w-full rounded-xl border-2 border-dashed border-amber-300 p-4 text-amber-600 font-medium text-sm hover:bg-amber-50 transition-colors flex items-center justify-center gap-2"
+        className="w-full rounded-xl border-2 border-dashed border-amber-300 p-4 text-amber-700 font-medium text-sm hover:bg-amber-50 transition-colors flex items-center justify-center gap-2"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -270,7 +270,7 @@ export function LifeEventsStep({ onNext }: Props) {
             <span className="font-semibold text-sm">
               ライフイベント合計費用
             </span>
-            <span className="text-xl font-bold text-amber-600">
+            <span className="text-xl font-bold text-amber-700">
               {totalCost.toLocaleString("ja-JP")}万円
             </span>
           </div>

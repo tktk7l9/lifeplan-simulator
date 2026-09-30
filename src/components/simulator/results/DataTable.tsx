@@ -160,7 +160,13 @@ export function DataTable({ data, input }: Props) {
         </span>
       </div>
 
-      <div className="overflow-auto max-h-[560px]">
+      {/* A scrolling table must be reachable by keyboard, so the scroller itself takes focus (SHIG 93). */}
+      <div
+        className="overflow-auto max-h-[560px] focus-visible:outline-2 focus-visible:outline-amber-500"
+        tabIndex={0}
+        role="region"
+        aria-label="年別データ表"
+      >
         <table className="w-full text-sm min-w-[820px] border-separate border-spacing-0">
           <thead className="sticky top-0 z-10">
             <tr>
@@ -226,7 +232,7 @@ export function DataTable({ data, input }: Props) {
                           "px-3 py-1 text-xs font-bold tracking-wide border-t-2",
                           phase === "retired"
                             ? "bg-blue-50 text-blue-600 border-blue-200"
-                            : "bg-emerald-50 text-emerald-600 border-emerald-200"
+                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
                         )}
                       >
                         {phase === "retired" ? "━━ 退職後 ━━" : "━━ 年金受給開始 ━━"}
@@ -276,19 +282,19 @@ export function DataTable({ data, input }: Props) {
                     </td>
 
                     {/* Housing cost */}
-                    <td className="px-3 py-2 text-right whitespace-nowrap text-slate-500">
+                    <td className="px-3 py-2 text-right whitespace-nowrap text-slate-600">
                       {fmt(row.housingCost)}
                     </td>
 
                     {/* Education cost */}
-                    <td className="px-3 py-2 text-right whitespace-nowrap text-slate-500">
+                    <td className="px-3 py-2 text-right whitespace-nowrap text-slate-600">
                       {fmt(row.educationCost)}
                     </td>
 
                     {/* Event cost */}
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       {row.lifeEventCost > 0 ? (
-                        <span className="text-orange-600 font-medium">{fmt(row.lifeEventCost)}</span>
+                        <span className="text-orange-700 font-medium">{fmt(row.lifeEventCost)}</span>
                       ) : (
                         <span className="text-muted-foreground/40">—</span>
                       )}
@@ -298,7 +304,7 @@ export function DataTable({ data, input }: Props) {
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       <span className={cn(
                         "font-semibold tabular-nums",
-                        cf.positive ? "text-emerald-600" : "text-red-600"
+                        cf.positive ? "text-emerald-700" : "text-red-700"
                       )}>
                         {cf.text}
                       </span>
@@ -308,7 +314,7 @@ export function DataTable({ data, input }: Props) {
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       <span className={cn(
                         "font-bold tabular-nums",
-                        row.cumulativeAssets < 0 ? "text-red-600" : "text-foreground"
+                        row.cumulativeAssets < 0 ? "text-red-700" : "text-foreground"
                       )}>
                         {fmt(row.cumulativeAssets)}
                       </span>
@@ -358,7 +364,7 @@ export function DataTable({ data, input }: Props) {
         </span>
         <span>
           赤字年:{" "}
-          <strong className="text-red-600">
+          <strong className="text-red-700">
             {data.filter((d) => d.netCashFlow < 0).length}年
           </strong>
         </span>

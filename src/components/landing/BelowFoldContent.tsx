@@ -318,7 +318,7 @@ export function BelowFoldContent() {
                         <span
                           className="text-[11px] px-2 py-0.5 rounded-full font-bold"
                           style={amber
-                            ? { background: "var(--amber-600)", color: "var(--lp-cream)" }
+                            ? { background: "var(--amber-700)", color: "var(--lp-cream)" }
                             : { background: "var(--amber-100)", color: "var(--amber-800)" }}
                         >
                           {time}
