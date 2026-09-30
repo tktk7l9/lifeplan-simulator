@@ -9,7 +9,7 @@ export default function Home() {
       {/* ── NAV ──────────────────────────────────────────────── */}
       <LandingNav />
 
-      {/* Everything below the nav is page content, so it sits inside one main landmark (SHIG 59). */}
+      {/* Everything between the nav and the footer is page content, so it sits inside one main landmark (SHIG 59). */}
       <main>
       {/* ── HERO ─────────────────────────────────────────────── */}
       <section className="lp-hero-viewport" id="lp-hero">
@@ -75,6 +75,7 @@ export default function Home() {
 
       <BelowFoldLoader />
       </main>
+      <BelowFoldLoader part="footer" />
     </div>
   );
 }

@@ -138,7 +138,7 @@ export function AIEvaluationCard() {
               あなたのライフプランをFPの視点でAIが総合評価します。スコア（0〜100）とランク（S〜F）、改善アドバイスをお届けします。
             </p>
             {error && (
-              <div className="mb-3 text-sm text-destructive bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <div className="mb-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                 {error}
               </div>
             )}
@@ -210,7 +210,7 @@ export function AIEvaluationCard() {
         </button>
       </div>
       {error && (
-        <div className="mx-6 mt-4 text-sm text-destructive bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <div className="mx-6 mt-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
           {error}
         </div>
       )}

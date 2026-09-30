@@ -232,7 +232,7 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
                 <p className="mt-1 text-lg font-bold text-blue-700">{totals.deposit} 万円</p>
               </div>
               <div className="rounded-lg bg-green-50 border border-green-200 p-3">
-                <p className="text-xs text-green-600 font-medium">投資合計</p>
+                <p className="text-xs text-green-700 font-medium">投資合計</p>
                 <p className="mt-1 text-lg font-bold text-green-700">{totals.investment} 万円</p>
               </div>
               <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
@@ -281,6 +281,7 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
                                 type="checkbox"
                                 checked={inc.deposit}
                                 onChange={() => toggleInclude(key, "deposit")}
+                                aria-label={`${a.name}を預貯金に含める`}
                                 className="w-4 h-4 accent-blue-500 cursor-pointer"
                               />
                             </td>
@@ -289,6 +290,7 @@ export function MoneyForwardImportDialog({ onApply }: MoneyForwardImportDialogPr
                                 type="checkbox"
                                 checked={inc.investment}
                                 onChange={() => toggleInclude(key, "investment")}
+                                aria-label={`${a.name}を投資に含める`}
                                 className="w-4 h-4 accent-green-500 cursor-pointer"
                               />
                             </td>
