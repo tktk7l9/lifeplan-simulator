@@ -68,7 +68,7 @@ function CustomTooltip({ active, payload, label, spouseAgeDiff }: CustomTooltipP
             <span style={{ color: item.color }} className="font-medium text-xs">
               {item.name}
             </span>
-            <span className={`font-semibold text-xs ${item.value < 0 ? "text-red-500" : ""}`}>
+            <span className={`font-semibold text-xs ${item.value < 0 ? "text-red-700" : ""}`}>
               {formatManYen(item.value)}
             </span>
           </div>

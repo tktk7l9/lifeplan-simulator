@@ -353,7 +353,7 @@ export function SimulatorApp() {
           <MobileTrailBar currentStep={currentStep} onJumpTo={(i) => { setStep(i); scrollToTop(); }} />
 
           {isResultStep ? (
-            <Suspense fallback={<div className="flex items-center justify-center h-64 text-amber-600 font-semibold">集計中…</div>}>
+            <Suspense fallback={<div className="flex items-center justify-center h-64 text-amber-700 font-semibold">集計中…</div>}>
               <ResultsView onBack={handleBack} />
             </Suspense>
           ) : (

@@ -302,7 +302,7 @@ export function IncomeStep({ onNext }: Props) {
                       </div>
                       <div className="flex items-center justify-between border-t border-amber-100 pt-1">
                         <span className="text-muted-foreground">推計手取り（合算・税社保控除後）</span>
-                        <span className="font-bold text-emerald-600">{estimatedNetMonthly.toFixed(1)}万円/月</span>
+                        <span className="font-bold text-emerald-700">{estimatedNetMonthly.toFixed(1)}万円/月</span>
                       </div>
                     </>
                   ) : (
@@ -313,7 +313,7 @@ export function IncomeStep({ onNext }: Props) {
                       </div>
                       <div className="flex items-center justify-between border-t border-amber-100 pt-1">
                         <span className="text-muted-foreground">推計手取り（税・社保控除後）</span>
-                        <span className="font-bold text-emerald-600">{estimatedNetMonthly.toFixed(1)}万円/月</span>
+                        <span className="font-bold text-emerald-700">{estimatedNetMonthly.toFixed(1)}万円/月</span>
                       </div>
                     </>
                   )}
@@ -527,7 +527,7 @@ export function IncomeStep({ onNext }: Props) {
                     <FormItem>
                       <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                         <FormLabel className="text-sm font-semibold">働く期間（終了年齢）</FormLabel>
-                        <span className="font-bold text-amber-600">{field.value}歳まで</span>
+                        <span className="font-bold text-amber-700">{field.value}歳まで</span>
                       </div>
                       <FormControl>
                         <Slider thumbLabel="働く期間（終了年齢）"
@@ -676,7 +676,7 @@ export function IncomeStep({ onNext }: Props) {
                             <FormItem>
                               <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                                 <FormLabel className="text-sm font-semibold">ブレーク開始年齢</FormLabel>
-                                <span className="font-bold text-amber-600">{field.value}歳</span>
+                                <span className="font-bold text-amber-700">{field.value}歳</span>
                               </div>
                               <FormControl>
                                 <Slider thumbLabel="ブレーク開始年齢" min={20} max={55} step={1} value={[field.value]} onValueChange={([v]) => field.onChange(v)} className="mb-2" />
@@ -693,7 +693,7 @@ export function IncomeStep({ onNext }: Props) {
                             <FormItem>
                               <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                                 <FormLabel className="text-sm font-semibold">復帰年齢</FormLabel>
-                                <span className="font-bold text-amber-600">{field.value}歳</span>
+                                <span className="font-bold text-amber-700">{field.value}歳</span>
                               </div>
                               <FormControl>
                                 <Slider thumbLabel="復帰年齢" min={20} max={60} step={1} value={[field.value]} onValueChange={([v]) => field.onChange(v)} className="mb-2" />

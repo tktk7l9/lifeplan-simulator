@@ -87,7 +87,7 @@ function MonthlyBreakdown({
         net >= 0 ? "bg-emerald-100" : "bg-red-100"
       )}>
         <span className="text-xs font-bold text-foreground">月次収支</span>
-        <span className={cn("text-base font-black tabular-nums", net >= 0 ? "text-emerald-700" : "text-red-600")}>
+        <span className={cn("text-base font-black tabular-nums", net >= 0 ? "text-emerald-700" : "text-red-700")}>
           {fmtM(net)}/月
         </span>
       </div>
@@ -159,7 +159,7 @@ export function RetirementInsights({ result, input }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
       <div className="px-6 pt-5 pb-4 border-b border-border">
-        <h3 className="font-semibold text-foreground">老後の月次収支イメージ</h3>
+        <h2 className="font-semibold text-foreground">老後の月次収支イメージ</h2>
         <p className="text-sm text-muted-foreground mt-0.5">退職後の毎月のお金の流れを収入源・支出別に確認できます</p>
       </div>
 
@@ -172,7 +172,7 @@ export function RetirementInsights({ result, input }: Props) {
               <div className="flex items-end gap-2">
                 <span className={cn(
                   "text-3xl font-black",
-                  pensionCoverageRate >= 80 ? "text-emerald-600" : pensionCoverageRate >= 50 ? "text-amber-600" : "text-red-500"
+                  pensionCoverageRate >= 80 ? "text-emerald-700" : pensionCoverageRate >= 50 ? "text-amber-700" : "text-red-700"
                 )}>
                   {pensionCoverageRate}%
                 </span>

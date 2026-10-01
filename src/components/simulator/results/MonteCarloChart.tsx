@@ -49,8 +49,8 @@ function CustomTooltip({ active, payload, label }: {
     <div className="bg-white border border-border rounded-lg p-3 shadow-lg text-xs min-w-[200px] space-y-1">
       <div className="font-bold text-foreground pb-1 border-b border-border">{label}歳時点の資産</div>
       <div className="flex justify-between gap-6">
-        <span className="text-amber-600">楽観的（90%ile）</span>
-        <span className="font-semibold text-amber-600">{fmt(d._p90)}</span>
+        <span className="text-amber-700">楽観的（90%ile）</span>
+        <span className="font-semibold text-amber-700">{fmt(d._p90)}</span>
       </div>
       <div className="flex justify-between gap-6">
         <span className="text-muted-foreground">やや有利（75%ile）</span>
@@ -65,8 +65,8 @@ function CustomTooltip({ active, payload, label }: {
         <span className="font-medium">{fmt(d._p25)}</span>
       </div>
       <div className="flex justify-between gap-6">
-        <span className="text-red-500">悲観的（10%ile）</span>
-        <span className="font-semibold text-red-500">{fmt(d._p10)}</span>
+        <span className="text-red-700">悲観的（10%ile）</span>
+        <span className="font-semibold text-red-700">{fmt(d._p10)}</span>
       </div>
     </div>
   );
@@ -92,7 +92,8 @@ export function MonteCarloChart({ data, retirementAge, failureProbability }: Pro
   }));
 
   const successProbability = 100 - failureProbability;
-  const safeColor = successProbability >= 90 ? "#10b981" : successProbability >= 70 ? "#f59e0b" : "#ef4444";
+  // Text colours: each keeps 4.5:1 or better on its matching tinted background (SHIG 96).
+  const safeColor = successProbability >= 90 ? "#047857" : successProbability >= 70 ? "#b45309" : "#b91c1c";
   const safeBg = successProbability >= 90
     ? "bg-emerald-50 border-emerald-200"
     : successProbability >= 70
@@ -138,12 +139,18 @@ export function MonteCarloChart({ data, retirementAge, failureProbability }: Pro
           <span className="text-xs font-semibold text-foreground">重要時点の資産予測</span>
           <span className="text-xs text-muted-foreground ml-2">（単位: 万円 / 億円）</span>
         </div>
-        <div className="overflow-x-auto">
+        {/* The table scrolls sideways on narrow screens, so the scroller takes keyboard focus (SHIG 93). */}
+        <div
+          className="overflow-x-auto focus-visible:outline-2 focus-visible:outline-amber-500"
+          tabIndex={0}
+          role="region"
+          aria-label="重要時点の資産予測"
+        >
           <table className="w-full text-xs text-center min-w-[500px]">
             <thead>
               <tr className="border-b border-border bg-muted/20">
                 <th className="px-3 py-2 text-left font-medium text-muted-foreground">時点</th>
-                <th className="px-3 py-2 font-semibold text-red-500">
+                <th className="px-3 py-2 font-semibold text-red-700">
                   悲観的<br />
                   <span className="font-normal text-muted-foreground">（10%ile）</span>
                 </th>
@@ -159,7 +166,7 @@ export function MonteCarloChart({ data, retirementAge, failureProbability }: Pro
                   やや有利<br />
                   <span className="font-normal">（75%ile）</span>
                 </th>
-                <th className="px-3 py-2 font-semibold text-amber-600">
+                <th className="px-3 py-2 font-semibold text-amber-700">
                   楽観的<br />
                   <span className="font-normal text-muted-foreground">（90%ile）</span>
                 </th>
@@ -168,19 +175,19 @@ export function MonteCarloChart({ data, retirementAge, failureProbability }: Pro
             <tbody>
               <tr className="border-b border-border/50 bg-amber-50/30">
                 <td className="px-3 py-2.5 text-left font-semibold text-foreground">退職時（{retPt.age}歳）</td>
-                <td className="px-3 py-2.5 font-medium text-red-500">{fmt(retPt.p10)}</td>
+                <td className="px-3 py-2.5 font-medium text-red-700">{fmt(retPt.p10)}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">{fmt(retPt.p25)}</td>
                 <td className="px-3 py-2.5 font-bold text-foreground">{fmt(retPt.p50)}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">{fmt(retPt.p75)}</td>
-                <td className="px-3 py-2.5 font-medium text-amber-600">{fmt(retPt.p90)}</td>
+                <td className="px-3 py-2.5 font-medium text-amber-700">{fmt(retPt.p90)}</td>
               </tr>
               <tr>
                 <td className="px-3 py-2.5 text-left font-semibold text-foreground">90歳時</td>
-                <td className="px-3 py-2.5 font-medium text-red-500">{fmt(pt90.p10)}</td>
+                <td className="px-3 py-2.5 font-medium text-red-700">{fmt(pt90.p10)}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">{fmt(pt90.p25)}</td>
                 <td className="px-3 py-2.5 font-bold text-foreground">{fmt(pt90.p50)}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">{fmt(pt90.p75)}</td>
-                <td className="px-3 py-2.5 font-medium text-amber-600">{fmt(pt90.p90)}</td>
+                <td className="px-3 py-2.5 font-medium text-amber-700">{fmt(pt90.p90)}</td>
               </tr>
             </tbody>
           </table>

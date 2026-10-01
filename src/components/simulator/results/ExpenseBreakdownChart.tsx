@@ -86,7 +86,7 @@ export function ExpenseBreakdownChart({ data, retirementAge }: Props) {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-semibold text-foreground">支出内訳の変化</h3>
+        <h2 className="font-semibold text-foreground">支出内訳の変化</h2>
         <p className="text-sm text-muted-foreground mt-0.5">
           生活費・住居費・教育費・医療費などが年齢とともにどう変わるかを示します（5歳ごと）
         </p>

@@ -299,7 +299,7 @@ function ScenarioComparison({ baseInput, baseResult }: { baseInput: Partial<Simu
       sub: "現在の入力値通り",
       retirementAssets: baseResult.retirementAssets,
       finalAssets: baseResult.finalAssets,
-      color: "text-amber-600",
+      color: "text-amber-700",
       bg: "bg-amber-50",
     },
     {
@@ -307,7 +307,7 @@ function ScenarioComparison({ baseInput, baseResult }: { baseInput: Partial<Simu
       sub: `インフレ-0.5pp / 投資リターン+2pp`,
       retirementAssets: optimistic.retirementAssets,
       finalAssets: optimistic.finalAssets,
-      color: "text-emerald-600",
+      color: "text-emerald-700",
       bg: "bg-emerald-50",
     },
   ];
@@ -322,14 +322,14 @@ function ScenarioComparison({ baseInput, baseResult }: { baseInput: Partial<Simu
             <div className="space-y-2">
               <div>
                 <div className="text-xs text-muted-foreground">退職時資産</div>
-                <div className={`text-lg font-bold ${sc.retirementAssets >= 0 ? sc.color : "text-red-600"}`}>
+                <div className={`text-lg font-bold ${sc.retirementAssets >= 0 ? sc.color : "text-red-700"}`}>
                   {formatManYen(sc.retirementAssets)}
                   {sc.retirementAssets < 0 && <span className="ml-1.5 align-middle text-xs font-semibold">（不足）</span>}
                 </div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">100歳時資産</div>
-                <div className={`text-lg font-bold ${sc.finalAssets >= 0 ? sc.color : "text-red-600"}`}>
+                <div className={`text-lg font-bold ${sc.finalAssets >= 0 ? sc.color : "text-red-700"}`}>
                   {formatManYen(sc.finalAssets)}
                   {sc.finalAssets < 0 && <span className="ml-1.5 align-middle text-xs font-semibold">（不足）</span>}
                 </div>
@@ -371,7 +371,7 @@ function SaveDialog() {
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setName(""); }}>
       <DialogTrigger asChild>
         <button className="inline-flex items-center gap-2 bg-white border border-border hover:border-amber-300 hover:bg-amber-50 text-foreground font-semibold text-sm rounded-xl px-4 py-2.5 transition-all shadow-sm">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-700">
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
             <polyline points="17 21 17 13 7 13 7 21" />
             <polyline points="7 3 7 8 15 8" />
@@ -404,7 +404,7 @@ function SaveDialog() {
           <button
             onClick={handleSave}
             disabled={!name.trim()}
-            className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl py-2.5 transition-all"
+            className="w-full bg-amber-700 hover:bg-amber-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl py-2.5 transition-all"
           >
             保存する
           </button>
@@ -556,7 +556,7 @@ export function ResultsView({ onBack }: Props) {
       value: formatManYen(result.retirementAssets),
       subLabel: `${retirementAge}歳時点`,
       icon: "🏦",
-      color: result.retirementAssets >= 0 ? "text-amber-600" : "text-destructive",
+      color: result.retirementAssets >= 0 ? "text-amber-700" : "text-destructive",
       bg: result.retirementAssets >= 0 ? "bg-amber-50" : "bg-red-50",
       spinnerShape: "peak",
       spinnerColor: 0xf59e0b,
@@ -566,7 +566,7 @@ export function ResultsView({ onBack }: Props) {
       value: formatManYen(result.finalAssets),
       subLabel: `現在価値 ${formatManYen(realFinalAssets)}`,
       icon: "📈",
-      color: result.finalAssets >= 0 ? "text-emerald-600" : "text-destructive",
+      color: result.finalAssets >= 0 ? "text-emerald-700" : "text-destructive",
       bg: result.finalAssets >= 0 ? "bg-emerald-50" : "bg-red-50",
       spinnerShape: "gem",
       spinnerColor: result.finalAssets >= 0 ? 0x10b981 : 0xef4444,
@@ -576,7 +576,7 @@ export function ResultsView({ onBack }: Props) {
       value: `${householdPensionMonthly.toFixed(1)}万円`,
       subLabel: pensionLabel,
       icon: "🔖",
-      color: "text-amber-600",
+      color: "text-amber-700",
       bg: "bg-amber-50",
       spinnerShape: "coin",
       spinnerColor: 0xd97706,
@@ -589,7 +589,7 @@ export function ResultsView({ onBack }: Props) {
       valueClass: depletion && !result.isRetirementSafe ? "text-lg sm:text-xl" : undefined,
       link: !result.isRetirementSafe,
       icon: result.isRetirementSafe ? "✅" : "⚠️",
-      color: result.isRetirementSafe ? "text-emerald-600" : "text-destructive",
+      color: result.isRetirementSafe ? "text-emerald-700" : "text-destructive",
       bg: result.isRetirementSafe ? "bg-emerald-50" : "bg-red-50",
       spinnerShape: "ring",
       spinnerColor: result.isRetirementSafe ? 0x10b981 : 0xef4444,
@@ -602,6 +602,10 @@ export function ResultsView({ onBack }: Props) {
       <PrintReport visible={isPrinting} />
 
       {/* Screen content — hidden when printing */}
+      {/* The summit is the only step without a page heading; name it like the others (SHIG 59). */}
+      <h1 className="text-base sm:text-lg font-black text-amber-900 -mb-3 print:hidden">
+        🏔️ シミュレーション結果
+      </h1>
       {/* Top bar: back + save + print */}
       <div className="flex items-center justify-between flex-wrap gap-2 print:hidden">
         <button
@@ -618,7 +622,7 @@ export function ResultsView({ onBack }: Props) {
             onClick={handlePrint}
             className="inline-flex items-center gap-2 bg-white border border-border hover:border-amber-300 hover:bg-amber-50 text-foreground font-semibold text-sm rounded-xl px-4 py-2.5 transition-all shadow-sm"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-700">
               <polyline points="6 9 6 2 18 2 18 9" />
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
               <rect x="6" y="14" width="12" height="8" />
@@ -701,7 +705,7 @@ export function ResultsView({ onBack }: Props) {
           </div>
           <TabsContent value="asset-chart" className="p-6">
             <div className="mb-4">
-              <h3 className="font-semibold text-foreground">資産推移グラフ</h3>
+              <h2 className="font-semibold text-foreground">資産推移グラフ</h2>
               <p className="text-sm text-muted-foreground">貯蓄資産と投資資産の年間推移</p>
             </div>
             <AssetChart
@@ -714,7 +718,7 @@ export function ResultsView({ onBack }: Props) {
           </TabsContent>
           <TabsContent value="cashflow-chart" className="p-6">
             <div className="mb-4">
-              <h3 className="font-semibold text-foreground">年間収支グラフ</h3>
+              <h2 className="font-semibold text-foreground">年間収支グラフ</h2>
               <p className="text-sm text-muted-foreground">年間収入と支出の比較（5年ごと）</p>
             </div>
             <CashFlowChart data={result.yearlyData} retirementAge={retirementAge} />
@@ -722,7 +726,7 @@ export function ResultsView({ onBack }: Props) {
           <TabsContent value="table" className="p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-foreground">年別データ表</h3>
+                <h2 className="font-semibold text-foreground">年別データ表</h2>
                 <p className="text-sm text-muted-foreground">各年のキャッシュフロー詳細（単位: 万円）</p>
               </div>
               <div className="flex items-center gap-3 text-xs">
@@ -742,14 +746,14 @@ export function ResultsView({ onBack }: Props) {
           </TabsContent>
           <TabsContent value="scenarios" className="p-6">
             <div className="mb-4">
-              <h3 className="font-semibold text-foreground">保守 / 標準 / 楽観シナリオ比較</h3>
+              <h2 className="font-semibold text-foreground">保守 / 標準 / 楽観シナリオ比較</h2>
               <p className="text-sm text-muted-foreground">インフレ率と投資リターンを変えた3ケースの結果比較</p>
             </div>
             <ScenarioComparison baseInput={input as SimulationInput} baseResult={result} />
           </TabsContent>
           <TabsContent value="montecarlo" className="p-6">
             <div className="mb-4">
-              <h3 className="font-semibold text-foreground">モンテカルロシミュレーション</h3>
+              <h2 className="font-semibold text-foreground">モンテカルロシミュレーション</h2>
               <p className="text-sm text-muted-foreground">投資リターンをランダムに変動させた確率的シミュレーション</p>
             </div>
             {mcLoading ? (
@@ -774,7 +778,7 @@ export function ResultsView({ onBack }: Props) {
           </TabsContent>
           <TabsContent value="sensitivity" className="p-6">
             <div className="mb-4">
-              <h3 className="font-semibold text-foreground">感度分析（トルネードチャート）</h3>
+              <h2 className="font-semibold text-foreground">感度分析（トルネードチャート）</h2>
               <p className="text-sm text-muted-foreground">各パラメータが100歳時の資産に与える影響</p>
             </div>
             {sensLoading ? (
@@ -808,7 +812,7 @@ export function ResultsView({ onBack }: Props) {
 
       {/* Stats summary */}
       <div className="bg-white rounded-2xl border border-border shadow-sm p-6 print:hidden">
-        <h3 className="font-semibold text-foreground mb-4">シミュレーション概要</h3>
+        <h2 className="font-semibold text-foreground mb-4">シミュレーション概要</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
           <div>
             <div className="text-muted-foreground mb-1">総収入（生涯）</div>
@@ -820,13 +824,13 @@ export function ResultsView({ onBack }: Props) {
           </div>
           <div>
             <div className="text-muted-foreground mb-1">生涯収支</div>
-            <div className={cn("font-bold", result.totalIncome - result.totalExpense >= 0 ? "text-emerald-600" : "text-destructive")}>
+            <div className={cn("font-bold", result.totalIncome - result.totalExpense >= 0 ? "text-emerald-700" : "text-destructive")}>
               {formatManYen(result.totalIncome - result.totalExpense)}
             </div>
           </div>
           <div>
             <div className="text-muted-foreground mb-1">{input.hasSpouse ? "世帯年金月額（概算）" : "年金月額（概算）"}</div>
-            <div className="font-bold text-amber-600">{householdPensionMonthly.toFixed(1)}万円 / 月</div>
+            <div className="font-bold text-amber-700">{householdPensionMonthly.toFixed(1)}万円 / 月</div>
             {input.hasSpouse && (
               <div className="text-xs text-muted-foreground mt-0.5">{pensionLabel}</div>
             )}

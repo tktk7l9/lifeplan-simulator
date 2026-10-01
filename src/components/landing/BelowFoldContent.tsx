@@ -318,7 +318,7 @@ export function BelowFoldContent() {
                         <span
                           className="text-[11px] px-2 py-0.5 rounded-full font-bold"
                           style={amber
-                            ? { background: "var(--amber-600)", color: "var(--lp-cream)" }
+                            ? { background: "var(--amber-700)", color: "var(--lp-cream)" }
                             : { background: "var(--amber-100)", color: "var(--amber-800)" }}
                         >
                           {time}
@@ -418,8 +418,16 @@ export function BelowFoldContent() {
           </div>
         </div>
       </section>
+    </>
+  );
+}
 
-      {/* ── FOOTER ───────────────────────────────────────────── */}
+/**
+ * Site footer. Kept apart from BelowFoldContent so the page can render it outside <main>,
+ * where it keeps its contentinfo landmark (SHIG 59).
+ */
+export function LandingFooter() {
+  return (
       <footer className="border-t" style={{ background: "var(--ink)", color: "var(--lp-cream)", borderColor: "rgba(253,248,239,.08)" }}>
         <div className="max-w-[1400px] mx-auto px-5 md:px-10 py-14">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -469,6 +477,5 @@ export function BelowFoldContent() {
           </div>
         </div>
       </footer>
-    </>
   );
 }

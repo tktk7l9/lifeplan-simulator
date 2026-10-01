@@ -107,7 +107,7 @@ export function ExpenseStep({ onNext }: Props) {
               <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                 <FormLabel className="text-base font-semibold">物価上昇率（インフレ率）</FormLabel>
                 <div className="flex items-center gap-1">
-                  <span className="text-2xl font-bold text-amber-600">{field.value.toFixed(1)}</span>
+                  <span className="text-2xl font-bold text-amber-700">{field.value.toFixed(1)}</span>
                   <span className="text-sm text-muted-foreground">% / 年</span>
                 </div>
               </div>
@@ -149,7 +149,7 @@ export function ExpenseStep({ onNext }: Props) {
             </div>
             <div className="border-t border-border pt-2 flex justify-between font-bold">
               <span>合計</span>
-              <span className="text-amber-600">
+              <span className="text-amber-700">
                 {(form.watch("monthlyLivingExpense") * 12).toLocaleString("ja-JP")}
                 万円 / 年
               </span>

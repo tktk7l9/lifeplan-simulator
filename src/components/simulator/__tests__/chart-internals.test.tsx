@@ -120,7 +120,7 @@ function makeYearlyData(n = 20): YearlyData[] {
 }
 
 describe("AssetChart CustomTooltip", () => {
-  it("active payload で項目描画 + 負の value 赤色 (text-red-500)", () => {
+  it("active payload で項目描画 + 負の value 赤色 (text-red-700)", () => {
     render(
       <AssetChart
         data={makeYearlyData()}
@@ -135,9 +135,9 @@ describe("AssetChart CustomTooltip", () => {
     expect(pos.textContent).toMatch(/万円|億円/);
     // Spouse age hint shown
     expect(pos.textContent).toContain("配偶者");
-    // Negative tooltip - includes text-red-500
+    // Negative tooltip - includes text-red-700
     const neg = screen.getByTestId("tt-negative");
-    expect(neg.querySelector(".text-red-500")).toBeTruthy();
+    expect(neg.querySelector(".text-red-700")).toBeTruthy();
     // Inactive renders nothing
     const inactive = screen.getByTestId("tt-inactive");
     expect(inactive.textContent).toBe("");

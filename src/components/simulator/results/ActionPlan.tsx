@@ -56,7 +56,7 @@ export function ActionPlan({ result, input }: Props) {
         title: "緊急資金を6ヶ月分確保する",
         description: `現在の貯蓄（${Math.round(savings).toLocaleString()}万円）は生活費6ヶ月分の目安（${Math.round(emergencyTarget).toLocaleString()}万円）を下回っています。まず${Math.round(emergencyTarget - savings).toLocaleString()}万円の緊急資金を現金で確保してから投資を始めましょう。`,
         impact: "リスク管理の基盤",
-        impactColor: "text-red-600",
+        impactColor: "text-red-700",
       });
     }
 
@@ -74,7 +74,7 @@ export function ActionPlan({ result, input }: Props) {
         title: `NISA積立枠を月${addNisa}万円増やす`,
         description: `現在のNISA利用額は月${nisaUsed}万円。新NISAの積立枠は月10万円（年120万円）まで非課税で運用できます。利益に約20%かかる税金が0円になるため、長期投資の効果が大幅に向上します。`,
         impact: delta != null ? `100歳時の資産が約+${fmt(delta)}` : "非課税効果で資産増加",
-        impactColor: "text-emerald-600",
+        impactColor: "text-emerald-700",
       });
     }
 
@@ -95,7 +95,7 @@ export function ActionPlan({ result, input }: Props) {
         title: `iDeCoを月${addIdeco.toFixed(1)}万円増額する`,
         description: `iDeCoは掛金が全額所得控除になるため、所得税・住民税が軽減されます。現在の掛金（月${idecoUsed}万円）から増額可能な上限は月${idecoMax}万円です。節税効果と運用益が同時に得られます。`,
         impact: delta != null ? `100歳時の資産が約+${fmt(delta)}` : "所得控除で節税+資産形成",
-        impactColor: "text-emerald-600",
+        impactColor: "text-emerald-700",
       });
     }
 
@@ -112,7 +112,7 @@ export function ActionPlan({ result, input }: Props) {
           title: "月1万円だけ投資額を増やす",
           description: `毎月の投資額を1万円増やすだけで、複利効果により退職時の資産は大きく変わります。コーヒー代やサブスク1本を見直すだけで実現できる改善です。`,
           impact: `100歳時の資産が約+${fmt(delta)}`,
-          impactColor: "text-emerald-600",
+          impactColor: "text-emerald-700",
         });
       }
     }
@@ -129,7 +129,7 @@ export function ActionPlan({ result, input }: Props) {
         title: `退職を${DELAY}年遅らせることを検討する`,
         description: `現在のシミュレーションでは100歳まで資産が持続しないリスクがあります。退職を${DELAY}年遅らせると、収入期間が延び・支出期間が短縮され・投資の複利期間も伸びる三重のメリットがあります。`,
         impact: delta != null ? `100歳時の資産が約+${fmt(delta)}` : "資産枯渇リスクを大幅軽減",
-        impactColor: "text-emerald-600",
+        impactColor: "text-emerald-700",
       });
     }
 
@@ -151,7 +151,7 @@ export function ActionPlan({ result, input }: Props) {
         title: `退職後も月${ADD_WORK}万円の就労収入を得る`,
         description: `フリーランス・パート・コンサルティングなど、週2〜3日程度の軽い就労で月${ADD_WORK}万円の収入を確保すると、資産の取り崩しを大幅に遅らせることができます。健康面・社会参加の面でもメリットがあります。`,
         impact: delta != null ? `100歳時の資産が約+${fmt(delta)}` : "資産取り崩しを先延ばし",
-        impactColor: "text-emerald-600",
+        impactColor: "text-emerald-700",
       });
     }
 
@@ -168,7 +168,7 @@ export function ActionPlan({ result, input }: Props) {
           title: `月${CUT}万円の生活費削減を試みる`,
           description: `固定費（通信費・保険・サブスク）の見直しや食費の工夫で月${CUT}万円の削減は十分達成可能です。少額に思えても長期では大きな効果があります。`,
           impact: delta != null ? `100歳時の資産が約+${fmt(delta)}` : "支出削減で資産改善",
-          impactColor: "text-emerald-600",
+          impactColor: "text-emerald-700",
         });
       }
     }
@@ -183,7 +183,7 @@ export function ActionPlan({ result, input }: Props) {
   return (
     <div id="action-plan" className="scroll-mt-20 bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
       <div className="px-6 pt-5 pb-4 border-b border-border">
-        <h3 className="font-semibold text-foreground">今すぐできるアクションプラン</h3>
+        <h2 className="font-semibold text-foreground">今すぐできるアクションプラン</h2>
         <p className="text-sm text-muted-foreground mt-0.5">
           あなたのシミュレーション結果をもとに、効果の高い改善策を優先順に提案します
         </p>
@@ -216,7 +216,7 @@ export function ActionPlan({ result, input }: Props) {
               </p>
               {action.impact && (
                 <div className="inline-flex items-center gap-1.5 bg-muted/40 rounded-lg px-2.5 py-1 text-xs">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600 flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-700 flex-shrink-0">
                     <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
                     <polyline points="16 7 22 7 22 13" />
                   </svg>

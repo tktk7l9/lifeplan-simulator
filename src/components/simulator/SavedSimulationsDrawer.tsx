@@ -118,7 +118,7 @@ export function SavedSimulationsDrawer() {
           </svg>
           保存済み
           {savedSimulations.length > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-600 text-white text-[10px] flex items-center justify-center font-bold">
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-700 text-white text-[10px] flex items-center justify-center font-bold">
               {savedSimulations.length > 9 ? "9+" : savedSimulations.length}
             </span>
           )}
@@ -127,7 +127,7 @@ export function SavedSimulationsDrawer() {
       <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-700">
               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
               <polyline points="17 21 17 13 7 13 7 21" />
               <polyline points="7 3 7 8 15 8" />
@@ -178,7 +178,7 @@ export function SavedSimulationsDrawer() {
                           type="button"
                           onClick={() => handleDelete(sim.id)}
                           aria-label={`${sim.name}を削除`}
-                          className="-mr-2 -mt-2 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-xs text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                          className="-mr-2 -mt-2 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-xs text-muted-foreground hover:bg-red-50 hover:text-red-700"
                         >
                           削除
                         </button>
@@ -193,7 +193,7 @@ export function SavedSimulationsDrawer() {
                           sim.result.retirementAssets >= 0 ? "bg-amber-50 border-amber-100" : "bg-red-50 border-red-100"
                         )}>
                           <div className="text-[10px] text-muted-foreground">退職時資産</div>
-                          <div className={cn("text-xs font-bold mt-0.5", sim.result.retirementAssets >= 0 ? "text-amber-700" : "text-red-600")}>
+                          <div className={cn("text-xs font-bold mt-0.5", sim.result.retirementAssets >= 0 ? "text-amber-700" : "text-red-700")}>
                             {formatManYen(sim.result.retirementAssets)}
                           </div>
                         </div>
@@ -212,7 +212,7 @@ export function SavedSimulationsDrawer() {
                   <div className="flex items-center gap-2 mt-3">
                     <button
                       onClick={() => handleLoad(sim.id, sim.name)}
-                      className="w-full min-h-11 inline-flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg px-3 py-2 transition-colors"
+                      className="w-full min-h-11 inline-flex items-center justify-center gap-1.5 bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold rounded-lg px-3 py-2 transition-colors"
                     >
                       <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />

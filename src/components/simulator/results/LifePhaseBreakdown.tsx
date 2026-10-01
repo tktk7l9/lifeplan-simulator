@@ -33,7 +33,7 @@ function fmt(v: number): string {
 
 function fmtSigned(v: number): { text: string; cls: string } {
   const text = (v >= 0 ? "+" : "") + fmt(v);
-  return { text, cls: v >= 0 ? "text-emerald-600" : "text-red-500" };
+  return { text, cls: v >= 0 ? "text-emerald-700" : "text-red-700" };
 }
 
 function calcPhase(rows: YearlyData[]) {
@@ -113,7 +113,7 @@ export function LifePhaseBreakdown({ data, retirementAge }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
       <div className="px-6 pt-5 pb-4 border-b border-border">
-        <h3 className="font-semibold text-foreground">ライフフェーズ別 収支サマリー</h3>
+        <h2 className="font-semibold text-foreground">ライフフェーズ別 収支サマリー</h2>
         <p className="text-sm text-muted-foreground mt-0.5">人生を3つのフェーズに分けた収支の全体像</p>
       </div>
 

@@ -51,3 +51,20 @@ describe("children を素通しする", () => {
     expect(getByText("子")).toBeTruthy();
   });
 });
+
+describe("landing footer sits outside <main>", () => {
+  it("BelowFoldContent has no footer; LandingFooter is the footer", async () => {
+    const { LandingFooter } = await import("../landing/BelowFoldContent");
+    const content = render(<BelowFoldContent />);
+    expect(content.container.querySelector("footer")).toBeNull();
+    content.unmount();
+    const footer = render(<LandingFooter />);
+    expect(footer.container.firstElementChild?.tagName).toBe("FOOTER");
+  });
+
+  it('BelowFoldLoader part="footer" mounts only the footer', async () => {
+    const { container, findByRole } = render(<BelowFoldLoader part="footer" />);
+    await findByRole("contentinfo");
+    expect(container.querySelectorAll("section")).toHaveLength(0);
+  });
+});

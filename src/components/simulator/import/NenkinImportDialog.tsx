@@ -69,7 +69,7 @@ export function NenkinImportDialog({ onApply }: NenkinImportDialogProps) {
           variant="outline"
           className="gap-2 border-green-500 text-green-700 hover:bg-green-50"
         >
-          <Badge className="bg-green-500 text-white text-xs px-1.5 py-0">CSV</Badge>
+          <Badge className="bg-green-700 text-white text-xs px-1.5 py-0">CSV</Badge>
           ねんきんネット連携
         </Button>
       </DialogTrigger>
@@ -121,7 +121,7 @@ export function NenkinImportDialog({ onApply }: NenkinImportDialogProps) {
                     またはクリックしてファイルを選択（.csv / .txt）
                   </p>
                 </div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500">
                   ファイルはブラウザ内のみで処理されます。サーバーには送信されません。
                 </p>
               </div>
@@ -155,7 +155,7 @@ export function NenkinImportDialog({ onApply }: NenkinImportDialogProps) {
             {/* Summary */}
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-green-50 border border-green-200 p-4">
-                <p className="text-xs text-green-600 font-medium">加入月数</p>
+                <p className="text-xs text-green-700 font-medium">加入月数</p>
                 <p className="mt-1 text-sm text-gray-700">
                   厚生年金 <span className="font-bold text-green-700">{result.empMonths}</span> ヶ月
                   {" / "}
@@ -163,17 +163,17 @@ export function NenkinImportDialog({ onApply }: NenkinImportDialogProps) {
                 </p>
               </div>
               <div className="rounded-lg bg-green-50 border border-green-200 p-4">
-                <p className="text-xs text-green-600 font-medium">平均標準報酬月額</p>
+                <p className="text-xs text-green-700 font-medium">平均標準報酬月額</p>
                 <p className="mt-1 text-lg font-bold text-green-700">
                   {toMan(result.avgStandardMonthly)} 万円
                 </p>
               </div>
               <div className="col-span-2 rounded-lg bg-amber-50 border border-amber-200 p-4">
-                <p className="text-xs text-amber-600 font-medium">推計年金月額（65歳時点）</p>
+                <p className="text-xs text-amber-700 font-medium">推計年金月額（65歳時点）</p>
                 <p className="mt-1 text-2xl font-bold text-amber-700">
-                  {toMan(result.pensionMonthlyEst)} 万円<span className="text-base font-normal text-amber-600">/月</span>
+                  {toMan(result.pensionMonthlyEst)} 万円<span className="text-base font-normal text-amber-700">/月</span>
                 </p>
-                <p className="text-xs text-amber-500 mt-1">※ 簡易推計値。実際の受給額とは異なる場合があります。</p>
+                <p className="text-xs text-amber-700 mt-1">※ 簡易推計値。実際の受給額とは異なる場合があります。</p>
               </div>
             </div>
 
@@ -181,7 +181,12 @@ export function NenkinImportDialog({ onApply }: NenkinImportDialogProps) {
             {result.records.length > 0 && (
               <div className="mt-4">
                 <p className="text-sm font-medium text-gray-700 mb-2">年金記録詳細</p>
-                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                <div
+                  className="overflow-x-auto rounded-lg border border-gray-200 focus-visible:outline-2 focus-visible:outline-green-700"
+                  tabIndex={0}
+                  role="region"
+                  aria-label="年金記録詳細"
+                >
                   <table className="w-full text-xs">
                     <thead className="bg-gray-50">
                       <tr>
@@ -234,7 +239,7 @@ export function NenkinImportDialog({ onApply }: NenkinImportDialogProps) {
                 やり直す
               </Button>
               <Button
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-700 hover:bg-green-800 text-white"
                 onClick={handleApply}
               >
                 シミュレーターに反映する
