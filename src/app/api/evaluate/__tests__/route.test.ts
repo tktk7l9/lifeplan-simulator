@@ -192,4 +192,53 @@ describe("POST /api/evaluate", () => {
     const res = await POST(makeRequest({ input: rentInput, result: validResult }, { "x-forwarded-for": "9.9.9.2" }));
     expect(res.status).toBe(200);
   });
+
+  it("keys the rate limit on cf-connecting-ip so a rotating x-forwarded-for cannot bypass it", async () => {
+    const ok = {
+      content: [{ type: "text", text: JSON.stringify({
+        score: 70, rank: "B", summary: "x", strengths: ["a"], improvements: ["b"], conclusion: "c",
+      })}],
+    };
+    for (let i = 0; i < 5; i++) {
+      create.mockResolvedValueOnce(ok);
+      const r = await POST(makeRequest({ input: validInput, result: validResult },
+        { "cf-connecting-ip": "7.7.7.7", "x-forwarded-for": `10.0.0.${i}` }));
+      expect(r.status).toBe(200);
+    }
+    const sixth = await POST(makeRequest({ input: validInput, result: validResult },
+      { "cf-connecting-ip": "7.7.7.7", "x-forwarded-for": "10.0.0.99" }));
+    expect(sixth.status).toBe(429);
+  });
+
+  it("drops expired entries once many IPs are tracked", async () => {
+    vi.useFakeTimers();
+    try {
+      // Malformed bodies still pass through the rate limiter, so no AI call is needed.
+      for (let i = 0; i < 1_000; i++) {
+        await POST(makeRequest({}, { "cf-connecting-ip": `ip-${i}` }));
+      }
+      vi.advanceTimersByTime(61_000);
+      const res = await POST(makeRequest({}, { "cf-connecting-ip": "ip-new" }));
+      expect(res.status).toBe(400);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("clientIp", () => {
+  let clientIp: typeof import("../route").clientIp;
+  beforeEach(async () => {
+    clientIp = (await import("../route")).clientIp;
+  });
+
+  it("prefers cf-connecting-ip, then x-real-ip, then the first x-forwarded-for hop", () => {
+    expect(clientIp(new Headers({ "cf-connecting-ip": "1.1.1.1", "x-real-ip": "2.2.2.2", "x-forwarded-for": "3.3.3.3" }))).toBe("1.1.1.1");
+    expect(clientIp(new Headers({ "x-real-ip": "2.2.2.2", "x-forwarded-for": "3.3.3.3" }))).toBe("2.2.2.2");
+    expect(clientIp(new Headers({ "x-forwarded-for": "3.3.3.3, 4.4.4.4" }))).toBe("3.3.3.3");
+  });
+
+  it("falls back to 'unknown' when no address header is present", () => {
+    expect(clientIp(new Headers())).toBe("unknown");
+  });
 });
