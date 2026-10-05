@@ -120,7 +120,7 @@ function makeYearlyData(n = 20): YearlyData[] {
 }
 
 describe("AssetChart CustomTooltip", () => {
-  it("active payload で項目描画 + 負の value 赤色 (text-red-700)", () => {
+  it("renders items for an active payload and colors negative values red (text-red-700)", () => {
     render(
       <AssetChart
         data={makeYearlyData()}
@@ -143,7 +143,7 @@ describe("AssetChart CustomTooltip", () => {
     expect(inactive.textContent).toBe("");
   });
 
-  it("億円フォーマット (10000 以上)", () => {
+  it("formats in 億円 (10000 or more)", () => {
     // Prepare large data to hit the 10000+ path of formatYAxis / formatManYen
     const big = makeYearlyData().map((d, i) => ({
       ...d,
@@ -156,7 +156,7 @@ describe("AssetChart CustomTooltip", () => {
     expect(screen.getAllByTestId("rc").length).toBeGreaterThan(0);
   });
 
-  it("負の値を含む annotation (hasNegative)", () => {
+  it("annotates when negative values are present (hasNegative)", () => {
     const data = makeYearlyData();
     data[10].cumulativeAssets = -500;
     render(
@@ -174,7 +174,7 @@ describe("AssetChart CustomTooltip", () => {
 });
 
 describe("CashFlowChart CustomTooltip", () => {
-  it("active payload で項目描画", () => {
+  it("renders items for an active payload", () => {
     render(<CashFlowChart data={makeYearlyData(50)} retirementAge={65} />);
     const pos = screen.getByTestId("tt-positive");
     expect(pos.textContent).toContain("40歳");
@@ -183,7 +183,7 @@ describe("CashFlowChart CustomTooltip", () => {
 });
 
 describe("ExpenseBreakdownChart CustomTooltip", () => {
-  it("active payload で合計表示", () => {
+  it("shows the total for an active payload", () => {
     render(<ExpenseBreakdownChart data={makeYearlyData(50)} retirementAge={65} />);
     const pos = screen.getByTestId("tt-positive");
     expect(pos.textContent).toContain("合計");
@@ -191,7 +191,7 @@ describe("ExpenseBreakdownChart CustomTooltip", () => {
 });
 
 describe("MonteCarloChart fmt edge cases", () => {
-  it("p90 1億超で 億円 フォーマット", () => {
+  it("formats in 億円 when p90 exceeds 1億", () => {
     const data: MonteCarloDataPoint[] = Array.from({ length: 60 }, (_, i) => ({
       age: 30 + i,
       p10: 5000,
@@ -204,7 +204,7 @@ describe("MonteCarloChart fmt edge cases", () => {
     expect(screen.getAllByTestId("rc").length).toBeGreaterThan(0);
   });
 
-  it("CustomTooltip active payload 経路", () => {
+  it("covers the CustomTooltip active payload path", () => {
     const data: MonteCarloDataPoint[] = Array.from({ length: 30 }, (_, i) => ({
       age: 30 + i,
       p10: 100,

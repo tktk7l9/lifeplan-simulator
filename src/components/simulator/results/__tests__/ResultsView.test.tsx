@@ -30,13 +30,13 @@ beforeEach(() => {
 });
 
 describe("ResultsView", () => {
-  it("結果概要を表示 (タブ + チャート)", async () => {
+  it("shows the result overview (tabs + chart)", async () => {
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
     // One of the tabs is visible
     expect(screen.getAllByRole("tab").length).toBeGreaterThan(0);
   });
 
-  it("「年別データ」タブをクリックすると年別データ表に切り替わる", async () => {
+  it("clicking the 「年別データ」 tab switches to the yearly data table", async () => {
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
     // The initial tab (asset history) does not show the yearly data table
     expect(screen.queryByText("年別データ表")).toBeNull();
@@ -47,7 +47,7 @@ describe("ResultsView", () => {
     expect(tab.getAttribute("data-state")).toBe("active");
   });
 
-  it("onBack ボタン (もし存在すれば)", async () => {
+  it("onBack button (if present)", async () => {
     const onBack = vi.fn();
     await act(async () => { render(<ResultsView onBack={onBack} />); });
     const back = screen.queryByText(/前へ|戻る/);
@@ -60,7 +60,7 @@ describe("ResultsView", () => {
     }
   });
 
-  it("結果が null のとき", () => {
+  it("when the result is null", () => {
     useSimulationStore.setState({ result: null });
     expect(() => render(<ResultsView onBack={() => {}} />)).not.toThrow();
   });

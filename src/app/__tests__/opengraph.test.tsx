@@ -21,13 +21,13 @@ vi.mock("next/og", () => ({
 import Image, { alt, size, contentType } from "../opengraph-image";
 
 describe("opengraph-image", () => {
-  it("メタデータが期待値", () => {
+  it("exports the expected metadata", () => {
     expect(alt).toContain("ライフプラン");
     expect(size).toEqual({ width: 1200, height: 630 });
     expect(contentType).toBe("image/png");
   });
 
-  it("Image() が ImageResponse を返す", () => {
+  it("Image() returns an ImageResponse", () => {
     const result = Image() as unknown as { element: React.ReactNode };
     expect(result).toBeTruthy();
     expect(result.element).toBeTruthy();

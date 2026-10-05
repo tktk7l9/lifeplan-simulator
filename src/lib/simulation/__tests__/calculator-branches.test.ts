@@ -80,7 +80,7 @@ function baseInput(overrides: Partial<SimulationInput> = {}): SimulationInput {
  * Units are 10k yen/year. Values are measured from the implementation as of 2026-09-12. When the tax rules are changed on purpose,
  * update these deliberately (the diff appearing is itself the confirmation that the change "took effect").
  */
-describe("calcNetIncome: 雇用形態と所得帯ごとの手取り（現状ロック）", () => {
+describe("calcNetIncome: take-home pay by employment type and income band (current behavior lock)", () => {
   it.each<[string, number, string, number, number]>([
     ["公務員",                 600, "civil_servant",      30, 461.8620],
     ["会社員兼フリーランス",   600, "employee_freelance", 30, 461.8620],
@@ -103,14 +103,14 @@ describe("calcNetIncome: 雇用形態と所得帯ごとの手取り（現状ロ�
     expect(calcNetIncome(gross, type, age)).toBeCloseTo(expected, 3);
   });
 
-  it("additionalDeductions が大きいと手取りが増える（基礎控除以下の境界）", () => {
+  it("large additionalDeductions raise take-home pay (boundary below the basic deduction)", () => {
     const no = calcNetIncome(600, "employee", 30, 0, 0);
     const yes = calcNetIncome(600, "employee", 30, 0, 100);
     expect(yes).toBeGreaterThan(no);
   });
 });
 
-describe("calcFreelanceOfficerNetIncome: 事業収入＋役員報酬（現状ロック）", () => {
+describe("calcFreelanceOfficerNetIncome: business income + officer compensation (役員報酬) (current behavior lock)", () => {
   it.each<[string, number, number, number, number]>([
     ["役員報酬のみ（事業0）",      0, 500, 35, 389.5597],
     // Employment income deduction boundaries on the officer compensation side
@@ -130,15 +130,15 @@ describe("calcFreelanceOfficerNetIncome: 事業収入＋役員報酬（現状ロ
     expect(calcFreelanceOfficerNetIncome(business, officer, age)).toBeCloseTo(expected, 3);
   });
 
-  it("40歳以上の社保料増加分が手取りに反映される", () => {
+  it("the higher social insurance premium from age 40 is reflected in take-home pay", () => {
     const under = calcFreelanceOfficerNetIncome(300, 400, 39);
     const over  = calcFreelanceOfficerNetIncome(300, 400, 40);
     expect(over).toBeLessThan(under);
   });
 });
 
-describe("runSimulation: 住居タイプ分岐", () => {
-  it("housingType=own: 維持費＋固定資産税のみ", () => {
+describe("runSimulation: housing type branches", () => {
+  it("housingType=own: only maintenance + fixed asset tax (固定資産税)", () => {
     const r = runSimulation(baseInput({ housingType: "own", propertyPrice: 4000, monthlyRent: 0 }));
     const y = r.yearlyData[0];
     // upkeep 300k + fixed asset tax (4000 * 0.008 = 320k) = 620k
@@ -146,7 +146,7 @@ describe("runSimulation: 住居タイプ分岐", () => {
     expect(y.propertyValue).toBe(4000);
   });
 
-  it("housingType=buy で purchaseAge 前は家賃ゼロ・購入後はローン", () => {
+  it("housingType=buy: no rent before purchaseAge, mortgage after purchase", () => {
     const r = runSimulation(
       baseInput({
         currentSavings: 2000,
@@ -165,7 +165,7 @@ describe("runSimulation: 住居タイプ分岐", () => {
     expect(after.housingCost).toBeCloseTo(167.0886, 4);
   });
 
-  it("housingType=buy: ローン完済後は維持費30万+固定資産税のみ", () => {
+  it("housingType=buy: after the mortgage is paid off, only 30万 maintenance + fixed asset tax", () => {
     const r = runSimulation(
       baseInput({
         currentSavings: 3000,
@@ -183,7 +183,7 @@ describe("runSimulation: 住居タイプ分岐", () => {
     expect(after.housingCost).toBeCloseTo(30 + 4000 * 0.008, 0);
   });
 
-  it("住宅ローン控除は購入年から13年で打ち切り", () => {
+  it("housing loan deduction stops 13 years after the purchase year", () => {
     // Comparing income while the credit applies vs. after it ends is hard, so
     // ensure that within 13 years housingLoanCredit is added to income (not negative)
     const r = runSimulation(
@@ -203,7 +203,7 @@ describe("runSimulation: 住居タイプ分岐", () => {
     expect(at40.income).toBeCloseTo(591.111, 4);
   });
 
-  it("0% mortgageRate も計算可能", () => {
+  it("works with a 0% mortgageRate", () => {
     const r = runSimulation(
       baseInput({
         currentSavings: 2000,
@@ -220,7 +220,7 @@ describe("runSimulation: 住居タイプ分岐", () => {
   });
 });
 
-describe("runSimulation: 子どもの教育費分岐", () => {
+describe("runSimulation: children's education cost branches", () => {
   const child = (overrides: Partial<ChildInfo> = {}): ChildInfo => ({
     id: "c",
     birthAge: 30,
@@ -228,18 +228,18 @@ describe("runSimulation: 子どもの教育費分岐", () => {
     ...overrides,
   });
 
-  it("public 全期間 (幼稚園〜大学)", () => {
+  it("public for every stage (kindergarten to university)", () => {
     const r = runSimulation(baseInput({ children: [child({ educationPath: "public" })] }));
     expect(r.yearlyData.some((y) => y.educationCost > 0)).toBe(true);
   });
 
-  it("private 全期間", () => {
+  it("private for every stage", () => {
     const r = runSimulation(baseInput({ children: [child({ educationPath: "private" })] }));
     const total = r.yearlyData.reduce((s, y) => s + y.educationCost, 0);
     expect(total).toBe(2626);
   });
 
-  it("mix: public と private の中間値", () => {
+  it("mix: between public and private", () => {
     const pubR = runSimulation(baseInput({ children: [child({ educationPath: "public" })] }));
     const privR = runSimulation(baseInput({ children: [child({ educationPath: "private" })] }));
     const mixR = runSimulation(baseInput({ children: [child({ educationPath: "mix" })] }));
@@ -250,7 +250,7 @@ describe("runSimulation: 子どもの教育費分岐", () => {
     expect(mix).toBeLessThan(priv);
   });
 
-  it("16-18歳・19-22歳の扶養控除が適用される（手取りに反映）", () => {
+  it("dependent deductions for ages 16-18 and 19-22 apply (reflected in take-home pay)", () => {
     const withTeen = runSimulation(
       baseInput({
         age: 46, // child is 16
@@ -270,15 +270,15 @@ describe("runSimulation: 子どもの教育費分岐", () => {
   });
 });
 
-describe("runSimulation: 配偶者の各パターン", () => {
-  it("homemaker: 退職後は基礎年金（第3号被保険者）", () => {
+describe("runSimulation: spouse patterns", () => {
+  it("homemaker: basic pension after retirement (category 3 insured, 第3号被保険者)", () => {
     const r = runSimulation(
       baseInput({ hasSpouse: true, spouseAge: 30, spouseEmploymentType: "homemaker" })
     );
     expect(r.spousePensionMonthly).toBeCloseTo(6.8, 4);
   });
 
-  it("会社員配偶者: 退職後に厚生年金", () => {
+  it("employee spouse: employees' pension after retirement", () => {
     const r = runSimulation(
       baseInput({
         hasSpouse: true,
@@ -291,7 +291,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
     expect(r.spousePensionMonthly).toBeCloseTo(12.7114, 4);
   });
 
-  it("会社員配偶者(本人 gender=female ケース): 性別三項分岐の他方", () => {
+  it("employee spouse (self gender=female): the other side of the gender ternary", () => {
     const r = runSimulation(
       baseInput({
         gender: "female",
@@ -304,14 +304,14 @@ describe("runSimulation: 配偶者の各パターン", () => {
     expect(r.spousePensionMonthly).toBeCloseTo(11.6391, 4);
   });
 
-  it("retirementAge が age より前 → retirementData undefined で fallback 0", () => {
+  it("retirementAge before age → retirementData undefined falls back to 0", () => {
     // With age=70 and retirementAge=65, yearlyData starts at 70, so
     // there is no entry with age===65 → retirementAssets falls back to 0
     const r = runSimulation(baseInput({ age: 70, retirementAge: 65 }));
     expect(r.retirementAssets).toBe(0);
   });
 
-  it("育休/キャリアブレーク期間中の収入も計上される", () => {
+  it("income during parental leave / career break is counted", () => {
     const r = runSimulation(
       baseInput({
         hasSpouse: true,
@@ -327,7 +327,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
     expect(inBreak.spouseIncome).toBeCloseTo(113.34895, 5);
   });
 
-  it("キャリアブレーク中・収入ゼロでもエラーにならない", () => {
+  it("no error during a career break with zero income", () => {
     const r = runSimulation(
       baseInput({
         hasSpouse: true,
@@ -348,7 +348,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
   // is exactly what we want to assert. These used to be separate its, whose names
   // said "the other side of the ternary" while nobody checked that the values were equal.
   it.each(["female", "male"] as const)(
-    "配偶者が生涯現役 (退職年齢>100): 本人 gender=%s でも配偶者年金は同値",
+    "spouse works for life (retirement age > 100): spouse pension is the same with self gender=%s",
     (gender) => {
       const r = runSimulation(
         baseInput({
@@ -364,7 +364,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
     }
   );
 
-  it("配偶者退職年齢の独立設定", () => {
+  it("spouse retirement age is set independently", () => {
     const r = runSimulation(
       baseInput({
         hasSpouse: true,
@@ -378,7 +378,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
     expect(r.spousePensionMonthly).toBeCloseTo(10.581, 4);
   });
 
-  it("配偶者控除: 専業主婦・70歳以上は老人配偶者控除（48万）", () => {
+  it("spouse deduction: homemaker aged 70+ gets the elderly spouse deduction (48万)", () => {
     const r = runSimulation(
       baseInput({
         age: 38, // the spouse does not start at 70, but this is the line where the deduction applies with hasSpouse before the user's pension
@@ -391,7 +391,7 @@ describe("runSimulation: 配偶者の各パターン", () => {
     expect(r.yearlyData[0].income).toBeCloseTo(543.0568, 4);
   });
 
-  it("配偶者の所得 ≤103万円も配偶者控除対象", () => {
+  it("a spouse with income ≤103万円 also qualifies for the spouse deduction", () => {
     const r = runSimulation(
       baseInput({
         annualIncome: 700,
@@ -405,8 +405,8 @@ describe("runSimulation: 配偶者の各パターン", () => {
   });
 });
 
-describe("runSimulation: 投資 / NISA / iDeCo / 企業DC / 小規模企業共済", () => {
-  it("iDeCo月額・小規模企業共済・企業DC を全部入れても破綻しない", () => {
+describe("runSimulation: investment / NISA / iDeCo / corporate DC / Small Business Mutual Aid (小規模企業共済)", () => {
+  it("does not break with iDeCo, Small Business Mutual Aid and corporate DC all set", () => {
     const r = runSimulation(
       baseInput({
         employmentType: "self_employed",
@@ -418,12 +418,12 @@ describe("runSimulation: 投資 / NISA / iDeCo / 企業DC / 小規模企業共�
     );
     expect(r.yearlyData).toHaveLength(71);
   });
-  it("企業型DC 残高は投資資産に加算される", () => {
+  it("corporate DC balance is added to investment assets", () => {
     const a = runSimulation(baseInput({ corporateDCBalance: 0 }));
     const b = runSimulation(baseInput({ corporateDCBalance: 500 }));
     expect(b.yearlyData[0].investmentAssets).toBeGreaterThan(a.yearlyData[0].investmentAssets);
   });
-  it("企業年金（DB）月額が退職後の income を増やす", () => {
+  it("monthly corporate pension (DB) increases post-retirement income", () => {
     const a = runSimulation(baseInput({ corporatePensionMonthly: 0 }));
     const b = runSimulation(baseInput({ corporatePensionMonthly: 5 }));
     const aRet = a.yearlyData.find((d) => d.age === 66)!;
@@ -432,30 +432,30 @@ describe("runSimulation: 投資 / NISA / iDeCo / 企業DC / 小規模企業共�
   });
 });
 
-describe("runSimulation: 老後の介護・医療・保険・退職金・副業", () => {
-  it("medicalCostMonthlyAt70: 70歳から発生", () => {
+describe("runSimulation: old-age care, medical, insurance, retirement allowance and side income", () => {
+  it("medicalCostMonthlyAt70: starts at 70", () => {
     const r = runSimulation(baseInput({ medicalCostMonthlyAt70: 2 }));
     expect(r.yearlyData.find((d) => d.age === 69)!.medicalCost).toBe(0);
     expect(r.yearlyData.find((d) => d.age === 70)!.medicalCost).toBe(24);
   });
-  it("介護費用は nursingCareStartAge から発生", () => {
+  it("nursing care costs start at nursingCareStartAge", () => {
     const r = runSimulation(baseInput({ nursingCareStartAge: 80, nursingCareCostMonthly: 8 }));
     expect(r.yearlyData.find((d) => d.age === 79)!.medicalCost).toBe(0);
     expect(r.yearlyData.find((d) => d.age === 80)!.medicalCost).toBe(96);
   });
-  it("生命保険料は退職前にのみ計上", () => {
+  it("life insurance premiums are counted only before retirement", () => {
     const r = runSimulation(baseInput({ lifeInsurancePremiumMonthly: 2 }));
     // before retirement < after retirement (difference from the premiums)
     const before = r.yearlyData.find((d) => d.age === 64)!.totalExpense;
     // Comparing a single year is rough, but it should be larger by the premiums
     expect(before).toBeCloseTo(720.7785, 4);
   });
-  it("退職金は退職年に貯蓄へ加算される", () => {
+  it("retirement allowance is added to savings in the retirement year", () => {
     const a = runSimulation(baseInput({ retirementAllowance: 0 }));
     const b = runSimulation(baseInput({ retirementAllowance: 2000 }));
     expect(b.retirementAssets).toBeGreaterThan(a.retirementAssets);
   });
-  it("退職金: 勤務20年以下と20年超で控除式が違う（どちらも計算できる）", () => {
+  it("retirement allowance: deduction formula differs for ≤20 and >20 years of service (both compute)", () => {
     // 30→45: 15 years of service (≤20)
     const short = runSimulation(
       baseInput({ age: 30, retirementAge: 45, retirementAllowance: 1500 })
@@ -464,11 +464,11 @@ describe("runSimulation: 老後の介護・医療・保険・退職金・副業"
     const long = runSimulation(baseInput({ retirementAge: 65, retirementAllowance: 1500 }));
     expect(short.retirementAssets).not.toBe(long.retirementAssets);
   });
-  it("退職金が極大 (1億円超): 4000万超の45%帯", () => {
+  it("very large retirement allowance (over 1億円): the 45% bracket above 4000万", () => {
     const r = runSimulation(baseInput({ retirementAllowance: 12000 }));
     expect(r.retirementAssets).toBeCloseTo(6098.3766, 4);
   });
-  it("postRetirementIncomeMonthly: 退職後の就労収入", () => {
+  it("postRetirementIncomeMonthly: post-retirement work income", () => {
     const a = runSimulation(baseInput({ postRetirementIncomeMonthly: 0 }));
     const b = runSimulation(
       baseInput({ postRetirementIncomeMonthly: 10, postRetirementIncomeUntilAge: 70 })
@@ -477,15 +477,15 @@ describe("runSimulation: 老後の介護・医療・保険・退職金・副業"
     const at66a = a.yearlyData.find((d) => d.age === 66)!;
     expect(at66.income).toBeGreaterThan(at66a.income);
   });
-  it("sideIncomeMonthly: 副業収入", () => {
+  it("sideIncomeMonthly: side income", () => {
     const a = runSimulation(baseInput({ sideIncomeMonthly: 0 }));
     const b = runSimulation(baseInput({ sideIncomeMonthly: 5 }));
     expect(b.yearlyData[0].income).toBeGreaterThan(a.yearlyData[0].income);
   });
 });
 
-describe("runSimulation: フリーランス兼役員パス", () => {
-  it("freelance + officerAnnualIncome > 0 で経路スイッチ", () => {
+describe("runSimulation: freelance + company officer path", () => {
+  it("freelance + officerAnnualIncome > 0 switches the path", () => {
     const r = runSimulation(
       baseInput({
         employmentType: "freelance",
@@ -497,7 +497,7 @@ describe("runSimulation: フリーランス兼役員パス", () => {
     expect(r.yearlyData[0].income).toBeCloseTo(562.0859, 4);
     expect(r.pensionMonthly).toBeCloseTo(15.082, 4);
   });
-  it("self_employed + officerAnnualIncome でも同経路", () => {
+  it("self_employed + officerAnnualIncome takes the same path", () => {
     const r = runSimulation(
       baseInput({
         employmentType: "self_employed",
@@ -509,8 +509,8 @@ describe("runSimulation: フリーランス兼役員パス", () => {
   });
 });
 
-describe("runSimulation: ライフイベント", () => {
-  it("lifeEvents: 該当年に費用計上", () => {
+describe("runSimulation: life events", () => {
+  it("lifeEvents: cost is counted in the matching year", () => {
     const events: LifeEvent[] = [
       { id: "1", type: "wedding", age: 32, cost: 300, label: "結婚" },
       { id: "2", type: "car", age: 40, cost: 250, label: "車購入" },
@@ -523,8 +523,8 @@ describe("runSimulation: ライフイベント", () => {
   });
 });
 
-describe("runSimulation: 診断 notes 各分岐", () => {
-  it("退職時点で資産マイナス → 注意note", () => {
+describe("runSimulation: each diagnostic notes branch", () => {
+  it("negative assets at retirement → caution note", () => {
     const r = runSimulation(
       baseInput({
         currentSavings: 0,
@@ -535,26 +535,26 @@ describe("runSimulation: 診断 notes 各分岐", () => {
     expect(r.notes.some((n) => n.includes("退職時点で資産がマイナス"))).toBe(true);
   });
 
-  it("最終 finalAssets マイナス → 100歳資産枯渇note", () => {
+  it("negative finalAssets → assets-depleted-by-100 note", () => {
     const r = runSimulation(
       baseInput({ currentSavings: 0, annualIncome: 200, monthlyLivingExpense: 50 })
     );
     expect(r.notes.some((n) => n.includes("100歳時点で資産が枯渇"))).toBe(true);
   });
 
-  it("世帯年金が15万円未満 → 注意note", () => {
+  it("household pension under 15万円 → caution note", () => {
     const r = runSimulation(
       baseInput({ employmentType: "part_time", annualIncome: 100 })
     );
     expect(r.notes.some((n) => n.includes("世帯年金"))).toBe(true);
   });
 
-  it("投資ゼロ → NISA勧めnote", () => {
+  it("no investment → note recommending NISA", () => {
     const r = runSimulation(baseInput());
     expect(r.notes.some((n) => n.includes("投資を行っていません"))).toBe(true);
   });
 
-  it("購入モード → 固定資産税note", () => {
+  it("buy mode → fixed asset tax note", () => {
     const r = runSimulation(
       baseInput({
         currentSavings: 2000,
@@ -570,12 +570,12 @@ describe("runSimulation: 診断 notes 各分岐", () => {
     expect(r.notes.some((n) => n.includes("固定資産税"))).toBe(true);
   });
 
-  it("inflation >= 2.5% → 高インフレ警告note", () => {
+  it("inflation >= 2.5% → high-inflation warning note", () => {
     const r = runSimulation(baseInput({ inflationRate: 3 }));
     expect(r.notes.some((n) => n.includes("物価上昇率"))).toBe(true);
   });
 
-  it("100歳資産が退職時の5倍超 → リターン過大警告note", () => {
+  it("assets at 100 over 5× those at retirement → excessive-return warning note", () => {
     const r = runSimulation(
       baseInput({
         currentSavings: 1000,
@@ -594,8 +594,8 @@ describe("runSimulation: 診断 notes 各分岐", () => {
   });
 });
 
-describe("runSimulation: NISA 課税口座フォールバック", () => {
-  it("NISA 拠出が枠1800万を超えるケースで AFTER_TAX_RATE が効く", () => {
+describe("runSimulation: NISA taxable-account fallback", () => {
+  it("AFTER_TAX_RATE applies when NISA contributions exceed the 1800万 cap", () => {
     // 200k yen/month × 12 × 10 years = 24M yen, exceeding the cap
     const r = runSimulation(
       baseInput({
@@ -610,8 +610,8 @@ describe("runSimulation: NISA 課税口座フォールバック", () => {
   });
 });
 
-describe("runSimulation: 高齢期支出係数の段階", () => {
-  it("70/75/80歳で生活費が段階的に低下", () => {
+describe("runSimulation: old-age spending factor steps", () => {
+  it("living costs step down at 70/75/80", () => {
     const r = runSimulation(baseInput({ monthlyLivingExpense: 30 }));
     const at69 = r.yearlyData.find((d) => d.age === 69)!.livingExpense;
     const at70 = r.yearlyData.find((d) => d.age === 70)!.livingExpense;

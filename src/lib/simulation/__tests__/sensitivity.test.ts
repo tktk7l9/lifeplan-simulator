@@ -61,7 +61,7 @@ function baseInput(overrides: Partial<SimulationInput> = {}): SimulationInput {
 }
 
 describe("runSensitivityAnalysis", () => {
-  it("6つのパラメータすべての結果が返る", () => {
+  it("returns results for all 6 parameters", () => {
     const r = runSensitivityAnalysis(baseInput());
     const params = r.map((d) => d.parameter);
     expect(params).toContain("annualIncome");
@@ -72,13 +72,13 @@ describe("runSensitivityAnalysis", () => {
     expect(params).toContain("postRetirementIncome");
   });
 
-  it("各点で base は同一値、low <= base or low != high", () => {
+  it("base is the same at every point, and low <= base or low != high", () => {
     const r = runSensitivityAnalysis(baseInput());
     const base = r[0].base;
     for (const dp of r) expect(dp.base).toBe(base);
   });
 
-  it("インパクト順 (high-low) で降順ソートされる", () => {
+  it("sorted descending by impact (high-low)", () => {
     const r = runSensitivityAnalysis(baseInput());
     for (let i = 1; i < r.length; i++) {
       const prev = r[i - 1].high - r[i - 1].low;
@@ -87,7 +87,7 @@ describe("runSensitivityAnalysis", () => {
     }
   });
 
-  it("inflationRate が undefined でも fallback (1.5%) で動く", () => {
+  it("works with the fallback (1.5%) when inflationRate is undefined", () => {
     const input = baseInput();
     // @ts-expect-error deliberately deleted to hit the fallback branch
     delete input.inflationRate;
@@ -95,7 +95,7 @@ describe("runSensitivityAnalysis", () => {
     expect(r.find((d) => d.parameter === "inflationRate")).toBeDefined();
   });
 
-  it("postRetirementIncomeMonthly が undefined でも fallback 0", () => {
+  it("falls back to 0 when postRetirementIncomeMonthly is undefined", () => {
     const input = baseInput();
     // @ts-expect-error deliberately deleted to hit the fallback branch
     delete input.postRetirementIncomeMonthly;
@@ -103,7 +103,7 @@ describe("runSensitivityAnalysis", () => {
     expect(r.find((d) => d.parameter === "postRetirementIncome")).toBeDefined();
   });
 
-  it("investmentReturnRate が 1% でも Math.max(0,...) で 0 にクランプされる", () => {
+  it("clamped to 0 by Math.max(0,...) even when investmentReturnRate is 1%", () => {
     const r = runSensitivityAnalysis(baseInput({ investmentReturnRate: 1 }));
     const ret = r.find((d) => d.parameter === "investmentReturnRate")!;
     expect(ret).toBeDefined();

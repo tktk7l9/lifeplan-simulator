@@ -169,22 +169,22 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("HeroCanvas init() 経路", () => {
-  it("mount → setTimeout(200) で init() が renderer の canvas を差す", () => {
+describe("HeroCanvas init() path", () => {
+  it("after mount, setTimeout(200) runs init() and inserts the renderer canvas", () => {
     const { container } = render(<HeroCanvas />);
     act(() => { vi.advanceTimersByTime(300); });
     // The wrapper div exists before init, so judge init success by the canvas that gets appended via appendChild.
     expect(container.querySelector("canvas")).toBeTruthy();
   });
 
-  it("unmount でクリーンアップ（dispose 経路が投げない）", () => {
+  it("cleans up on unmount (the dispose path does not throw)", () => {
     const { unmount } = render(<HeroCanvas />);
     act(() => { vi.advanceTimersByTime(300); });
     expect(() => unmount()).not.toThrow();
   });
 });
 
-describe("FloatingParticles init() 経路", () => {
+describe("FloatingParticles init() path", () => {
   it.each<[string, { count?: number; opacity?: number }]>([
     ["既定 props", {}],
     ["count=30 opacity=0.3", { count: 30, opacity: 0.3 }],
@@ -195,7 +195,7 @@ describe("FloatingParticles init() 経路", () => {
     expect(container.querySelector("canvas")).toBeTruthy();
   });
 
-  it("unmount でクリーンアップ（dispose 経路が投げない）", () => {
+  it("cleans up on unmount (the dispose path does not throw)", () => {
     const { unmount } = render(<FloatingParticles />);
     act(() => { vi.advanceTimersByTime(500); });
     expect(() => unmount()).not.toThrow();
@@ -203,7 +203,7 @@ describe("FloatingParticles init() 経路", () => {
 });
 
 describe("SidebarMountain3D", () => {
-  it("mount + advance で init が canvas を差す", () => {
+  it("after mount and advancing timers, init inserts the canvas", () => {
     const { container } = render(<SidebarMountain3D />);
     act(() => { vi.advanceTimersByTime(500); });
     expect(container.querySelector("canvas")).toBeTruthy();

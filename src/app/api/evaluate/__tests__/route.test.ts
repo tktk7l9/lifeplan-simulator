@@ -51,7 +51,7 @@ beforeEach(async () => {
 });
 
 describe("POST /api/evaluate", () => {
-  it("有効な入力で AIEvaluation を返す", async () => {
+  it("returns an AIEvaluation for valid input", async () => {
     create.mockResolvedValueOnce({
       content: [{
         type: "text",
@@ -70,17 +70,17 @@ describe("POST /api/evaluate", () => {
     expect(data.score).toBe(75);
   });
 
-  it("不正な input は 400", async () => {
+  it("returns 400 for an invalid input", async () => {
     const res = await POST(makeRequest({ input: { age: "abc" }, result: validResult }, { "x-forwarded-for": "1.1.1.2" }));
     expect(res.status).toBe(400);
   });
 
-  it("不正な result は 400", async () => {
+  it("returns 400 for an invalid result", async () => {
     const res = await POST(makeRequest({ input: validInput, result: { pensionMonthly: "abc" } }, { "x-forwarded-for": "1.1.1.3" }));
     expect(res.status).toBe(400);
   });
 
-  it("AI 応答が非 JSON だと 500", async () => {
+  it("returns 500 when the AI response is not JSON", async () => {
     create.mockResolvedValueOnce({
       content: [{ type: "text", text: "JSON 抽出できません" }],
     });
@@ -88,7 +88,7 @@ describe("POST /api/evaluate", () => {
     expect(res.status).toBe(500);
   });
 
-  it("AI 応答が AIEvaluation スキーマと不一致 → 500", async () => {
+  it("returns 500 when the AI response does not match the AIEvaluation schema", async () => {
     create.mockResolvedValueOnce({
       content: [{ type: "text", text: JSON.stringify({ score: 200, rank: "Z" }) }],
     });
@@ -96,7 +96,7 @@ describe("POST /api/evaluate", () => {
     expect(res.status).toBe(500);
   });
 
-  it("rank が不正値でも score から再計算", async () => {
+  it("recomputes the rank from the score when the rank is invalid", async () => {
     // The Zod schema has an enum constraint on rank, so an invalid rank is rejected by validation
     // Only test the case that returns a valid rank and score
     create.mockResolvedValueOnce({
@@ -116,7 +116,7 @@ describe("POST /api/evaluate", () => {
     expect(data.rank).toBe("S");
   });
 
-  it("Anthropic SDK が throw → 500", async () => {
+  it("returns 500 when the Anthropic SDK throws", async () => {
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     create.mockRejectedValueOnce(new Error("API down"));
     const res = await POST(makeRequest({ input: validInput, result: validResult }, { "x-forwarded-for": "1.1.1.7" }));
@@ -124,7 +124,7 @@ describe("POST /api/evaluate", () => {
     errSpy.mockRestore();
   });
 
-  it("レート制限: 5回 OK、6回目は 429", async () => {
+  it("rate limit: 5 requests pass, the 6th gets 429", async () => {
     for (let i = 0; i < 5; i++) {
       create.mockResolvedValueOnce({
         content: [{
@@ -142,7 +142,7 @@ describe("POST /api/evaluate", () => {
     expect(sixth.status).toBe(429);
   });
 
-  it("x-real-ip もレート制限キーとして使われる", async () => {
+  it("also uses x-real-ip as the rate-limit key", async () => {
     create.mockResolvedValueOnce({
       content: [{ type: "text", text: JSON.stringify({
         score: 70, rank: "B", summary: "x", strengths: ["a"], improvements: ["b"], conclusion: "c",
@@ -152,7 +152,7 @@ describe("POST /api/evaluate", () => {
     expect(res.status).toBe(200);
   });
 
-  it("住宅 buy / hasSpouse / 子あり / lifeEvents 多数 でも prompt 構築できる", async () => {
+  it("builds the prompt with housing buy / hasSpouse / children / many lifeEvents", async () => {
     create.mockResolvedValueOnce({
       content: [{ type: "text", text: JSON.stringify({
         score: 60, rank: "C", summary: "ok", strengths: ["a"], improvements: ["b"], conclusion: "c",
@@ -182,7 +182,7 @@ describe("POST /api/evaluate", () => {
     expect(res.status).toBe(200);
   });
 
-  it("housingType=rent の prompt 分岐", async () => {
+  it("covers the housingType=rent prompt branch", async () => {
     create.mockResolvedValueOnce({
       content: [{ type: "text", text: JSON.stringify({
         score: 60, rank: "C", summary: "ok", strengths: ["a"], improvements: ["b"], conclusion: "c",

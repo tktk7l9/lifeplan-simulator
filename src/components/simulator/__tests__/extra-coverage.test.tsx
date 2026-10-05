@@ -37,7 +37,7 @@ beforeEach(() => {
 });
 
 describe("Input ui", () => {
-  it("type=number で onFocus が select() を呼ぶ", () => {
+  it("type=number: onFocus calls select()", () => {
     const onFocus = vi.fn();
     render(<Input type="number" defaultValue="42" onFocus={onFocus} />);
     const el = screen.getByDisplayValue("42") as HTMLInputElement;
@@ -47,7 +47,7 @@ describe("Input ui", () => {
     expect(onFocus).toHaveBeenCalled();
   });
 
-  it("type=number で onWheel が blur() を呼ぶ", () => {
+  it("type=number: onWheel calls blur()", () => {
     const onWheel = vi.fn();
     render(<Input type="number" defaultValue="3" onWheel={onWheel} />);
     const el = screen.getByDisplayValue("3") as HTMLInputElement;
@@ -58,7 +58,7 @@ describe("Input ui", () => {
     expect(onWheel).toHaveBeenCalled();
   });
 
-  it("type=text では focus/wheel は副作用なし", () => {
+  it("type=text: focus/wheel have no side effects", () => {
     render(<Input type="text" defaultValue="hi" />);
     const el = screen.getByDisplayValue("hi") as HTMLInputElement;
     expect(() => {
@@ -89,20 +89,20 @@ describe("SavedSimulationsDrawer interactions", () => {
     };
   }
 
-  it("ボタンクリックでドロワーが開く", async () => {
+  it("clicking the button opens the drawer", async () => {
     render(<SavedSimulationsDrawer />);
     const btn = screen.getAllByRole("button")[0];
     await act(async () => { fireEvent.click(btn); });
     expect(screen.getAllByText(/保存済みシミュレーション/).length).toBeGreaterThan(0);
   });
 
-  it("ゼロ件メッセージ", async () => {
+  it("empty-state message", async () => {
     render(<SavedSimulationsDrawer />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
     expect(screen.getAllByText(/保存済みのシミュレーションがありません/).length).toBeGreaterThan(0);
   });
 
-  it("保存ありで件数表示・safe", async () => {
+  it("with saved items: shows the count and safe status", async () => {
     useSimulationStore.setState({
       savedSimulations: [makeSim("a"), makeSim("b", { isSafe: false })],
     });
@@ -113,7 +113,7 @@ describe("SavedSimulationsDrawer interactions", () => {
     expect(screen.getAllByText(/読み込む/).length).toBe(2);
   });
 
-  it("retirementAssets < 0 で要注意 + 赤いバッジ", async () => {
+  it("retirementAssets < 0 shows 要注意 (caution) with a red badge", async () => {
     useSimulationStore.setState({
       savedSimulations: [makeSim("c", { retirementAssets: -1000, isSafe: false })],
     });
@@ -122,7 +122,7 @@ describe("SavedSimulationsDrawer interactions", () => {
     expect(screen.getAllByText(/要注意/).length).toBeGreaterThan(0);
   });
 
-  it("読み込むボタンで保存済みシミュレーションがストアへ反映される", async () => {
+  it("the load button applies the saved simulation to the store", async () => {
     useSimulationStore.setState({
       savedSimulations: [makeSim("d")],
       result: null,
@@ -137,7 +137,7 @@ describe("SavedSimulationsDrawer interactions", () => {
     expect(s.currentStep).toBe(7);
   });
 
-  it("削除ボタンで即削除され、ダイアログ内の「元に戻す」で復元 (SHIG 57, 54)", async () => {
+  it("the delete button removes immediately and 元に戻す (undo) in the dialog restores it (SHIG 57, 54)", async () => {
     useSimulationStore.setState({
       savedSimulations: [makeSim("e")],
     });
@@ -149,7 +149,7 @@ describe("SavedSimulationsDrawer interactions", () => {
     expect(useSimulationStore.getState().savedSimulations.length).toBe(1);
   });
 
-  it("10件以上で 9+ バッジ", async () => {
+  it("shows a 9+ badge for 10 or more items", async () => {
     useSimulationStore.setState({
       savedSimulations: Array.from({ length: 12 }, (_, i) => makeSim(`x${i}`)),
     });
@@ -159,7 +159,7 @@ describe("SavedSimulationsDrawer interactions", () => {
 });
 
 describe("SimulatorApp transitions", () => {
-  it("前へボタンで currentStep 減少", async () => {
+  it("the back button decrements currentStep", async () => {
     useSimulationStore.setState({ currentStep: 3 });
     await act(async () => { render(<SimulatorApp />); });
     const back = screen.getByText("前へ").closest("button") as HTMLButtonElement;
@@ -168,7 +168,7 @@ describe("SimulatorApp transitions", () => {
     expect(useSimulationStore.getState().currentStep).toBe(2);
   });
 
-  it("ステップ 6 → handleNext で calculate + setStep(7)", async () => {
+  it("step 6 → handleNext calls calculate + setStep(7)", async () => {
     useSimulationStore.setState({ currentStep: 6 });
     await act(async () => { render(<SimulatorApp />); });
     // Get the form submit button for each step
@@ -212,7 +212,7 @@ describe("AssetChart direct render", () => {
     } as unknown as YearlyData));
   }
 
-  it("smoke + retirement annotation 描画", () => {
+  it("smoke + renders the retirement annotation", () => {
     expect(() =>
       render(
         <AssetChart
@@ -230,7 +230,7 @@ describe("AssetChart direct render", () => {
     ).not.toThrow();
   });
 
-  it("負の資産でも描画 (hasNegative ブランチ)", () => {
+  it("renders with negative assets (hasNegative branch)", () => {
     const data = makeYearlyData();
     data[5].cumulativeAssets = -500;
     expect(() =>
@@ -238,7 +238,7 @@ describe("AssetChart direct render", () => {
     ).not.toThrow();
   });
 
-  it("annotations なしでも OK", () => {
+  it("works without annotations", () => {
     expect(() =>
       render(<AssetChart data={makeYearlyData()} retirementAge={65} />),
     ).not.toThrow();
@@ -274,7 +274,7 @@ describe("CashFlowChart direct render", () => {
 });
 
 describe("MonteCarloChart direct render", () => {
-  it("成功率高 → 緑バナー", () => {
+  it("high success rate → green banner", () => {
     const data: MonteCarloDataPoint[] = Array.from({ length: 60 }, (_, i) => ({
       age: 30 + i,
       p10: 1000, p25: 1500, p50: 2000, p75: 2500, p90: 3000,
@@ -284,7 +284,7 @@ describe("MonteCarloChart direct render", () => {
     ).not.toThrow();
   });
 
-  it("成功率中 → 黄バナー", () => {
+  it("medium success rate → yellow banner", () => {
     const data: MonteCarloDataPoint[] = Array.from({ length: 60 }, (_, i) => ({
       age: 30 + i,
       p10: 100, p25: 200, p50: 300, p75: 500, p90: 800,
@@ -294,7 +294,7 @@ describe("MonteCarloChart direct render", () => {
     ).not.toThrow();
   });
 
-  it("成功率低 → 赤バナー", () => {
+  it("low success rate → red banner", () => {
     const data: MonteCarloDataPoint[] = Array.from({ length: 60 }, (_, i) => ({
       age: 30 + i,
       p10: -200, p25: 0, p50: 100, p75: 200, p90: 400,
@@ -334,7 +334,7 @@ describe("ExpenseBreakdownChart direct render", () => {
 });
 
 describe("DataTable direct render", () => {
-  it("smoke + 表示切替", async () => {
+  it("smoke + view toggle", async () => {
     const data = Array.from({ length: 60 }, (_, i) => ({
       age: 30 + i,
       year: 2030 + i,

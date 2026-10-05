@@ -22,7 +22,7 @@ import { HeroCanvasWrapper } from "../three/HeroCanvasWrapper";
 
 const TINY_SPINNER_SHAPES = ["peak", "coin", "gem", "box", "ring"] as const;
 
-describe("マウントが投げない（描画内容は検証対象外）", () => {
+describe("mounting does not throw (rendered output is not verified)", () => {
   it.each<[string, () => React.ReactElement]>([
     ["LandingNav", () => <LandingNav />],
     ["BelowFoldContent", () => <BelowFoldContent />],
@@ -40,7 +40,7 @@ describe("マウントが投げない（描画内容は検証対象外）", () =
   });
 });
 
-describe("children を素通しする", () => {
+describe("passes children through", () => {
   it("LandingReveal", () => {
     const { getByText } = render(<LandingReveal><span>子</span></LandingReveal>);
     expect(getByText("子")).toBeTruthy();

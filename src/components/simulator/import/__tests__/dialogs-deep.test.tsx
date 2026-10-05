@@ -44,7 +44,7 @@ vi.mock("@/lib/import/nenkinCSV", async (importOriginal) => {
 beforeEach(() => {});
 
 describe("MoneyForwardImportDialog deep", () => {
-  it("drag over / drop でファイル投入", async () => {
+  it("accepts a file by drag over / drop", async () => {
     const onApply = vi.fn();
     render(<MoneyForwardImportDialog onApply={onApply} />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
@@ -63,7 +63,7 @@ describe("MoneyForwardImportDialog deep", () => {
     });
   });
 
-  it("ファイル投入後 → 「やり直す」 → ドロップゾーンに戻る", async () => {
+  it("after a file is added, 「やり直す」 returns to the drop zone", async () => {
     render(<MoneyForwardImportDialog onApply={() => {}} />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -81,7 +81,7 @@ describe("MoneyForwardImportDialog deep", () => {
     });
   });
 
-  it("「シミュレーターに反映する」で onApply 呼び出し", async () => {
+  it("「シミュレーターに反映する」 calls onApply", async () => {
     const onApply = vi.fn();
     render(<MoneyForwardImportDialog onApply={onApply} />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
@@ -98,7 +98,7 @@ describe("MoneyForwardImportDialog deep", () => {
     expect(onApply).toHaveBeenCalled();
   });
 
-  it("チェックボックス toggle で includeMap 更新", async () => {
+  it("toggling a checkbox updates includeMap", async () => {
     render(<MoneyForwardImportDialog onApply={() => {}} />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -116,7 +116,7 @@ describe("MoneyForwardImportDialog deep", () => {
     expect(checkboxes.length).toBeGreaterThan(0);
   });
 
-  it("readFileAsText 例外 → error 表示", async () => {
+  it("shows an error when readFileAsText throws", async () => {
     const mod = await import("@/lib/import/moneyforwardCSV");
     (mod.readFileAsText as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("読み込み失敗"));
     render(<MoneyForwardImportDialog onApply={() => {}} />);
@@ -133,7 +133,7 @@ describe("MoneyForwardImportDialog deep", () => {
 });
 
 describe("NenkinImportDialog deep", () => {
-  it("drop でファイル投入 → 結果表示", async () => {
+  it("dropping a file shows the result", async () => {
     render(<NenkinImportDialog onApply={() => {}} />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
     const dropzone = document.querySelector(".border-dashed") as HTMLElement;
@@ -148,7 +148,7 @@ describe("NenkinImportDialog deep", () => {
     });
   });
 
-  it("「やり直す」→ ドロップゾーン", async () => {
+  it("「やり直す」 returns to the drop zone", async () => {
     render(<NenkinImportDialog onApply={() => {}} />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -164,7 +164,7 @@ describe("NenkinImportDialog deep", () => {
     expect(document.querySelector(".border-dashed")).toBeTruthy();
   });
 
-  it("「シミュレーターに反映する」で onApply", async () => {
+  it("「シミュレーターに反映する」 calls onApply", async () => {
     const onApply = vi.fn();
     render(<NenkinImportDialog onApply={onApply} />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
@@ -181,7 +181,7 @@ describe("NenkinImportDialog deep", () => {
     expect(onApply).toHaveBeenCalled();
   });
 
-  it("readFileAsText 例外で error 表示", async () => {
+  it("shows an error when readFileAsText throws", async () => {
     const mod = await import("@/lib/import/nenkinCSV");
     (mod.readFileAsText as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("年金CSV読み込み失敗"));
     render(<NenkinImportDialog onApply={() => {}} />);

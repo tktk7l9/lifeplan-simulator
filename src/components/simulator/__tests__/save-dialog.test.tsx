@@ -34,7 +34,7 @@ afterEach(() => {
 });
 
 describe("SaveDialog full flow", () => {
-  it("「シミュレーションを保存」→ 名前入力 → 保存ボタンで saveSimulation 呼び出し", async () => {
+  it("「シミュレーションを保存」, enter a name, then the save button calls saveSimulation", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
     // SaveDialog trigger
@@ -53,7 +53,7 @@ describe("SaveDialog full flow", () => {
     await waitFor(() => expect(screen.queryByPlaceholderText(/楽観シナリオ/)).toBeNull());
   });
 
-  it("名前が空欄では保存ボタンが disabled", async () => {
+  it("disables the save button while the name is empty", async () => {
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
     const trigger = screen.getByText(/シミュレーションを保存/).closest("button")!;
     await act(async () => { fireEvent.click(trigger); });
@@ -61,7 +61,7 @@ describe("SaveDialog full flow", () => {
     expect(saveBtn.disabled).toBe(true);
   });
 
-  it("Enter キーで handleSave", async () => {
+  it("Enter calls handleSave", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
     const trigger = screen.getByText(/シミュレーションを保存/).closest("button")!;
@@ -86,7 +86,7 @@ describe("SaveDialog full flow", () => {
     expect(saveBtn.disabled).toBe(true);
   });
 
-  it("印刷 / PDFに保存ボタンクリックで window.print", async () => {
+  it("clicking the 印刷 / PDFに保存 button calls window.print", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const printSpy = vi.fn();
     Object.defineProperty(window, "print", { value: printSpy, writable: true, configurable: true });
@@ -97,7 +97,7 @@ describe("SaveDialog full flow", () => {
     expect(printSpy).toHaveBeenCalled();
   });
 
-  it("ESC キーでダイアログクローズ", async () => {
+  it("Escape closes the dialog", async () => {
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
     const trigger = screen.getByText(/シミュレーションを保存/).closest("button")!;
     await act(async () => { fireEvent.click(trigger); });
