@@ -81,9 +81,32 @@ const AIEvaluationSchema = z.object({
 const rateMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 5;
 const RATE_WINDOW_MS = 60_000;
+// Above this many tracked IPs, drop expired entries so the map cannot grow without bound.
+const RATE_MAP_PRUNE_AT = 1_000;
+
+/**
+ * Client IP for rate limiting. On Cloudflare Workers `cf-connecting-ip` is set by the edge and
+ * cannot be forged by the client, so it wins. `x-forwarded-for` / `x-real-ip` are client-controlled
+ * there and are only a fallback for other runtimes (local dev, tests).
+ */
+export function clientIp(headers: Headers): string {
+  return (
+    headers.get("cf-connecting-ip")?.trim() ||
+    headers.get("x-real-ip")?.trim() ||
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown"
+  );
+}
+
+function pruneExpired(now: number): void {
+  for (const [key, entry] of rateMap) {
+    if (now > entry.resetAt) rateMap.delete(key);
+  }
+}
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
+  if (rateMap.size >= RATE_MAP_PRUNE_AT) pruneExpired(now);
   const entry = rateMap.get(ip);
 
   if (!entry || now > entry.resetAt) {
@@ -160,10 +183,7 @@ ${input.housingType === "buy" ? `- 住宅購入価格: ${input.propertyPrice ?? 
 
 export async function POST(request: Request) {
   // Rate limiting
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
+  const ip = clientIp(request.headers);
 
   if (!checkRateLimit(ip)) {
     return Response.json(
