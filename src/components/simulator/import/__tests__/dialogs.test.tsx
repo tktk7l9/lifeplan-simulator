@@ -30,20 +30,20 @@ vi.mock("@/lib/import/nenkinCSV", async (importOriginal) => {
 });
 
 describe("MoneyForwardImportDialog", () => {
-  it("ボタンを表示", () => {
+  it("shows the button", () => {
     render(<MoneyForwardImportDialog onApply={() => {}} />);
     // Trigger button for CSV import
     expect(screen.getAllByRole("button").length).toBeGreaterThan(0);
   });
 
-  it("トリガーボタンクリックでダイアログが開く", async () => {
+  it("clicking the trigger button opens the dialog", async () => {
     render(<MoneyForwardImportDialog onApply={() => {}} />);
     const btn = screen.getAllByRole("button")[0];
     await act(async () => { fireEvent.click(btn); });
     expect(screen.getAllByText(/CSV|資産|読み込み|インポート|マネーフォワード/i).length).toBeGreaterThan(0);
   });
 
-  it("ファイル選択でパース実行", async () => {
+  it("selecting a file runs the parser", async () => {
     const onApply = vi.fn();
     render(<MoneyForwardImportDialog onApply={onApply} />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });
@@ -64,19 +64,19 @@ describe("MoneyForwardImportDialog", () => {
 });
 
 describe("NenkinImportDialog", () => {
-  it("ボタンを表示", () => {
+  it("shows the button", () => {
     render(<NenkinImportDialog onApply={() => {}} />);
     expect(screen.getAllByRole("button").length).toBeGreaterThan(0);
   });
 
-  it("トリガークリックでダイアログが開く", async () => {
+  it("clicking the trigger opens the dialog", async () => {
     render(<NenkinImportDialog onApply={() => {}} />);
     const btn = screen.getAllByRole("button")[0];
     await act(async () => { fireEvent.click(btn); });
     expect(screen.getAllByText(/年金|CSV|インポート/i).length).toBeGreaterThan(0);
   });
 
-  it("ファイル選択でパース実行", async () => {
+  it("selecting a file runs the parser", async () => {
     const onApply = vi.fn();
     render(<NenkinImportDialog onApply={onApply} />);
     await act(async () => { fireEvent.click(screen.getAllByRole("button")[0]); });

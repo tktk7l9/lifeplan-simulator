@@ -37,7 +37,7 @@ beforeEach(() => {
 });
 
 describe("ResultsView annotation branches", () => {
-  it("住宅購入 annotation", async () => {
+  it("home purchase annotation", async () => {
     const base = useSimulationStore.getInitialState().input;
     useSimulationStore.setState({
       input: {
@@ -52,7 +52,7 @@ describe("ResultsView annotation branches", () => {
     expect(screen.getAllByRole("tab").length).toBeGreaterThan(0);
   });
 
-  it("介護開始 annotation", async () => {
+  it("nursing care start annotation", async () => {
     const base = useSimulationStore.getInitialState().input;
     useSimulationStore.setState({
       input: {
@@ -66,7 +66,7 @@ describe("ResultsView annotation branches", () => {
     expect(screen.getAllByRole("tab").length).toBeGreaterThan(0);
   });
 
-  it("配偶者退職 annotation (本人と異なる年)", async () => {
+  it("spouse retirement annotation (different year from the user)", async () => {
     const base = useSimulationStore.getInitialState().input;
     useSimulationStore.setState({
       input: {
@@ -85,7 +85,7 @@ describe("ResultsView annotation branches", () => {
     expect(screen.getAllByRole("tab").length).toBeGreaterThan(0);
   });
 
-  it("子どもあり (大学入学・独立 annotation)", async () => {
+  it("with children (university entry and independence annotations)", async () => {
     const base = useSimulationStore.getInitialState().input;
     useSimulationStore.setState({
       input: {
@@ -102,18 +102,18 @@ describe("ResultsView annotation branches", () => {
     expect(screen.getAllByRole("tab").length).toBeGreaterThan(0);
   });
 
-  it("isCalculating 中の loading 表示", () => {
+  it("shows loading while isCalculating", () => {
     useSimulationStore.setState({ isCalculating: true });
     render(<ResultsView onBack={() => {}} />);
     expect(screen.getAllByText(/計算中/).length).toBeGreaterThan(0);
   });
 
-  it("result=null で no-result 表示", () => {
+  it("result=null shows the no-result view", () => {
     render(<ResultsView onBack={() => {}} />);
     expect(screen.getAllByText(/結果がありません|前のステップに戻る/).length).toBeGreaterThan(0);
   });
 
-  it("no-result 状態で「前のステップに戻る」ボタンクリックで onBack", () => {
+  it("no-result state: clicking 前のステップに戻る (back) calls onBack", () => {
     const onBack = vi.fn();
     render(<ResultsView onBack={onBack} />);
     const btn = screen.getByText(/前のステップに戻る/).closest("button")!;
@@ -121,7 +121,7 @@ describe("ResultsView annotation branches", () => {
     expect(onBack).toHaveBeenCalled();
   });
 
-  it("「前のステップへ戻る」ボタンクリックで onBack (結果あり)", async () => {
+  it("clicking 前のステップへ戻る (back) calls onBack (with results)", async () => {
     useSimulationStore.getState().calculate();
     const onBack = vi.fn();
     await act(async () => { render(<ResultsView onBack={onBack} />); });
@@ -133,7 +133,7 @@ describe("ResultsView annotation branches", () => {
     }
   });
 
-  it("全タブをクリックして遷移", async () => {
+  it("clicks through every tab", async () => {
     useSimulationStore.getState().calculate();
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
     const tabs = screen.getAllByRole("tab");
@@ -145,7 +145,7 @@ describe("ResultsView annotation branches", () => {
     });
   });
 
-  it("シナリオ比較タブで ScenarioComparison が描画される", async () => {
+  it("the scenario comparison tab renders ScenarioComparison", async () => {
     useSimulationStore.getState().calculate();
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
     const scenarioTab = screen.getByRole("tab", { name: /シナリオ比較/ });
@@ -162,7 +162,7 @@ describe("ResultsView annotation branches", () => {
     });
   });
 
-  it("モンテカルロタブ → 感度分析タブへ切り替わる", async () => {
+  it("switches from the Monte Carlo tab to the sensitivity tab", async () => {
     useSimulationStore.getState().calculate();
     await act(async () => { render(<ResultsView onBack={() => {}} />); });
     // Radix Tabs switches on onMouseDown (click does nothing)

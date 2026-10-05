@@ -114,7 +114,7 @@ const defaultInput: Partial<SimulationInput> = {
 };
 
 /** Fill every missing field with its default so the calculator gets a complete input. */
-export function toFullInput(input: Partial<SimulationInput>): SimulationInput {
+function toFullInput(input: Partial<SimulationInput>): SimulationInput {
   return {
     age: input.age ?? 30,
     retirementAge: input.retirementAge ?? 65,

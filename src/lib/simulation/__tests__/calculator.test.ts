@@ -3,8 +3,8 @@ import { calcNetIncome, calcFreelanceOfficerNetIncome, runSimulation } from "../
 import { NISA_PRODUCTS, IDECO_PRODUCTS } from "../types";
 import type { SimulationInput } from "../types";
 
-describe("投資商品マスタ定数", () => {
-  it("NISA_PRODUCTS / IDECO_PRODUCTS は最低限のフィールドを持つ", () => {
+describe("investment product master constants", () => {
+  it("NISA_PRODUCTS / IDECO_PRODUCTS have the minimum fields", () => {
     for (const p of [...NISA_PRODUCTS, ...IDECO_PRODUCTS]) {
       expect(p.id).toBeTruthy();
       expect(p.name).toBeTruthy();
@@ -73,23 +73,23 @@ function baseInput(overrides: Partial<SimulationInput> = {}): SimulationInput {
 }
 
 describe("calcNetIncome", () => {
-  it("homemaker は常に 0", () => {
+  it("homemaker is always 0", () => {
     expect(calcNetIncome(500, "homemaker", 30)).toBe(0);
   });
 
-  it("ゼロ・負の総収入は 0 を返す", () => {
+  it("returns 0 for zero or negative gross income", () => {
     expect(calcNetIncome(0, "employee", 30)).toBe(0);
     expect(calcNetIncome(-100, "employee", 30)).toBe(0);
   });
 
-  it("会社員 年収500万円・30歳: 手取りは現在ロジックの値域内", () => {
+  it("employee, 500万 income, age 30: take-home pay within the current logic's range", () => {
     // Take-home is roughly 3.8–4.1M yen (tax + social insurance ~18–24%)
     const net = calcNetIncome(500, "employee", 30);
     expect(net).toBeGreaterThan(370);
     expect(net).toBeLessThan(420);
   });
 
-  it("40歳以上は介護保険分だけ手取りが減る", () => {
+  it("from age 40, take-home pay drops by the long-term care insurance premium", () => {
     const under40 = calcNetIncome(600, "employee", 39);
     const over40  = calcNetIncome(600, "employee", 40);
     expect(over40).toBeLessThan(under40);
@@ -98,7 +98,7 @@ describe("calcNetIncome", () => {
     expect(under40 - over40).toBeLessThan(10);
   });
 
-  it("iDeCo掛金は所得控除されるため手取りが増える", () => {
+  it("iDeCo contributions are income-deductible, so take-home pay rises", () => {
     const noIdeco   = calcNetIncome(600, "employee", 30, 0);
     const withIdeco = calcNetIncome(600, "employee", 30, 2.3); // 23k yen/month
     expect(withIdeco).toBeGreaterThan(noIdeco);
@@ -106,33 +106,33 @@ describe("calcNetIncome", () => {
 });
 
 describe("calcFreelanceOfficerNetIncome", () => {
-  it("両収入0なら0", () => {
+  it("0 when both incomes are 0", () => {
     expect(calcFreelanceOfficerNetIncome(0, 0, 35)).toBe(0);
   });
 
-  it("フリーランス収入のみは calcNetIncome(freelance) と概ね一致範囲", () => {
+  it("freelance income only roughly matches calcNetIncome(freelance)", () => {
     // Exact equality fails because the social insurance logic differs slightly, so compare approximately
     const v = calcFreelanceOfficerNetIncome(500, 0, 35);
     expect(v).toBeGreaterThan(380);
     expect(v).toBeLessThan(470);
   });
 
-  it("役員報酬を加算すると総手取りが増える", () => {
+  it("adding officer compensation increases total take-home pay", () => {
     const noOfficer   = calcFreelanceOfficerNetIncome(300, 0, 35);
     const withOfficer = calcFreelanceOfficerNetIncome(300, 400, 35);
     expect(withOfficer).toBeGreaterThan(noOfficer);
   });
 });
 
-describe("runSimulation: 構造的不変条件", () => {
-  it("yearlyData は age=30 → 100 で 71年分", () => {
+describe("runSimulation: structural invariants", () => {
+  it("yearlyData covers 71 years from age=30 to 100", () => {
     const r = runSimulation(baseInput());
     expect(r.yearlyData).toHaveLength(71);
     expect(r.yearlyData[0].age).toBe(30);
     expect(r.yearlyData[r.yearlyData.length - 1].age).toBe(100);
   });
 
-  it("年は単調増加、age と完全に同期", () => {
+  it("year increases monotonically, fully in sync with age", () => {
     const r = runSimulation(baseInput());
     for (let i = 1; i < r.yearlyData.length; i++) {
       expect(r.yearlyData[i].age).toBe(r.yearlyData[i - 1].age + 1);
@@ -140,30 +140,30 @@ describe("runSimulation: 構造的不変条件", () => {
     }
   });
 
-  it("retirementAge での cumulativeAssets が retirementAssets と一致", () => {
+  it("cumulativeAssets at retirementAge matches retirementAssets", () => {
     const input = baseInput({ retirementAge: 65 });
     const r = runSimulation(input);
     const retYear = r.yearlyData.find((d) => d.age === 65)!;
     expect(retYear.cumulativeAssets).toBeCloseTo(r.retirementAssets, 6);
   });
 
-  it("最終年の cumulativeAssets が finalAssets と一致", () => {
+  it("cumulativeAssets in the last year matches finalAssets", () => {
     const r = runSimulation(baseInput());
     expect(r.yearlyData[r.yearlyData.length - 1].cumulativeAssets).toBeCloseTo(r.finalAssets, 6);
   });
 
-  it("年金月額は 0 以上で受給可能な水準", () => {
+  it("monthly pension is non-negative and at a payable level", () => {
     const r = runSimulation(baseInput());
     expect(r.pensionMonthly).toBeGreaterThan(0);
     expect(r.pensionMonthly).toBeLessThan(40); // 10k yen/month
   });
 
-  it("投資なしでも投資資産は非負（最初の月で +0 されるだけ）", () => {
+  it("investment assets stay non-negative with no investment (only +0 in the first month)", () => {
     const r = runSimulation(baseInput());
     for (const y of r.yearlyData) expect(y.investmentAssets).toBeGreaterThanOrEqual(0);
   });
 
-  it("購入時の頭金は貯蓄から差し引かれる", () => {
+  it("the down payment is deducted from savings at purchase", () => {
     // Give ample cash on hand so the down payment's effect is observable (baseInput has 2M yen)
     const opts = {
       currentSavings: 2000,
@@ -189,7 +189,7 @@ describe("runSimulation: 構造的不変条件", () => {
     expect(buyAt35.cumulativeAssets).toBeLessThan(rentAt35.cumulativeAssets);
   });
 
-  it("NISA枠1800万に達した時に notes に上限到達メッセージが入る", () => {
+  it("notes include the cap-reached message when the 1800万 NISA cap is hit", () => {
     // 150k yen/month × 12 × 10 years = 1800 (10k yen), exactly reaching the cap
     const r = runSimulation(
       baseInput({
@@ -201,17 +201,17 @@ describe("runSimulation: 構造的不変条件", () => {
     expect(r.notes.some((n) => n.includes("NISA"))).toBe(true);
   });
 
-  it("高齢期支出カーブ ON は OFF より総支出が少ない", () => {
+  it("old-age spending curve ON has lower total spending than OFF", () => {
     const on  = runSimulation(baseInput({ useAgeBasedSpendingCurve: true }));
     const off = runSimulation(baseInput({ useAgeBasedSpendingCurve: false }));
     expect(on.totalExpense).toBeLessThan(off.totalExpense);
   });
 });
 
-describe("runSimulation: 現状ロック (snapshot 的)", () => {
+describe("runSimulation: current behavior lock (snapshot-like)", () => {
   // Pin the "current values" so calculation logic changes do not break things unintentionally.
   // Update only when a change that shifts values by orders of magnitude is intended.
-  it("健全ケース（年収800・支出20・投資3万/月）で 65歳時点プラス資産", () => {
+  it("healthy case (income 800, spending 20, investing 3万/month) has positive assets at 65", () => {
     const r = runSimulation(
       baseInput({
         annualIncome: 800,
@@ -225,7 +225,7 @@ describe("runSimulation: 現状ロック (snapshot 的)", () => {
     expect(r.totalExpense).toBeGreaterThan(0);
   });
 
-  it("生涯総収入は税後・現役35年の現実レンジ内 (年収500万ケース)", () => {
+  it("lifetime total income is after tax and within a realistic range for 35 working years (500万 income)", () => {
     const r = runSimulation(baseInput());
     // After-tax take-home ~4M yen × 35 years + 35 years of pension after retirement → roughly 150–250M yen
     expect(r.totalIncome).toBeGreaterThan(10000);

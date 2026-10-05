@@ -40,12 +40,12 @@ beforeEach(() => {
 });
 
 describe("SimulatorApp", () => {
-  it("currentStep=0: 基本情報ステップを表示", async () => {
+  it("currentStep=0: shows the basic info step", async () => {
     await act(async () => { render(<SimulatorApp />); });
     expect(screen.getAllByText(/ベースキャンプ|基本情報|登山ルート/).length).toBeGreaterThan(0);
   });
 
-  it("currentStep=7: ResultsView (Suspense fallback or 結果) を表示", async () => {
+  it("currentStep=7: shows ResultsView (Suspense fallback or results)", async () => {
     useSimulationStore.setState({ currentStep: 7 });
     useSimulationStore.getState().calculate();
     let r!: ReturnType<typeof render>;
@@ -56,7 +56,7 @@ describe("SimulatorApp", () => {
     });
   });
 
-  it("ステップボタンクリックで currentStep が変わる", async () => {
+  it("clicking a step button changes currentStep", async () => {
     await act(async () => { render(<SimulatorApp />); });
     // Look for buttons such as "一合目" in the sidebar
     const stepBtn = screen.queryByText(/一合目/);
@@ -69,7 +69,7 @@ describe("SimulatorApp", () => {
     }
   });
 
-  it("前へボタンは currentStep=0 で disabled", async () => {
+  it("the back button is disabled at currentStep=0", async () => {
     await act(async () => { render(<SimulatorApp />); });
     const back = screen.getByText("前へ").closest("button") as HTMLButtonElement;
     expect(back.disabled).toBe(true);
@@ -77,12 +77,12 @@ describe("SimulatorApp", () => {
 });
 
 describe("SavedSimulationsDrawer", () => {
-  it("ボタンが描画される (保存ゼロ件)", () => {
+  it("renders the button (no saved items)", () => {
     render(<SavedSimulationsDrawer />);
     expect(screen.getAllByRole("button").length).toBeGreaterThan(0);
   });
 
-  it("保存済みがあればドロワーに件数表示", () => {
+  it("shows the count in the drawer when items are saved", () => {
     const input = useSimulationStore.getInitialState().input;
     useSimulationStore.setState({
       savedSimulations: [{
@@ -99,12 +99,12 @@ describe("SavedSimulationsDrawer", () => {
 });
 
 describe("AIEvaluationCard", () => {
-  it("aiEvaluation なし: 初期表示 + AI 総評ボタンが見える", () => {
+  it("no aiEvaluation: initial view with the AI review button visible", () => {
     render(<AIEvaluationCard />);
     expect(screen.getByText(/AI総評を取得する/)).toBeTruthy();
   });
 
-  it("aiEvaluation あり: 結果を表示", () => {
+  it("with aiEvaluation: shows the result", () => {
     useSimulationStore.setState({
       aiEvaluation: {
         score: 75,
@@ -119,7 +119,7 @@ describe("AIEvaluationCard", () => {
     expect(screen.getAllByText(/良好|強み|改善|A/).length).toBeGreaterThan(0);
   });
 
-  it("ボタンクリックで fetch (失敗時はエラー表示)", async () => {
+  it("clicking the button fetches (shows an error on failure)", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
       status: 500,
@@ -136,7 +136,7 @@ describe("AIEvaluationCard", () => {
     });
   });
 
-  it("ボタンクリック成功で aiEvaluation がセットされる", async () => {
+  it("a successful click sets aiEvaluation", async () => {
     const ai = { score: 88, rank: "A", summary: "OK", strengths: ["s1"], improvements: ["i1"], conclusion: "c" };
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -153,7 +153,7 @@ describe("AIEvaluationCard", () => {
     });
   });
 
-  it("ランク S/B/C/D/F の各表示", () => {
+  it("renders each rank S/B/C/D/F", () => {
     for (const rank of ["S", "B", "C", "D", "F"] as const) {
       useSimulationStore.setState({
         aiEvaluation: {
@@ -173,7 +173,7 @@ describe("AIEvaluationCard", () => {
 });
 
 describe("SensitivityAnalysis (data prop)", () => {
-  it("data prop で smoke", () => {
+  it("smoke with the data prop", () => {
     expect(() => render(<SensitivityAnalysis
       data={[
         { parameter: "annualIncome", label: "年収", low: 100, base: 200, high: 300 },

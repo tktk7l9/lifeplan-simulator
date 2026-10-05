@@ -28,21 +28,21 @@ beforeEach(() => {
 });
 
 describe("HousingStep interactions", () => {
-  it("初期描画: 「賃貸」フィールドが見える", () => {
+  it("initial render: shows the 賃貸 (rent) field", () => {
     render(<HousingStep onNext={() => {}} />);
     expect(screen.getByText("賃貸")).toBeTruthy();
     expect(screen.getByText("購入")).toBeTruthy();
     expect(screen.getByText("持ち家あり")).toBeTruthy();
   });
 
-  it("購入を選択するとローン関連フィールドが表示される", async () => {
+  it("choosing buy shows the loan fields", async () => {
     render(<HousingStep onNext={() => {}} />);
     const buyBtn = screen.getByText("購入").closest("button")!;
     await act(async () => { fireEvent.click(buyBtn); });
     expect(screen.getAllByText(/購入予定年齢|物件価格|頭金|金利|返済期間/).length).toBeGreaterThan(0);
   });
 
-  it("購入: ローンサマリーが計算される (loanAmount > 0)", async () => {
+  it("buy: computes the loan summary (loanAmount > 0)", async () => {
     render(<HousingStep onNext={() => {}} />);
     const buyBtn = screen.getByText("購入").closest("button")!;
     await act(async () => { fireEvent.click(buyBtn); });
@@ -50,7 +50,7 @@ describe("HousingStep interactions", () => {
     expect(screen.getAllByText(/月々の返済額/).length).toBeGreaterThan(0);
   });
 
-  it("購入: 物件価格 input 変更", async () => {
+  it("buy: changing the property price input", async () => {
     render(<HousingStep onNext={() => {}} />);
     await act(async () => { fireEvent.click(screen.getByText("購入").closest("button")!); });
     const price = screen.getByRole("textbox", { name: "物件価格" }) as HTMLInputElement;
@@ -59,19 +59,19 @@ describe("HousingStep interactions", () => {
     expect(useSimulationStore.getState().input.propertyPrice).toBe(5000);
   });
 
-  it("持ち家を選ぶと持ち家用ヒントが見える", async () => {
+  it("choosing owned home shows the owned-home hint", async () => {
     render(<HousingStep onNext={() => {}} />);
     await act(async () => { fireEvent.click(screen.getByText("持ち家あり").closest("button")!); });
     expect(screen.getAllByText(/維持費|固定資産税/).length).toBeGreaterThan(0);
   });
 
-  it("賃貸を選ぶと賃貸用ヒントが見える", async () => {
+  it("choosing rent shows the rent hint", async () => {
     // Initial = rent
     render(<HousingStep onNext={() => {}} />);
     expect(screen.getAllByText(/支出.*ステップ|家賃/).length).toBeGreaterThan(0);
   });
 
-  it("submit で updateInput + onNext", async () => {
+  it("submit calls updateInput + onNext", async () => {
     const onNext = vi.fn();
     render(<HousingStep onNext={onNext} />);
     const submit = screen.getByText("次へ進む").closest("button")!;
@@ -83,12 +83,12 @@ describe("HousingStep interactions", () => {
 });
 
 describe("LifeEventsStep interactions", () => {
-  it("デフォルトでイベント2件 (結婚・車)", () => {
+  it("has 2 events by default (wedding, car)", () => {
     render(<LifeEventsStep onNext={() => {}} />);
     expect(screen.getAllByText(/結婚式|マイカー購入/).length).toBeGreaterThan(0);
   });
 
-  it("イベント追加ボタンで件数 +1", async () => {
+  it("the add-event button adds one event", async () => {
     render(<LifeEventsStep onNext={() => {}} />);
     const addBtn = screen.getByText("イベントを追加").closest("button")!;
     await act(async () => { fireEvent.click(addBtn); });
@@ -96,7 +96,7 @@ describe("LifeEventsStep interactions", () => {
     expect(screen.getAllByText(/その他/).length).toBeGreaterThan(0);
   });
 
-  it("イベント削除ボタンで件数 -1", async () => {
+  it("the delete-event button removes one event", async () => {
     render(<LifeEventsStep onNext={() => {}} />);
     // Get the delete button (X svg)
     const buttons = document.querySelectorAll("button");
@@ -109,7 +109,7 @@ describe("LifeEventsStep interactions", () => {
     expect(screen.queryAllByText(/結婚式|マイカー購入/).length).toBeLessThan(3);
   });
 
-  it("年齢 input 変更で updateEvent", async () => {
+  it("changing the age input calls updateEvent", async () => {
     render(<LifeEventsStep onNext={() => {}} />);
     const numberInputs = document.querySelectorAll('input[inputmode="decimal"]') as NodeListOf<HTMLInputElement>;
     const age32 = Array.from(numberInputs).find((i) => i.value === "32");
@@ -119,7 +119,7 @@ describe("LifeEventsStep interactions", () => {
     }
   });
 
-  it("ラベル input 変更", async () => {
+  it("changing the label input", async () => {
     render(<LifeEventsStep onNext={() => {}} />);
     const textInputs = document.querySelectorAll('input[type="text"], input:not([type])') as NodeListOf<HTMLInputElement>;
     const wedding = Array.from(textInputs).find((i) => i.value === "結婚式");
@@ -129,7 +129,7 @@ describe("LifeEventsStep interactions", () => {
     }
   });
 
-  it("「次へ進む」で updateInput + onNext", async () => {
+  it("\"次へ進む\" (next) calls updateInput + onNext", async () => {
     const onNext = vi.fn();
     render(<LifeEventsStep onNext={onNext} />);
     const nextBtn = screen.getByText("次へ進む").closest("button")!;
@@ -138,7 +138,7 @@ describe("LifeEventsStep interactions", () => {
     expect(useSimulationStore.getState().input.lifeEvents).toBeDefined();
   });
 
-  it("初期値 0件で空 placeholder", () => {
+  it("shows the empty placeholder with 0 initial events", () => {
     useSimulationStore.setState({
       input: { ...useSimulationStore.getInitialState().input, lifeEvents: [] },
     });
@@ -148,12 +148,12 @@ describe("LifeEventsStep interactions", () => {
 });
 
 describe("InsuranceStep interactions", () => {
-  it("初期描画: 各セクション", () => {
+  it("initial render: each section", () => {
     render(<InsuranceStep onNext={() => {}} />);
     expect(screen.getAllByText(/生命保険|医療|介護|企業/).length).toBeGreaterThan(0);
   });
 
-  it("submit で onNext", async () => {
+  it("submit calls onNext", async () => {
     const onNext = vi.fn();
     render(<InsuranceStep onNext={onNext} />);
     await act(async () => {
@@ -166,12 +166,12 @@ describe("InsuranceStep interactions", () => {
 });
 
 describe("ExpenseStep interactions", () => {
-  it("housingType=rent (デフォルト) でも家賃は住宅ステップで聞くので表示しない (SHIG 40)", () => {
+  it("housingType=rent (default) does not show rent, since the housing step asks for it (SHIG 40)", () => {
     render(<ExpenseStep onNext={() => {}} />);
     expect(screen.queryByText(/月額家賃/)).toBeNull();
   });
 
-  it("housingType=buy では家賃フィールド非表示", () => {
+  it("housingType=buy hides the rent field", () => {
     useSimulationStore.setState({
       input: { ...useSimulationStore.getInitialState().input, housingType: "buy" },
     });
@@ -179,7 +179,7 @@ describe("ExpenseStep interactions", () => {
     expect(screen.queryByText(/月額家賃/)).toBeNull();
   });
 
-  it("submit で onNext", async () => {
+  it("submit calls onNext", async () => {
     const onNext = vi.fn();
     render(<ExpenseStep onNext={onNext} />);
     await act(async () => {
@@ -192,14 +192,14 @@ describe("ExpenseStep interactions", () => {
 });
 
 describe("InvestmentStep interactions", () => {
-  it("初期描画: NISA / iDeCo / 小規模企業共済", () => {
+  it("initial render: NISA / iDeCo / Small Business Mutual Aid (小規模企業共済)", () => {
     render(<InvestmentStep onNext={() => {}} />);
     expect(screen.getAllByText(/NISA/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/iDeCo/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/小規模企業共済/).length).toBeGreaterThan(0);
   });
 
-  it("submit で onNext", async () => {
+  it("submit calls onNext", async () => {
     const onNext = vi.fn();
     render(<InvestmentStep onNext={onNext} />);
     await act(async () => {

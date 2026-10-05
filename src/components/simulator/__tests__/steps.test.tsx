@@ -39,12 +39,12 @@ beforeEach(() => {
 const onNext = () => {};
 
 describe("BasicInfoStep", () => {
-  it("基本情報フォームが描画される", () => {
+  it("renders the basic info form", () => {
     render(<BasicInfoStep onNext={onNext} />);
     expect(screen.getAllByText(/生年月日|年齢|基本/).length).toBeGreaterThan(0);
   });
 
-  it("hasSpouse=true 状態で配偶者フィールドが表示される", () => {
+  it("shows the spouse fields when hasSpouse=true", () => {
     useSimulationStore.setState({
       input: {
         ...useSimulationStore.getInitialState().input,
@@ -58,7 +58,7 @@ describe("BasicInfoStep", () => {
     expect(screen.getAllByText(/配偶者/).length).toBeGreaterThan(0);
   });
 
-  it("子どもありで詳細入力欄が出る", () => {
+  it("shows the detail inputs when there are children", () => {
     useSimulationStore.setState({
       input: {
         ...useSimulationStore.getInitialState().input,
@@ -76,42 +76,42 @@ describe("BasicInfoStep", () => {
 });
 
 describe("IncomeStep", () => {
-  it("収入フォーム描画", () => {
+  it("renders the income form", () => {
     render(<IncomeStep onNext={onNext} />);
     expect(screen.getAllByText(/年収|収入/).length).toBeGreaterThan(0);
   });
 });
 
 describe("ExpenseStep", () => {
-  it("支出フォーム描画", () => {
+  it("renders the expense form", () => {
     render(<ExpenseStep onNext={onNext} />);
     expect(screen.getAllByText(/生活費|支出/).length).toBeGreaterThan(0);
   });
 });
 
 describe("HousingStep", () => {
-  it("住居フォーム描画", () => {
+  it("renders the housing form", () => {
     render(<HousingStep onNext={onNext} />);
     expect(screen.getAllByText(/住宅|住居|家賃|賃貸/).length).toBeGreaterThan(0);
   });
 });
 
 describe("LifeEventsStep", () => {
-  it("ライフイベントフォーム描画", () => {
+  it("renders the life events form", () => {
     render(<LifeEventsStep onNext={onNext} />);
     expect(screen.getAllByText(/ライフイベント|イベント/).length).toBeGreaterThan(0);
   });
 });
 
 describe("InvestmentStep", () => {
-  it("投資フォーム描画", () => {
+  it("renders the investment form", () => {
     render(<InvestmentStep onNext={onNext} />);
     expect(screen.getAllByText(/投資|NISA|貯蓄|iDeCo/).length).toBeGreaterThan(0);
   });
 });
 
 describe("InsuranceStep", () => {
-  it("保険フォーム描画", () => {
+  it("renders the insurance form", () => {
     render(<InsuranceStep onNext={onNext} />);
     expect(screen.getAllByText(/保険|医療|介護/).length).toBeGreaterThan(0);
   });

@@ -35,14 +35,14 @@ import RootLayout from "../layout";
 import { Providers } from "@/components/providers";
 
 describe("(home)/page", () => {
-  it("ランディング描画", () => {
+  it("renders the landing page", () => {
     const { container } = render(<HomePage />);
     expect(container.querySelector(".lp-root")).toBeTruthy();
   });
 });
 
 describe("(home)/layout", () => {
-  it("children を素通し", () => {
+  it("passes children through", () => {
     const Layout = HomeLayout as React.ComponentType<{ children: React.ReactNode }>;
     render(<Layout><span>子</span></Layout>);
     expect(screen.getByText("子")).toBeTruthy();
@@ -50,14 +50,14 @@ describe("(home)/layout", () => {
 });
 
 describe("simulator/page", () => {
-  it("SimulatorApp を描画", () => {
+  it("renders SimulatorApp", () => {
     render(<SimulatorPage />);
     expect(screen.getByTestId("sim-app-stub")).toBeTruthy();
   });
 });
 
 describe("simulator/layout", () => {
-  it("children を素通し", () => {
+  it("passes children through", () => {
     const Layout = SimulatorLayout as React.ComponentType<{ children: React.ReactNode }>;
     render(<Layout><span>子</span></Layout>);
     expect(screen.getByText("子")).toBeTruthy();
@@ -65,7 +65,7 @@ describe("simulator/layout", () => {
 });
 
 describe("RootLayout", () => {
-  it("メタデータ含め描画する (関数として呼び出す)", () => {
+  it("renders including metadata (called as a function)", () => {
     const Layout = RootLayout as (props: { children: React.ReactNode }) => React.ReactNode;
     // RootLayout contains <html>, so rendering it nests a duplicate,
     // but jsdom tolerates that
@@ -75,7 +75,7 @@ describe("RootLayout", () => {
 });
 
 describe("Providers", () => {
-  it("children を素通し", () => {
+  it("passes children through", () => {
     render(<Providers><span>子</span></Providers>);
     expect(screen.getByText("子")).toBeTruthy();
   });

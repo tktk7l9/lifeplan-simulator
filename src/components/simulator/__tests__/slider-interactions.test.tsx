@@ -59,7 +59,7 @@ function sliders() {
 }
 
 describe("InsuranceStep sliders", () => {
-  it("全スライダーを順番に変更してエラーなし", async () => {
+  it("changes every slider in turn without errors", async () => {
     render(<InsuranceStep onNext={() => {}} />);
     const all = sliders();
     expect(all.length).toBeGreaterThan(0);
@@ -69,7 +69,7 @@ describe("InsuranceStep sliders", () => {
     }
   });
 
-  it("年齢別支出カーブ off ブランチ", async () => {
+  it("age-based spending curve off branch", async () => {
     render(<InsuranceStep onNext={() => {}} />);
     const toggleBtn = screen.getByText(/年齢別支出カーブを使用する/)
       .closest("div")?.parentElement?.querySelector("button");
@@ -82,7 +82,7 @@ describe("InsuranceStep sliders", () => {
     }
   });
 
-  it("submit で onNext + updateInput", async () => {
+  it("submit calls onNext + updateInput", async () => {
     const onNext = vi.fn();
     render(<InsuranceStep onNext={onNext} />);
     await act(async () => {
@@ -95,7 +95,7 @@ describe("InsuranceStep sliders", () => {
 });
 
 describe("InvestmentStep sliders", () => {
-  it("全スライダーを変更", async () => {
+  it("changes every slider", async () => {
     render(<InvestmentStep onNext={() => {}} />);
     const all = sliders();
     expect(all.length).toBeGreaterThan(0);
@@ -105,7 +105,7 @@ describe("InvestmentStep sliders", () => {
     }
   });
 
-  it("iDeCo / 小規模企業共済 slider で 0.1 ステップの round 経路", async () => {
+  it("iDeCo / Small Business Mutual Aid (小規模企業共済) sliders take the 0.1-step rounding path", async () => {
     render(<InvestmentStep onNext={() => {}} />);
     const all = sliders();
     // iDeCo slider (max 6.8, step 0.1) or shokibo (max 7, step 0.1)
@@ -117,7 +117,7 @@ describe("InvestmentStep sliders", () => {
     }
   });
 
-  it("NISA 商品を順番に切替", async () => {
+  it("switches through the NISA products in turn", async () => {
     render(<InvestmentStep onNext={() => {}} />);
     const productButtons = document.querySelectorAll('button[type="button"]');
     // If there are at least 2 product buttons, switch between them
@@ -129,7 +129,7 @@ describe("InvestmentStep sliders", () => {
     expect(productButtons.length).toBeGreaterThan(0);
   });
 
-  it("submit で onNext", async () => {
+  it("submit calls onNext", async () => {
     const onNext = vi.fn();
     render(<InvestmentStep onNext={onNext} />);
     await act(async () => {
@@ -140,7 +140,7 @@ describe("InvestmentStep sliders", () => {
 });
 
 describe("ExpenseStep sliders", () => {
-  it("全スライダーを変更", async () => {
+  it("changes every slider", async () => {
     render(<ExpenseStep onNext={() => {}} />);
     const all = sliders();
     for (const s of all) {
@@ -149,7 +149,7 @@ describe("ExpenseStep sliders", () => {
     }
   });
 
-  it("housingType=buy で家賃 slider 非表示 → 残り sliders を操作", async () => {
+  it("housingType=buy hides the rent slider → operates the remaining sliders", async () => {
     useSimulationStore.setState({
       input: { ...useSimulationStore.getInitialState().input, housingType: "buy" },
     });
@@ -163,7 +163,7 @@ describe("ExpenseStep sliders", () => {
 });
 
 describe("HousingStep sliders (buy)", () => {
-  it("購入モードの全スライダーを変更", async () => {
+  it("changes every slider in buy mode", async () => {
     render(<HousingStep onNext={() => {}} />);
     // Switch to buy
     await act(async () => {
@@ -179,7 +179,7 @@ describe("HousingStep sliders (buy)", () => {
 });
 
 describe("BasicInfoStep sliders", () => {
-  it("全スライダーを変更", async () => {
+  it("changes every slider", async () => {
     render(<BasicInfoStep onNext={() => {}} />);
     const all = sliders();
     for (const s of all) {
@@ -188,7 +188,7 @@ describe("BasicInfoStep sliders", () => {
     }
   });
 
-  it("hasSpouse=true で配偶者 slider 描画 → 操作", async () => {
+  it("hasSpouse=true renders the spouse sliders → operates them", async () => {
     useSimulationStore.setState({
       input: {
         ...useSimulationStore.getInitialState().input,
@@ -205,7 +205,7 @@ describe("BasicInfoStep sliders", () => {
     }
   });
 
-  it("子ども 2人状態で sliders 操作", async () => {
+  it("operates sliders with 2 children", async () => {
     useSimulationStore.setState({
       input: {
         ...useSimulationStore.getInitialState().input,
@@ -226,7 +226,7 @@ describe("BasicInfoStep sliders", () => {
 });
 
 describe("IncomeStep sliders", () => {
-  it("全スライダーを変更 (employee)", async () => {
+  it("changes every slider (employee)", async () => {
     render(<IncomeStep onNext={() => {}} />);
     const all = sliders();
     for (const s of all) {
@@ -235,7 +235,7 @@ describe("IncomeStep sliders", () => {
     }
   });
 
-  it("freelance + 役員報酬 ON で全 sliders 操作", async () => {
+  it("freelance + director's pay (役員報酬) ON operates every slider", async () => {
     useSimulationStore.setState({
       input: {
         ...useSimulationStore.getInitialState().input,
@@ -251,7 +251,7 @@ describe("IncomeStep sliders", () => {
     }
   });
 
-  it("hasSpouse + careerBreak ON で全 sliders", async () => {
+  it("hasSpouse + careerBreak ON operates every slider", async () => {
     useSimulationStore.setState({
       input: {
         ...useSimulationStore.getInitialState().input,

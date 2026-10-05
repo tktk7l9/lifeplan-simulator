@@ -71,7 +71,7 @@ describe("runMonteCarlo", () => {
     Math.random = originalRandom;
   });
 
-  it("結果の構造: dataPoints は base.yearlyData と同じ長さで p10≤p25≤p50≤p75≤p90", () => {
+  it("result shape: dataPoints match base.yearlyData length and p10≤p25≤p50≤p75≤p90", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
     const r = runMonteCarlo(baseInput(), 50);
     expect(r.dataPoints).toHaveLength(71); // age 30 → 100
@@ -83,7 +83,7 @@ describe("runMonteCarlo", () => {
     }
   });
 
-  it("failureProbability は 0 以上 100 以下の整数", () => {
+  it("failureProbability is an integer from 0 to 100", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
     const r = runMonteCarlo(baseInput(), 30);
     expect(r.failureProbability).toBeGreaterThanOrEqual(0);
@@ -91,7 +91,7 @@ describe("runMonteCarlo", () => {
     expect(Number.isInteger(r.failureProbability)).toBe(true);
   });
 
-  it("シミュレーション期間が age=90 未満で打ち切られると failureProbability=0", () => {
+  it("failureProbability=0 when the simulation stops before age 90", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
     // Start at age 85 → 15 years to 100. The age90 idx is >= 0, so this would hit.
     // Truly making age 90 absent... is hard because the real code always generates up to age 100.
@@ -103,19 +103,19 @@ describe("runMonteCarlo", () => {
     expect(r.failureProbability).toBe(0);
   });
 
-  it("p10 が age とともに概ね単調か、または最終値で大きい変動を許容", () => {
+  it("p10 is roughly monotonic with age, or large swings are allowed at the final value", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
     const r = runMonteCarlo(baseInput(), 30);
     expect(r.dataPoints[0].p50).toBeGreaterThan(0);
   });
 
-  it("default runs (400) でも実行可能", () => {
+  it("runs with the default runs (400)", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
     const r = runMonteCarlo(baseInput());
     expect(r.dataPoints.length).toBe(71);
   });
 
-  it("percentile が同値 (lo===hi) で分岐するパス: 1 run だけだと配列長1で全分位が同値", () => {
+  it("percentile equal-value path (lo===hi): with 1 run the array length is 1 and all percentiles match", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
     const r = runMonteCarlo(baseInput(), 1);
     // With 1 sample every percentile is the same value (fires the lo===hi branch)
@@ -127,7 +127,7 @@ describe("runMonteCarlo", () => {
     }
   });
 
-  it("randn の u1=0 ガード: Math.random=0 でも NaN にならない", () => {
+  it("randn u1=0 guard: no NaN even when Math.random returns 0", () => {
     let call = 0;
     Math.random = vi.fn().mockImplementation(() => (call++ % 2 === 0 ? 0 : 0.5));
     const r = runMonteCarlo(baseInput(), 5);
@@ -136,7 +136,7 @@ describe("runMonteCarlo", () => {
     }
   });
 
-  it("Optional フィールドが undefined でもデフォルトで動作", () => {
+  it("works with defaults when optional fields are undefined", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
     // Target the ?? 0 / ?? 1.5 fallback branches
     const input = baseInput();
@@ -160,14 +160,14 @@ describe("runMonteCarlo", () => {
     expect(r.dataPoints).toHaveLength(71);
   });
 
-  it("極端に低い annualReturn (sigma minimum=5%) でも実行できる", () => {
+  it("runs with an extremely low annualReturn (sigma minimum 5%)", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
     // expectedReturn=0 → sigma=max(5, 0*2.2)=5
     const r = runMonteCarlo(baseInput({ investmentReturnRate: 0 }), 10);
     expect(r.dataPoints.length).toBe(71);
   });
 
-  it("極端に高い expectedReturn でも sigma が 18% にクランプされる", () => {
+  it("sigma is clamped to 18% even with an extremely high expectedReturn", () => {
     Math.random = vi.fn().mockReturnValue(0.5);
     const r = runMonteCarlo(baseInput({ investmentReturnRate: 20 }), 10);
     expect(r.dataPoints.length).toBe(71);

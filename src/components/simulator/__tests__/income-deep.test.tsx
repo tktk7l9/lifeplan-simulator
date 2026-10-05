@@ -20,7 +20,7 @@ beforeEach(() => {
 
 const onNext = () => {};
 
-describe("IncomeStep: 雇用形態ごとの描画", () => {
+describe("IncomeStep: rendering per employment type", () => {
   for (const emp of ["employee", "civil_servant", "self_employed", "freelance", "part_time"] as const) {
     it(`employmentType=${emp}`, () => {
       useSimulationStore.setState({
@@ -31,7 +31,7 @@ describe("IncomeStep: 雇用形態ごとの描画", () => {
     });
   }
 
-  it("employee_freelance: 副業前提", () => {
+  it("employee_freelance: assumes a side business", () => {
     useSimulationStore.setState({
       input: {
         ...useSimulationStore.getInitialState().input,
@@ -43,7 +43,7 @@ describe("IncomeStep: 雇用形態ごとの描画", () => {
     expect(screen.getAllByText(/年収|収入/).length).toBeGreaterThan(0);
   });
 
-  it("freelance + 役員報酬あり", () => {
+  it("freelance + with director's pay (役員報酬)", () => {
     useSimulationStore.setState({
       input: {
         ...useSimulationStore.getInitialState().input,
@@ -56,8 +56,8 @@ describe("IncomeStep: 雇用形態ごとの描画", () => {
   });
 });
 
-describe("IncomeStep: 切替トグル", () => {
-  it("副業ありトグル", () => {
+describe("IncomeStep: toggles", () => {
+  it("side business toggle", () => {
     render(<IncomeStep onNext={onNext} />);
     const toggles = screen.getAllByRole("switch");
     if (toggles.length > 0) {
@@ -69,8 +69,8 @@ describe("IncomeStep: 切替トグル", () => {
 
 });
 
-describe("IncomeStep: 配偶者あり", () => {
-  it("配偶者あり employee", () => {
+describe("IncomeStep: with spouse", () => {
+  it("with spouse, employee", () => {
     useSimulationStore.setState({
       input: {
         ...useSimulationStore.getInitialState().input,
@@ -83,7 +83,7 @@ describe("IncomeStep: 配偶者あり", () => {
     expect(screen.getAllByText(/配偶者/).length).toBeGreaterThan(0);
   });
 
-  it("配偶者 homemaker", () => {
+  it("spouse homemaker", () => {
     useSimulationStore.setState({
       input: {
         ...useSimulationStore.getInitialState().input,
@@ -96,7 +96,7 @@ describe("IncomeStep: 配偶者あり", () => {
     expect(screen.getAllByText(/配偶者/).length).toBeGreaterThan(0);
   });
 
-  it("配偶者キャリアブレイクあり", () => {
+  it("with spouse career break", () => {
     useSimulationStore.setState({
       input: {
         ...useSimulationStore.getInitialState().input,
@@ -112,8 +112,8 @@ describe("IncomeStep: 配偶者あり", () => {
   });
 });
 
-describe("IncomeStep: 年収の派生表示", () => {
-  it("年収から月額換算と手取り推計を導出して表示する", () => {
+describe("IncomeStep: values derived from annual income", () => {
+  it("derives and shows the monthly equivalent and estimated take-home pay from annual income", () => {
     render(<IncomeStep onNext={onNext} />);
     // Default annualIncome = 500 (5M yen) → monthly 500/12 = 41.7 (10k yen)/month
     expect(screen.getByText("41.7万円/月")).toBeTruthy();

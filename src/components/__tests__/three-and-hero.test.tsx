@@ -36,12 +36,12 @@ function flushOneFrame() {
 }
 
 describe("CursorBird", () => {
-  it("初期 render で SVG 描画", () => {
+  it("renders the SVG on the initial render", () => {
     render(<CursorBird />);
     expect(document.querySelector("svg")).toBeTruthy();
   });
 
-  it("mousemove で target 更新 → 次フレームで physics が動く", () => {
+  it("mousemove updates the target and physics runs on the next frame", () => {
     render(<CursorBird />);
     act(() => {
       window.dispatchEvent(new MouseEvent("mousemove", { clientX: 400, clientY: 300 }));
@@ -53,7 +53,7 @@ describe("CursorBird", () => {
     expect(document.querySelector("svg")).toBeTruthy();
   });
 
-  it("bird-action excited / celebrate / sunglare / surprised / pointing 全アクション", () => {
+  it("handles every bird-action: excited / celebrate / sunglare / surprised / pointing", () => {
     render(<CursorBird />);
     for (const action of ["excited", "celebrate", "sunglare", "surprised", "pointing", "idle"]) {
       act(() => {
@@ -64,7 +64,7 @@ describe("CursorBird", () => {
     expect(document.querySelector("svg")).toBeTruthy();
   });
 
-  it("excited 状態で flap rate が上昇 (分岐網羅)", () => {
+  it("raises the flap rate in the excited state (branch coverage)", () => {
     render(<CursorBird />);
     act(() => {
       window.dispatchEvent(new CustomEvent("bird-action", { detail: { action: "excited" } }));
@@ -84,7 +84,7 @@ describe("CursorBird", () => {
     for (let i = 0; i < 5; i++) flushOneFrame();
   });
 
-  it("アンマウントで cancelAnimationFrame", () => {
+  it("calls cancelAnimationFrame on unmount", () => {
     const { unmount } = render(<CursorBird />);
     cafSpy?.mockClear();
     unmount();
@@ -93,7 +93,7 @@ describe("CursorBird", () => {
 });
 
 describe("BirdHoverZone", () => {
-  it("hover で bird-action 'excited'", () => {
+  it("dispatches bird-action 'excited' on hover", () => {
     const listener = vi.fn();
     window.addEventListener("bird-action", listener);
     render(
@@ -111,12 +111,12 @@ describe("BirdHoverZone", () => {
 });
 
 describe("MountainHero", () => {
-  it("SVG 描画", () => {
+  it("renders the SVG", () => {
     const { container } = render(<MountainHero />);
     expect(container.querySelector("svg")).toBeTruthy();
   });
 
-  it("太陽ホバーで sunglare アクションを dispatch", () => {
+  it("dispatches the sunglare action when hovering the sun", () => {
     const listener = vi.fn();
     window.addEventListener("bird-action", listener);
     const { container } = render(<MountainHero />);
