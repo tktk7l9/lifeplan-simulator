@@ -98,6 +98,27 @@ export function clientIp(headers: Headers): string {
   );
 }
 
+/**
+ * True when a browser sent this request from another site. The route spends the owner's
+ * Anthropic quota, and the per-IP rate limit alone would let any third-party page fan the
+ * cost out across its visitors' IPs. Browsers always attach `Origin` to cross-origin POSTs
+ * and `Sec-Fetch-Site` to every fetch, so either header is enough; requests without both
+ * (curl, tests) fall through to the rate limit.
+ */
+export function isCrossSiteRequest(headers: Headers, requestUrl: string): boolean {
+  const site = headers.get("sec-fetch-site");
+  if (site === "cross-site" || site === "same-site") return true;
+  const origin = headers.get("origin");
+  if (!origin) return false;
+  // "null" is what browsers send from sandboxed frames and file:// pages.
+  if (origin === "null") return true;
+  try {
+    return new URL(origin).host !== new URL(requestUrl).host;
+  } catch {
+    return true;
+  }
+}
+
 function pruneExpired(now: number): void {
   for (const [key, entry] of rateMap) {
     if (now > entry.resetAt) rateMap.delete(key);
@@ -182,6 +203,10 @@ ${input.housingType === "buy" ? `- 住宅購入価格: ${input.propertyPrice ?? 
 // ── Route handler ─────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
+  if (isCrossSiteRequest(request.headers, request.url)) {
+    return Response.json({ error: "このページからのみ利用できます。" }, { status: 403 });
+  }
+
   // Rate limiting
   const ip = clientIp(request.headers);
 
@@ -193,11 +218,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
+    const body: unknown = await request.json();
+    const { input, result } =
+      typeof body === "object" && body !== null ? (body as { input?: unknown; result?: unknown }) : {};
 
     // Validate input
-    const inputParsed = SimulationInputSchema.safeParse(body.input);
-    const resultParsed = SimulationResultSchema.safeParse(body.result);
+    const inputParsed = SimulationInputSchema.safeParse(input);
+    const resultParsed = SimulationResultSchema.safeParse(result);
 
     if (!inputParsed.success || !resultParsed.success) {
       return Response.json({ error: "入力データが不正です。" }, { status: 400 });
