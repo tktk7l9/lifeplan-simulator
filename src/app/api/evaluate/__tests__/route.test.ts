@@ -242,3 +242,56 @@ describe("clientIp", () => {
     expect(clientIp(new Headers())).toBe("unknown");
   });
 });
+
+describe("cross-site requests", () => {
+  let isCrossSiteRequest: typeof import("../route").isCrossSiteRequest;
+  beforeEach(async () => {
+    isCrossSiteRequest = (await import("../route")).isCrossSiteRequest;
+  });
+
+  it("rejects a POST from another origin with 403 before spending the AI quota", async () => {
+    const res = await POST(makeRequest(
+      { input: validInput, result: validResult },
+      { "x-forwarded-for": "9.9.9.1", origin: "https://evil.example", "sec-fetch-site": "cross-site" },
+    ));
+    expect(res.status).toBe(403);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("accepts a same-origin POST that carries Origin and Sec-Fetch-Site", async () => {
+    create.mockResolvedValueOnce({
+      content: [{ type: "text", text: JSON.stringify({ score: 60, rank: "C", summary: "s", strengths: ["a"], improvements: ["b"], conclusion: "c" }) }],
+    });
+    const res = await POST(makeRequest(
+      { input: validInput, result: validResult },
+      { "x-forwarded-for": "9.9.9.2", origin: "http://localhost", "sec-fetch-site": "same-origin" },
+    ));
+    expect(res.status).toBe(200);
+  });
+
+  it("flags cross-site and same-site fetches, opaque origins, and mismatched Origin hosts", () => {
+    const url = "https://app.example/api/evaluate";
+    expect(isCrossSiteRequest(new Headers({ "sec-fetch-site": "cross-site" }), url)).toBe(true);
+    expect(isCrossSiteRequest(new Headers({ "sec-fetch-site": "same-site" }), url)).toBe(true);
+    expect(isCrossSiteRequest(new Headers({ origin: "null" }), url)).toBe(true);
+    expect(isCrossSiteRequest(new Headers({ origin: "https://other.example" }), url)).toBe(true);
+    expect(isCrossSiteRequest(new Headers({ origin: "not a url" }), url)).toBe(true);
+  });
+
+  it("lets same-origin, navigations, and header-less clients through", () => {
+    const url = "https://app.example/api/evaluate";
+    expect(isCrossSiteRequest(new Headers({ "sec-fetch-site": "same-origin", origin: "https://app.example" }), url)).toBe(false);
+    expect(isCrossSiteRequest(new Headers({ "sec-fetch-site": "none" }), url)).toBe(false);
+    expect(isCrossSiteRequest(new Headers({ origin: "https://app.example" }), url)).toBe(false);
+    expect(isCrossSiteRequest(new Headers(), url)).toBe(false);
+  });
+});
+
+describe("malformed bodies", () => {
+  it("returns 400 instead of 500 when the JSON body is not an object", async () => {
+    const res = await POST(makeRequest(null as unknown as object, { "x-forwarded-for": "9.9.9.3" }));
+    expect(res.status).toBe(400);
+    const res2 = await POST(makeRequest([] as unknown as object, { "x-forwarded-for": "9.9.9.4" }));
+    expect(res2.status).toBe(400);
+  });
+});
