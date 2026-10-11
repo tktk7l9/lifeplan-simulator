@@ -1,9 +1,8 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { z } from "zod";
-import "@/lib/zod-ja";
+import type { ExpenseValues } from "./schemas";
+import { lazyResolver } from "./lazy-resolver";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
   Form,
@@ -19,12 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useStoreSync } from "./useStoreSync";
 
-const schema = z.object({
-  monthlyLivingExpense: z.number().min(0).max(200),
-  inflationRate: z.number().min(0).max(5),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = ExpenseValues;
 
 interface Props {
   onNext: () => void;
@@ -34,7 +28,7 @@ export function ExpenseStep({ onNext }: Props) {
   const { input, updateInput } = useSimulationStore();
 
   const form = useForm<FormValues>({
-    resolver: standardSchemaResolver(schema),
+    resolver: lazyResolver<FormValues>("expense"),
     defaultValues: {
       monthlyLivingExpense: input.monthlyLivingExpense ?? 20,
       inflationRate: input.inflationRate ?? 1.5,

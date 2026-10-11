@@ -1,9 +1,8 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { z } from "zod";
-import "@/lib/zod-ja";
+import type { InvestmentValues } from "./schemas";
+import { lazyResolver } from "./lazy-resolver";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
   Form,
@@ -89,22 +88,7 @@ function ProductPicker({
   );
 }
 
-const schema = z.object({
-  currentSavings: z.number().min(0).max(100000),
-  currentInvestmentAssets: z.number().min(0).max(100000),
-  monthlyInvestment: z.number().min(0).max(100),
-  investmentReturnRate: z.number().min(0).max(30),
-  nisaAccumulationMonthly: z.number().min(0).max(10),
-  nisaGrowthMonthly: z.number().min(0).max(20),
-  nisaProductId: z.string(),
-  nisaReturnRate: z.number().min(0).max(30),
-  monthlyIdeco: z.number().min(0).max(6.8),
-  idecoProductId: z.string(),
-  idecoReturnRate: z.number().min(0).max(30),
-  shokiboKigyoMonthly: z.number().min(0).max(7),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = InvestmentValues;
 
 interface Props {
   onNext: () => void;
@@ -114,7 +98,7 @@ export function InvestmentStep({ onNext }: Props) {
   const { input, updateInput } = useSimulationStore();
 
   const form = useForm<FormValues>({
-    resolver: standardSchemaResolver(schema),
+    resolver: lazyResolver<FormValues>("investment"),
     defaultValues: {
       currentSavings: input.currentSavings ?? 200,
       currentInvestmentAssets: input.currentInvestmentAssets ?? 50,

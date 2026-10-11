@@ -1,9 +1,8 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { z } from "zod";
-import "@/lib/zod-ja";
+import type { InsuranceValues } from "./schemas";
+import { lazyResolver } from "./lazy-resolver";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
   Form,
@@ -19,18 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useStoreSync } from "./useStoreSync";
 
-const schema = z.object({
-  lifeInsurancePremiumMonthly: z.number().min(0).max(20),
-  medicalCostMonthlyAt70: z.number().min(0).max(30),
-  nursingCareStartAge: z.number().min(0).max(100),
-  nursingCareCostMonthly: z.number().min(0).max(50),
-  corporatePensionMonthly: z.number().min(0).max(50),
-  corporateDCBalance: z.number().min(0).max(5000),
-  corporateDCMonthly: z.number().min(0).max(10),
-  useAgeBasedSpendingCurve: z.boolean(),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = InsuranceValues;
 
 interface Props {
   onNext: () => void;
@@ -40,7 +28,7 @@ export function InsuranceStep({ onNext }: Props) {
   const { input, updateInput } = useSimulationStore();
 
   const form = useForm<FormValues>({
-    resolver: standardSchemaResolver(schema),
+    resolver: lazyResolver<FormValues>("insurance"),
     defaultValues: {
       lifeInsurancePremiumMonthly: input.lifeInsurancePremiumMonthly ?? 0.8,
       medicalCostMonthlyAt70: input.medicalCostMonthlyAt70 ?? 1.5,

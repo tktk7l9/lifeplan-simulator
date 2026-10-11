@@ -1,9 +1,8 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { z } from "zod";
-import "@/lib/zod-ja";
+import type { HousingValues } from "./schemas";
+import { lazyResolver } from "./lazy-resolver";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
   Form,
@@ -20,17 +19,7 @@ import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { useStoreSync } from "./useStoreSync";
 
-const schema = z.object({
-  housingType: z.enum(["rent", "buy", "own"]),
-  monthlyRent: z.number().min(0).max(100),
-  purchaseAge: z.number().min(18).max(80),
-  propertyPrice: z.number().min(0).max(100000),
-  downPayment: z.number().min(0).max(50000),
-  mortgageRate: z.number().min(0).max(10),
-  mortgagePeriod: z.number().min(5).max(50),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = HousingValues;
 
 interface Props {
   onNext: () => void;
@@ -73,7 +62,7 @@ export function HousingStep({ onNext }: Props) {
   const { input, updateInput } = useSimulationStore();
 
   const form = useForm<FormValues>({
-    resolver: standardSchemaResolver(schema),
+    resolver: lazyResolver<FormValues>("housing"),
     defaultValues: {
       housingType: input.housingType ?? "rent",
       monthlyRent: input.monthlyRent ?? 10,
