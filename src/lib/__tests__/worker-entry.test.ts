@@ -65,6 +65,7 @@ describe("withScriptNonceCsp", () => {
         transform(response: Response) {
           for (const attrs of [{}, { src: "/_next/static/chunks/a.js" }] as Record<string, string>[]) {
             this.handler?.({
+              getAttribute: (name) => (name in attrs ? attrs[name] : null),
               hasAttribute: (name) => name in attrs,
               setAttribute: (name, value) => (attrs[name] = value),
             });
