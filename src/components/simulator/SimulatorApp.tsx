@@ -1,16 +1,13 @@
 "use client";
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import Link from "next/link";
+import { loadStepSchemas } from "./steps/lazy-resolver";
+import { whenIdle } from "@/lib/when-idle";
 import { useSimulationStore, RESULT_STEP } from "@/store/simulationStore";
 import { BasicInfoStep } from "./steps/BasicInfoStep";
 import { TinySpinner, type SpinnerShape } from "@/components/three/TinySpinner";
-import { IncomeStep } from "./steps/IncomeStep";
-import { ExpenseStep } from "./steps/ExpenseStep";
-import { HousingStep } from "./steps/HousingStep";
-import { LifeEventsStep } from "./steps/LifeEventsStep";
-import { InvestmentStep } from "./steps/InvestmentStep";
-import { InsuranceStep } from "./steps/InsuranceStep";
+import { lazyStep } from "./steps/lazy-step";
 import { SavedSimulationsDrawer } from "./SavedSimulationsDrawer";
 import { Toaster, showToast } from "@/components/ui/undo-toast";
 import { cn } from "@/lib/utils";
@@ -19,6 +16,16 @@ import type { SimulationInput } from "@/lib/simulation/types";
 const ResultsView = lazy(() =>
   import("./results/ResultsView").then(m => ({ default: m.ResultsView }))
 );
+
+// Only the first step (the one a new visitor lands on) ships with the page; the others load once
+// the page is idle (see the effect in SimulatorApp) or when they are opened first.
+const IncomeStep = lazyStep(() => import("./steps/IncomeStep").then((m) => m.IncomeStep));
+const ExpenseStep = lazyStep(() => import("./steps/ExpenseStep").then((m) => m.ExpenseStep));
+const HousingStep = lazyStep(() => import("./steps/HousingStep").then((m) => m.HousingStep));
+const LifeEventsStep = lazyStep(() => import("./steps/LifeEventsStep").then((m) => m.LifeEventsStep));
+const InvestmentStep = lazyStep(() => import("./steps/InvestmentStep").then((m) => m.InvestmentStep));
+const InsuranceStep = lazyStep(() => import("./steps/InsuranceStep").then((m) => m.InsuranceStep));
+const LAZY_STEPS = [IncomeStep, ExpenseStep, HousingStep, LifeEventsStep, InvestmentStep, InsuranceStep];
 
 const STEPS = [
   { label: "ベースキャンプ", sublabel: "基本情報・家族構成", icon: "🏕️", short: "BC" },
@@ -78,6 +85,13 @@ const STEP_COMPONENTS = [
   BasicInfoStep, IncomeStep, ExpenseStep,
   HousingStep, LifeEventsStep, InvestmentStep, InsuranceStep,
 ];
+
+// A returning visitor reopens on the step they left (persisted in localStorage, already
+// rehydrated when this module runs); start fetching that step's code now rather than at idle time.
+if (typeof window !== "undefined") {
+  const resumed = STEP_COMPONENTS[useSimulationStore.getState().currentStep];
+  if (resumed && "preload" in resumed) void resumed.preload().catch(() => {});
+}
 
 /* ── Trail sidebar ───────────────────────────────────────── */
 function TrailSidebar({ currentStep, onJumpTo }: { currentStep: number; onJumpTo: (i: number) => void }) {
@@ -282,6 +296,17 @@ function MobileTrailBar({ currentStep, onJumpTo }: { currentStep: number; onJump
 export function SimulatorApp() {
   const { currentStep, sessionId, setStep, resetInput, restoreSession } = useSimulationStore();
 
+  // The other steps and the form schemas (with zod) are left out of the first paint; fetch them
+  // while the page is idle afterwards so moving on or pressing "次へ進む" never waits for them.
+  useEffect(
+    () =>
+      whenIdle(() => {
+        void loadStepSchemas().catch(() => {});
+        for (const step of LAZY_STEPS) void step.preload().catch(() => {});
+      }),
+    [],
+  );
+
   const isResultStep = currentStep === RESULT_STEP;
   const StepComponent = !isResultStep && currentStep < STEP_COMPONENTS.length
     ? STEP_COMPONENTS[currentStep] : null;
@@ -383,7 +408,11 @@ export function SimulatorApp() {
 
               {/* Step content */}
               <div className="p-4 sm:p-6">
-                {StepComponent && <StepComponent key={sessionId} onNext={handleNext} />}
+                {StepComponent && (
+                  <Suspense fallback={<div className="flex items-center justify-center h-64 text-amber-700 font-semibold">読み込み中…</div>}>
+                    <StepComponent key={sessionId} onNext={handleNext} />
+                  </Suspense>
+                )}
               </div>
 
               {/* Navigation */}
