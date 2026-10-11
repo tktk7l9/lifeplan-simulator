@@ -1,9 +1,8 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { z } from "zod";
-import "@/lib/zod-ja";
+import type { IncomeValues } from "./schemas";
+import { lazyResolver } from "./lazy-resolver";
 import { useState } from "react";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
@@ -48,29 +47,7 @@ const SPOUSE_EMPLOYMENT_OPTIONS: { value: SpouseEmploymentType; label: string; d
   { value: "homemaker",          label: "専業主婦・主夫",  desc: "第3号被保険者" },
 ];
 
-const schema = z.object({
-  employmentType: z.enum(["employee", "civil_servant", "employee_freelance", "self_employed", "freelance", "part_time"]),
-  annualIncome: z.number().min(0).max(10000),
-  incomeGrowthRate: z.number().min(0).max(20),
-  hasSideIncome: z.boolean(),
-  sideIncomeMonthly: z.number().min(0).max(200),
-  hasPostRetirementIncome: z.boolean(),
-  postRetirementIncomeMonthly: z.number().min(0).max(100),
-  postRetirementIncomeUntilAge: z.number().min(60).max(80),
-  spouseEmploymentType: z.enum(["employee", "civil_servant", "employee_freelance", "self_employed", "freelance", "part_time", "homemaker"]),
-  spouseAnnualIncome: z.number().min(0).max(10000),
-  spouseIncomeGrowthRate: z.number().min(0).max(20),
-  hasSpouseCareerBreak: z.boolean(),
-  spouseCareerBreakStartAge: z.number().min(20).max(55),
-  spouseCareerBreakEndAge: z.number().min(20).max(60),
-  spouseCareerBreakIncomeMonthly: z.number().min(0).max(50),
-  retirementAllowance: z.number().min(0).max(5000),
-  hasOfficerIncome: z.boolean(),
-  officerAnnualIncome: z.number().min(0).max(5000),
-  officerIncomeGrowthRate: z.number().min(0).max(20),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = IncomeValues;
 
 interface Props {
   onNext: () => void;
@@ -159,7 +136,7 @@ export function IncomeStep({ onNext }: Props) {
   const { input, updateInput } = useSimulationStore();
 
   const form = useForm<FormValues>({
-    resolver: standardSchemaResolver(schema),
+    resolver: lazyResolver<FormValues>("income"),
     defaultValues: {
       employmentType: input.employmentType ?? "employee",
       annualIncome: input.annualIncome ?? 500,

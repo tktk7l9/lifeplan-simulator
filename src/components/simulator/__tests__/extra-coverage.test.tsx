@@ -171,12 +171,10 @@ describe("SimulatorApp transitions", () => {
   it("step 6 → handleNext calls calculate + setStep(7)", async () => {
     useSimulationStore.setState({ currentStep: 6 });
     await act(async () => { render(<SimulatorApp />); });
-    // Get the form submit button for each step
-    const submit = screen.queryByText(/次へ進む|次へ/);
-    if (submit) {
-      const btn = submit.closest("button");
-      if (btn) await act(async () => { fireEvent.click(btn); });
-    }
+    // Steps after the first load on demand, so wait for this step's submit button
+    // (CI transforms the step module on first import, which can take more than a second.)
+    const submit = await screen.findByText(/次へ進む/, undefined, { timeout: 5000 });
+    await act(async () => { fireEvent.click(submit.closest("button")!); });
     // Whether calculate was called is judged by whether a result exists
     await waitFor(() => {
       // OK if there is a result or step has become 7

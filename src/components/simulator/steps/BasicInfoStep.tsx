@@ -1,9 +1,8 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { z } from "zod";
-import "@/lib/zod-ja";
+import type { BasicInfoValues } from "./schemas";
+import { lazyResolver } from "./lazy-resolver";
 import { useSimulationStore } from "@/store/simulationStore";
 import {
   Form,
@@ -26,26 +25,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import type { ChildInfo, EducationPath, SimulationInput } from "@/lib/simulation/types";
 import { useStoreSync } from "./useStoreSync";
-
-function calcAge(birthDate: string): number {
-  const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return age;
-}
-
-function ageToBirthDate(age: number): string {
-  const today = new Date();
-  const year = today.getFullYear() - age;
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
-  return `${year}-${mm}-${dd}`;
-}
-
-const MIN_AGE = 18;
-const MAX_AGE = 80;
+import { ageToBirthDate, calcAge, MAX_AGE, MIN_AGE } from "./age";
 
 /**
  * Birth year + month pickers. Only years that give an age of 18-80 can be chosen,
@@ -141,32 +121,7 @@ function ChoiceGroup<T extends string | boolean | number>({
   );
 }
 
-const schema = z.object({
-  // A date restored from an old save can fall outside the picker's range; block it on submit
-  // rather than silently saving an age the rest of the form rejects (SHIG 13, 45).
-  birthDate: z
-    .string()
-    .min(1, "生年月日を入力してください")
-    .refine((v) => {
-      const age = calcAge(v);
-      return age >= MIN_AGE && age <= MAX_AGE;
-    }, "18〜80歳の範囲で選んでください"),
-  retirementAge: z.number().min(50).max(80),
-  gender: z.enum(["male", "female"]),
-  hasSpouse: z.boolean(),
-  spouseBirthDate: z.string().optional(),
-  spouseRetirementAge: z.number().min(50).max(80),
-  childrenCount: z.number().min(0).max(5),
-  children: z.array(
-    z.object({
-      id: z.string(),
-      birthAge: z.number().min(18).max(60),
-      educationPath: z.enum(["public", "private", "mix"]),
-    })
-  ),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = BasicInfoValues;
 
 interface Props {
   onNext: () => void;
@@ -194,7 +149,7 @@ export function BasicInfoStep({ onNext }: Props) {
   const [childrenCount, setChildrenCount] = useState(input.children?.length ?? 0);
 
   const form = useForm<FormValues>({
-    resolver: standardSchemaResolver(schema),
+    resolver: lazyResolver<FormValues>("basicInfo"),
     defaultValues: {
       birthDate: input.birthDate ?? ageToBirthDate(input.age ?? 30),
       retirementAge: input.retirementAge ?? 65,
