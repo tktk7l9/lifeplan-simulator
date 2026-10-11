@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, useState, type ComponentType } from "react";
+import { lazy, Suspense, useState, type ComponentType } from "react";
 
 export interface StepProps {
   onNext: () => void;
@@ -8,11 +8,19 @@ export interface StepProps {
 
 export type LazyStep = ComponentType<StepProps> & { preload: () => Promise<void> };
 
+function StepLoading() {
+  return <div className="flex items-center justify-center h-64 text-amber-700 font-semibold">読み込み中…</div>;
+}
+
 /**
  * A step whose code is fetched on demand instead of with the first paint. `preload()` fetches it
  * ahead of time (SimulatorApp calls it once the page is idle); a step that mounts after that
  * renders synchronously, so moving to it shows no loading state. A failed fetch is forgotten so
  * the next mount or preload tries again.
+ *
+ * The Suspense boundary lives here, around the not-yet-loaded case only: a boundary around the
+ * server-rendered first step would let React stream that (large) step after a "読み込み中…"
+ * placeholder.
  */
 export function lazyStep(load: () => Promise<ComponentType<StepProps>>): LazyStep {
   let Loaded: ComponentType<StepProps> | undefined;
@@ -33,8 +41,13 @@ export function lazyStep(load: () => Promise<ComponentType<StepProps>>): LazySte
   function Step(props: StepProps) {
     // Decided once per mount: switching from <Deferred> to <Loaded> later would remount the
     // form and drop what the user is typing.
-    const [Component] = useState<ComponentType<StepProps>>(() => Loaded ?? Deferred);
-    return <Component {...props} />;
+    const [Ready] = useState(() => Loaded);
+    if (Ready) return <Ready {...props} />;
+    return (
+      <Suspense fallback={<StepLoading />}>
+        <Deferred {...props} />
+      </Suspense>
+    );
   }
   return Object.assign(Step, { preload });
 }

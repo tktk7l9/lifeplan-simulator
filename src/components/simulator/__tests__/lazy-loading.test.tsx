@@ -4,7 +4,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, fireEvent } from "@testing-library/react";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import type { FieldValues, ResolverOptions } from "react-hook-form";
 import { lazyResolver, loadStepSchemas } from "../steps/lazy-resolver";
 import { lazyStep, type StepProps } from "../steps/lazy-step";
@@ -75,17 +75,14 @@ function Counter({ onNext }: StepProps) {
 }
 
 describe("lazyStep", () => {
-  it("shows the Suspense fallback until the step's code arrives, then the step", async () => {
+  it("shows its own loading state until the step's code arrives, then the step", async () => {
     let resolve!: (c: typeof Counter) => void;
     const Step = lazyStep(() => new Promise((r) => (resolve = r)));
-    render(
-      <Suspense fallback={<p>loading</p>}>
-        <Step onNext={() => {}} />
-      </Suspense>,
-    );
-    expect(screen.getByText("loading")).toBeTruthy();
+    render(<Step onNext={() => {}} />);
+    expect(screen.getByText("読み込み中…")).toBeTruthy();
     await act(async () => resolve(Counter));
     expect(await screen.findByText("count 0")).toBeTruthy();
+    expect(screen.queryByText("読み込み中…")).toBeNull();
   });
 
   it("renders without a loading state once preloaded", async () => {
@@ -94,12 +91,8 @@ describe("lazyStep", () => {
     await Step.preload();
     await Step.preload();
     expect(load).toHaveBeenCalledTimes(1);
-    render(
-      <Suspense fallback={<p>loading</p>}>
-        <Step onNext={() => {}} />
-      </Suspense>,
-    );
-    expect(screen.queryByText("loading")).toBeNull();
+    render(<Step onNext={() => {}} />);
+    expect(screen.queryByText("読み込み中…")).toBeNull();
     expect(screen.getByText("count 0")).toBeTruthy();
   });
 
@@ -109,10 +102,10 @@ describe("lazyStep", () => {
     const onNext = vi.fn();
     function Parent({ tick }: { tick: number }) {
       return (
-        <Suspense fallback={<p>loading</p>}>
+        <>
           <span>tick {tick}</span>
           <Step onNext={onNext} />
-        </Suspense>
+        </>
       );
     }
     const { rerender } = render(<Parent tick={0} />);

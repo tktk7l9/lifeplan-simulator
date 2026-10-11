@@ -408,11 +408,8 @@ export function SimulatorApp() {
 
               {/* Step content */}
               <div className="p-4 sm:p-6">
-                {StepComponent && (
-                  <Suspense fallback={<div className="flex items-center justify-center h-64 text-amber-700 font-semibold">読み込み中…</div>}>
-                    <StepComponent key={sessionId} onNext={handleNext} />
-                  </Suspense>
-                )}
+                {/* Lazy steps carry their own Suspense boundary (steps/lazy-step.tsx). */}
+                {StepComponent && <StepComponent key={sessionId} onNext={handleNext} />}
               </div>
 
               {/* Navigation */}
