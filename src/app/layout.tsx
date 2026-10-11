@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { Analytics } from "@/components/Analytics";
 import { SITE_URL } from "@/lib/site";
 
 const jetBrainsMono = JetBrains_Mono({
@@ -75,14 +76,8 @@ export default function RootLayout({
     <html lang="ja" className={`${jetBrainsMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>{children}</Providers>
-        {/* Cloudflare Web Analytics (the token is a public identifier, not a secret) */}
-        {/* eslint-disable-next-line @next/next/no-sync-scripts --
-            a type="module" script is deferred by spec, so it does not block the parser */}
-        <script
-          type="module"
-          src="https://static.cloudflareinsights.com/beacon.min.js"
-          data-cf-beacon={'{"token": "cd156fbf0fd24da0a12e58fdb4e63828"}'}
-        />
+        {/* Cloudflare Web Analytics, appended after hydration (see the component) */}
+        <Analytics />
       </body>
     </html>
   );

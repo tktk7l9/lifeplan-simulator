@@ -29,6 +29,7 @@
 | フォーム | React Hook Form + Zod |
 | 状態管理 | Zustand（localStorage永続化） |
 | AI | Anthropic SDK（Claude API） |
+| ホスティング | Cloudflare Workers（OpenNext）。CSP はリクエストごとの nonce を Worker が付与（`script-src` に `'unsafe-inline'` なし） |
 
 ## セットアップ
 

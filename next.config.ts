@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { contentSecurityPolicy } from "./src/lib/csp";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -16,19 +17,9 @@ const securityHeaders = [
   },
   {
     key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      // Next.js requires unsafe-inline for styles and inline scripts (RSC). unsafe-eval is only for dev HMR.
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://static.cloudflareinsights.com`,
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob:",
-      "font-src 'self'",
-      "connect-src 'self' https://cloudflareinsights.com",
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "object-src 'none'",
-    ].join("; "),
+    // Static baseline (src/lib/csp.ts). In production worker.ts replaces script-src
+    // 'unsafe-inline' with a per-request nonce on every HTML response (src/lib/csp-nonce.ts).
+    value: contentSecurityPolicy({ dev: isDev }),
   },
 ];
 
