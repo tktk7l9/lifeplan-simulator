@@ -2,7 +2,13 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { contentSecurityPolicy } from "../csp";
-import { CSP_HEADER, type Rewriter, type ScriptElement } from "../csp-nonce";
+import {
+  BROWSER_CACHE_CONTROL,
+  CACHE_CONTROL_HEADER,
+  CSP_HEADER,
+  type Rewriter,
+  type ScriptElement,
+} from "../csp-nonce";
 import { type FetchHandler, withScriptNonceCsp } from "../worker-entry";
 
 const root = path.resolve(__dirname, "../../..");
@@ -111,6 +117,30 @@ describe("withScriptNonceCsp", () => {
     const a = await worker.fetch(new Request("https://example.test/"), {}, {});
     const b = await worker.fetch(new Request("https://example.test/"), {}, {});
     expect(a.headers.get(CSP_HEADER)).not.toBe(b.headers.get(CSP_HEADER));
+  });
+
+  it("rewrites the CDN-directed Cache-Control of pages and RSC payloads for browsers, keeping the nonce", async () => {
+    const intercepted = "s-maxage=31536000, stale-while-revalidate=2592000";
+    openNextFetch.mockResolvedValueOnce(
+      new Response("<script>self.__next_f.push([])</script>", {
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          [CSP_HEADER]: contentSecurityPolicy(),
+          [CACHE_CONTROL_HEADER]: intercepted,
+        },
+      }),
+    );
+    const html = await worker.fetch(new Request("https://example.test/simulator"), {}, {});
+    expect(html.headers.get(CACHE_CONTROL_HEADER)).toBe(BROWSER_CACHE_CONTROL);
+    expect(html.headers.get(CSP_HEADER)).toMatch(/'nonce-/);
+
+    openNextFetch.mockResolvedValueOnce(
+      new Response("0:[]", { headers: { "content-type": "text/x-component", [CACHE_CONTROL_HEADER]: intercepted } }),
+    );
+    const rsc = await worker.fetch(new Request("https://example.test/simulator?_rsc=abc12"), {}, {});
+    expect(rsc.headers.get(CACHE_CONTROL_HEADER)).toBe(BROWSER_CACHE_CONTROL);
+    expect(rsc.headers.get("content-type")).toBe("text/x-component");
+    expect(await rsc.text()).toBe("0:[]");
   });
 
   it("returns non-HTML responses from OpenNext unchanged", async () => {

@@ -1,7 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { contentSecurityPolicy } from "../csp";
 import {
+  applyBrowserCacheControl,
   applyScriptNonce,
+  BROWSER_CACHE_CONTROL,
+  browserCacheControl,
+  CACHE_CONTROL_HEADER,
   createNonce,
   CSP_HEADER,
   isInlineJavaScript,
@@ -250,5 +254,46 @@ describe("applyScriptNonce", () => {
 
   it("fails loudly outside the Workers runtime instead of serving a nonce nobody stamped", () => {
     expect(() => applyScriptNonce(html(), { nonce: "N" })).toThrow(/HTMLRewriter/);
+  });
+});
+
+describe("browserCacheControl", () => {
+  it("turns any CDN-directed value (s-maxage) into the revalidating browser value", () => {
+    expect(browserCacheControl("s-maxage=31536000, stale-while-revalidate=2592000")).toBe(BROWSER_CACHE_CONTROL);
+    expect(browserCacheControl("s-maxage=31536000")).toBe(BROWSER_CACHE_CONTROL);
+    expect(browserCacheControl("public, S-MAXAGE = 60")).toBe(BROWSER_CACHE_CONTROL);
+  });
+
+  it("leaves browser-directed values and a missing header alone", () => {
+    expect(browserCacheControl("private, no-cache, no-store, max-age=0, must-revalidate")).toBe(
+      "private, no-cache, no-store, max-age=0, must-revalidate",
+    );
+    // "max-age" alone must not match the s-maxage pattern.
+    expect(browserCacheControl("public, max-age=31536000, immutable")).toBe("public, max-age=31536000, immutable");
+    expect(browserCacheControl(null)).toBeNull();
+  });
+});
+
+describe("applyBrowserCacheControl", () => {
+  it("rewrites the header, keeping status, the other headers and the body", async () => {
+    const res = applyBrowserCacheControl(
+      new Response("body", {
+        status: 404,
+        statusText: "Not Found",
+        headers: { "content-type": "text/html", [CACHE_CONTROL_HEADER]: "s-maxage=1", [CSP_HEADER]: STATIC_CSP },
+      }),
+    );
+    expect(res.headers.get(CACHE_CONTROL_HEADER)).toBe(BROWSER_CACHE_CONTROL);
+    expect(res.headers.get(CSP_HEADER)).toBe(STATIC_CSP);
+    expect(res.status).toBe(404);
+    expect(res.statusText).toBe("Not Found");
+    expect(await res.text()).toBe("body");
+  });
+
+  it("returns the same response when there is nothing to rewrite", () => {
+    const plain = new Response("x");
+    expect(applyBrowserCacheControl(plain)).toBe(plain);
+    const browser = new Response("x", { headers: { [CACHE_CONTROL_HEADER]: BROWSER_CACHE_CONTROL } });
+    expect(applyBrowserCacheControl(browser)).toBe(browser);
   });
 });
