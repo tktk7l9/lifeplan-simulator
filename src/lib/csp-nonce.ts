@@ -163,3 +163,31 @@ export function applyScriptNonce(
     })
     .transform(rewritten);
 }
+
+// Next sends a CDN-directed Cache-Control for prerendered routes, and OpenNext's cache
+// interception sends `s-maxage=31536000, stale-while-revalidate=2592000` for them. Vercel
+// rewrites such a value to BROWSER_CACHE_CONTROL for browsers; Workers pass it on, so after a
+// deploy Chrome would keep serving stale RSC payloads from its disk cache (stale-while-revalidate)
+// and they would request chunks that no longer exist. Five sibling apps broke this way and got
+// the same rewrite on 2026-10-20.
+export const CACHE_CONTROL_HEADER = "Cache-Control";
+export const BROWSER_CACHE_CONTROL = "public, max-age=0, must-revalidate";
+const S_MAXAGE_DIRECTIVE = /(^|,)\s*s-maxage\s*=/i;
+
+/**
+ * The Cache-Control the browser should get: BROWSER_CACHE_CONTROL when the value has an
+ * `s-maxage` directive, otherwise the value as it is (null stays null).
+ */
+export function browserCacheControl(value: string | null): string | null {
+  return value !== null && S_MAXAGE_DIRECTIVE.test(value) ? BROWSER_CACHE_CONTROL : value;
+}
+
+/** Applies browserCacheControl to any response (HTML, RSC payload, route handler), copying headers only when the value changes. */
+export function applyBrowserCacheControl(response: Response): Response {
+  const value = response.headers.get(CACHE_CONTROL_HEADER);
+  const normalized = browserCacheControl(value);
+  if (normalized === null || normalized === value) return response;
+  const headers = new Headers(response.headers);
+  headers.set(CACHE_CONTROL_HEADER, normalized);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
