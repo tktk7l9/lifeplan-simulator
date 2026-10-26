@@ -200,6 +200,51 @@ ${input.housingType === "buy" ? `- 住宅購入価格: ${input.propertyPrice ?? 
 }`;
 }
 
+// ── Request body ──────────────────────────────────────────────────────────
+
+/**
+ * Largest request body accepted, in bytes. The form sends a few KB (one SimulationInput plus
+ * the SimulationResult summary); anything larger did not come from it. Checked before
+ * JSON.parse so a large body cannot spend the Worker's CPU or memory.
+ */
+export const MAX_BODY_BYTES = 64 * 1024;
+
+/**
+ * Reads the request body as text, or returns null once it exceeds `limit` bytes: a larger
+ * Content-Length is rejected before reading, and a stream without one is counted as it
+ * arrives and cancelled at the limit, so the rest is never buffered.
+ */
+export async function readBodyWithin(request: Request, limit: number): Promise<string | null> {
+  const declared = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > limit) return null;
+  if (!request.body) return "";
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    received += value.byteLength;
+    if (received > limit) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+
+  const bytes = new Uint8Array(received);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
+/** Shown when the model's reply could not be turned into an evaluation; the cause is logged, not returned. */
+const UNREADABLE_AI_RESPONSE = "AIの回答を読み取れませんでした。もう一度お試しください。";
+
 // ── Route handler ─────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
@@ -217,8 +262,18 @@ export async function POST(request: Request) {
     );
   }
 
+  const raw = await readBodyWithin(request, MAX_BODY_BYTES);
+  if (raw === null) {
+    return Response.json({ error: "入力データが大きすぎます。" }, { status: 413 });
+  }
+  let body: unknown;
   try {
-    const body: unknown = await request.json();
+    body = JSON.parse(raw);
+  } catch {
+    return Response.json({ error: "入力データが不正です。" }, { status: 400 });
+  }
+
+  try {
     const { input, result } =
       typeof body === "object" && body !== null ? (body as { input?: unknown; result?: unknown }) : {};
 
@@ -238,18 +293,22 @@ export async function POST(request: Request) {
       messages: [{ role: "user", content: prompt }],
     });
 
-    const text = message.content[0].type === "text" ? message.content[0].text : "";
+    // The reply may have no text block at all (e.g. stopped at max_tokens before any output).
+    const first = message.content[0];
+    const text = first?.type === "text" ? first.text : "";
 
     // Extract JSON — prefer extracting the first complete object
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      return Response.json({ error: "AI response parse failed" }, { status: 500 });
+      console.error("[evaluate] AI response has no JSON object");
+      return Response.json({ error: UNREADABLE_AI_RESPONSE }, { status: 500 });
     }
 
     // Validate AI response with Zod
     const evalParsed = AIEvaluationSchema.safeParse(JSON.parse(jsonMatch[0]));
     if (!evalParsed.success) {
-      return Response.json({ error: "AI response validation failed" }, { status: 500 });
+      console.error("[evaluate] AI response failed schema validation");
+      return Response.json({ error: UNREADABLE_AI_RESPONSE }, { status: 500 });
     }
 
     const evaluation: AIEvaluation = evalParsed.data as AIEvaluation;

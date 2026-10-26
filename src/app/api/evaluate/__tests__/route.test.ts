@@ -295,3 +295,105 @@ describe("malformed bodies", () => {
     expect(res2.status).toBe(400);
   });
 });
+
+describe("request body limits", () => {
+  const ok = {
+    content: [{ type: "text", text: JSON.stringify({
+      score: 70, rank: "B", summary: "x", strengths: ["a"], improvements: ["b"], conclusion: "c",
+    })}],
+  };
+
+  it("returns 413 when Content-Length is above the limit, without reading the body", async () => {
+    const { MAX_BODY_BYTES } = await import("../route");
+    const res = await POST(makeRequest(
+      { input: validInput, result: validResult },
+      { "x-forwarded-for": "8.8.8.1", "content-length": String(MAX_BODY_BYTES + 1) },
+    ));
+    expect(res.status).toBe(413);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("returns 413 when a body without Content-Length grows past the limit", async () => {
+    const { MAX_BODY_BYTES } = await import("../route");
+    const chunk = new TextEncoder().encode("x".repeat(1024));
+    let pulls = 0;
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulls++;
+        controller.enqueue(chunk);
+      },
+    });
+    const req = new Request("http://localhost/api/evaluate", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-forwarded-for": "8.8.8.2" },
+      body,
+      duplex: "half",
+    } as RequestInit);
+    const res = await POST(req);
+    expect(res.status).toBe(413);
+    // Reading stopped shortly after the limit instead of draining the stream.
+    expect(pulls).toBeLessThanOrEqual(MAX_BODY_BYTES / 1024 + 2);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("accepts a body at the limit that arrives without Content-Length", async () => {
+    const { readBodyWithin } = await import("../route");
+    const text = "y".repeat(2048);
+    const encoder = new TextEncoder();
+    const req = new Request("http://localhost/api/evaluate", {
+      method: "POST",
+      body: new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(encoder.encode(text.slice(0, 1000)));
+          controller.enqueue(encoder.encode(text.slice(1000)));
+          controller.close();
+        },
+      }),
+      duplex: "half",
+    } as RequestInit);
+    expect(await readBodyWithin(req, 2048)).toBe(text);
+  });
+
+  it("returns an empty string for a request without a body", async () => {
+    const { readBodyWithin } = await import("../route");
+    expect(await readBodyWithin(new Request("http://localhost/api/evaluate"), 10)).toBe("");
+  });
+
+  it("returns 400, not 500, when the body is not JSON", async () => {
+    const res = await POST(new Request("http://localhost/api/evaluate", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-forwarded-for": "8.8.8.3" },
+      body: "{not json",
+    }));
+    expect(res.status).toBe(400);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("still evaluates a normal body (Content-Length under the limit)", async () => {
+    create.mockResolvedValueOnce(ok);
+    const res = await POST(makeRequest({ input: validInput, result: validResult }, { "x-forwarded-for": "8.8.8.4" }));
+    expect(res.status).toBe(200);
+  });
+});
+
+describe("AI reply handling", () => {
+  it("returns 500 with a readable message when the reply has no text block", async () => {
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    create.mockResolvedValueOnce({ content: [] });
+    const res = await POST(makeRequest({ input: validInput, result: validResult }, { "x-forwarded-for": "8.8.8.5" }));
+    expect(res.status).toBe(500);
+    const data = await res.json() as { error: string };
+    expect(data.error).toBe("AIの回答を読み取れませんでした。もう一度お試しください。");
+    errSpy.mockRestore();
+  });
+
+  it("does not echo the model's text or the SDK error in the response", async () => {
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    create.mockRejectedValueOnce(new Error("401 invalid x-api-key"));
+    const res = await POST(makeRequest({ input: validInput, result: validResult }, { "x-forwarded-for": "8.8.8.6" }));
+    const text = await res.text();
+    expect(text).not.toContain("x-api-key");
+    expect(text).not.toContain("401");
+    errSpy.mockRestore();
+  });
+});

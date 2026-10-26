@@ -327,3 +327,24 @@ describe("mobile trail targets are at least 44px (SHIG 78, 93)", () => {
     for (const d of dots) expect(d.className).toMatch(/min-h-11/);
   });
 });
+
+describe("AI evaluation: an error page that is not JSON still reads as a sentence (SHIG 11)", () => {
+  it("shows the fallback message instead of a JSON parser error", async () => {
+    useSimulationStore.getState().setStep(RESULT_STEP);
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("<html>Worker exceeded CPU</html>", { status: 503 })));
+    render(<AIEvaluationCard />);
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "AI総評を取得する" })); });
+    await waitFor(() => expect(screen.getByText("評価の取得に失敗しました")).toBeTruthy());
+    expect(screen.queryByText(/Unexpected token/)).toBeNull();
+    vi.unstubAllGlobals();
+  });
+
+  it("shows the server's own message when the error body is JSON", async () => {
+    useSimulationStore.getState().setStep(RESULT_STEP);
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: "入力データが大きすぎます。" }, { status: 413 })));
+    render(<AIEvaluationCard />);
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "AI総評を取得する" })); });
+    await waitFor(() => expect(screen.getByText("入力データが大きすぎます。")).toBeTruthy());
+    vi.unstubAllGlobals();
+  });
+});

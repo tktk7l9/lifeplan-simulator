@@ -112,8 +112,10 @@ export function AIEvaluationCard() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? "評価の取得に失敗しました");
+        // An error from the edge (CPU limit, 413) is an HTML or text page, not our JSON; keep
+        // the message readable instead of surfacing the parser's "Unexpected token" (SHIG 11).
+        const data = (await res.json().catch(() => null)) as { error?: unknown } | null;
+        throw new Error(typeof data?.error === "string" ? data.error : "評価の取得に失敗しました");
       }
 
       const data: AIEvaluation = await res.json();
