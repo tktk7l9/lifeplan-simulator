@@ -24,7 +24,6 @@ beforeEach(() => {
     result: null,
     isCalculating: false,
     savedSimulations: [],
-    aiEvaluation: null,
   });
   useSimulationStore.getState().calculate();
 });

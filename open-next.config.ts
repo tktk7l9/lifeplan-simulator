@@ -7,7 +7,7 @@
 // are what hit Workers error 1102 (CPU limit) in ai-primer. staticAssetsIncrementalCache places
 // the prerender output under cdn-cgi/_next_cache/ in Workers static assets (reachable only
 // through the ASSETS binding) and serves it as is. It is read-only, which fits: neither ISR nor
-// on-demand revalidation is used. /api/evaluate stays dynamic.
+// on-demand revalidation is used.
 // The HTML still passes through worker.ts, so every response keeps its own script nonce.
 //
 // enableCacheInterception answers those prerendered routes before the Next server loads; without

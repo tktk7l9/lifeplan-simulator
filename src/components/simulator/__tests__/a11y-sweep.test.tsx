@@ -4,10 +4,9 @@
  * and error text that keeps 4.5:1 on its tinted background (SHIG 96).
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { DataTable } from "../results/DataTable";
 import { MonteCarloChart } from "../results/MonteCarloChart";
-import { AIEvaluationCard } from "../results/AIEvaluationCard";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useSimulationStore } from "@/store/simulationStore";
 import type { MonteCarloDataPoint, SimulationInput } from "@/lib/simulation/types";
@@ -28,7 +27,6 @@ beforeEach(() => {
     result: null,
     isCalculating: false,
     savedSimulations: [],
-    aiEvaluation: null,
   });
   useSimulationStore.getState().calculate();
 });
@@ -64,26 +62,5 @@ describe("dialog close button", () => {
     );
     expect(screen.getByRole("button", { name: "閉じる" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
-  });
-});
-
-describe("AIEvaluationCard error", () => {
-  it("uses a dark red that keeps 4.5:1 on bg-red-50", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      json: async () => ({ error: "評価の取得に失敗しました" }),
-    });
-    vi.stubGlobal("fetch", fetchMock);
-    try {
-      render(<AIEvaluationCard />);
-      await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /AI総評を取得/ }));
-      });
-      const msg = await waitFor(() => screen.getByText("評価の取得に失敗しました"));
-      expect(msg.className).toContain("text-red-700");
-      expect(msg.className).not.toContain("text-destructive");
-    } finally {
-      vi.unstubAllGlobals();
-    }
   });
 });

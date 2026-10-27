@@ -13,7 +13,6 @@ beforeEach(() => {
     result: null,
     isCalculating: false,
     savedSimulations: [],
-    aiEvaluation: null,
   });
 });
 
@@ -44,17 +43,6 @@ describe("simulationStore", () => {
     expect(s.result).not.toBeNull();
     expect(s.isCalculating).toBe(false);
     expect(s.result?.yearlyData.length).toBeGreaterThan(0);
-  });
-
-  it("calculate: resets an existing aiEvaluation", () => {
-    useSimulationStore.setState({
-      aiEvaluation: {
-        score: 80, rank: "A", summary: "x",
-        strengths: [], improvements: [], conclusion: "",
-      },
-    });
-    useSimulationStore.getState().calculate();
-    expect(useSimulationStore.getState().aiEvaluation).toBeNull();
   });
 
   it("calculate: works with defaults for incomplete input", () => {
@@ -111,14 +99,6 @@ describe("simulationStore", () => {
     useSimulationStore.getState().deleteSimulation("sim_1");
     expect(useSimulationStore.getState().savedSimulations).toHaveLength(1);
     expect(useSimulationStore.getState().savedSimulations[0].name).toBe("B");
-  });
-
-  it("setAiEvaluation: sets and clears the evaluation", () => {
-    const ev = { score: 75, rank: "A" as const, summary: "good", strengths: [], improvements: [], conclusion: "" };
-    useSimulationStore.getState().setAiEvaluation(ev);
-    expect(useSimulationStore.getState().aiEvaluation).toEqual(ev);
-    useSimulationStore.getState().setAiEvaluation(null);
-    expect(useSimulationStore.getState().aiEvaluation).toBeNull();
   });
 
   it("savedSimulations are written to localStorage by persist", () => {

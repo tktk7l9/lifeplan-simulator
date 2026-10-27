@@ -94,7 +94,7 @@ export default function Image() {
               marginTop: "8px",
             }}
           >
-            {["登録不要・完全無料", "100歳まで試算", "AI 総合評価"].map((badge) => (
+            {["登録不要・完全無料", "100歳まで試算", "感度分析つき"].map((badge) => (
               <div
                 key={badge}
                 style={{
