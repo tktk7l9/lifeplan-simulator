@@ -28,7 +28,6 @@ beforeEach(() => {
     resultKey: null,
     isCalculating: false,
     savedSimulations: [],
-    aiEvaluation: null,
   });
 });
 

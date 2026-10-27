@@ -1,11 +1,10 @@
 /**
- * SimulatorApp / ResultsView / SavedSimulationsDrawer / AIEvaluationCard / import dialogs
+ * SimulatorApp / ResultsView / SavedSimulationsDrawer / import dialogs
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
 import { SimulatorApp } from "../SimulatorApp";
 import { SavedSimulationsDrawer } from "../SavedSimulationsDrawer";
-import { AIEvaluationCard } from "../results/AIEvaluationCard";
 import { SensitivityAnalysis } from "../results/SensitivityAnalysis";
 import { MonteCarloChart } from "../results/MonteCarloChart";
 import { useSimulationStore } from "@/store/simulationStore";
@@ -35,7 +34,6 @@ beforeEach(() => {
     result: null,
     isCalculating: false,
     savedSimulations: [],
-    aiEvaluation: null,
   });
 });
 
@@ -95,80 +93,6 @@ describe("SavedSimulationsDrawer", () => {
     });
     render(<SavedSimulationsDrawer />);
     expect(screen.getAllByRole("button").length).toBeGreaterThan(0);
-  });
-});
-
-describe("AIEvaluationCard", () => {
-  it("no aiEvaluation: initial view with the AI review button visible", () => {
-    render(<AIEvaluationCard />);
-    expect(screen.getByText(/AI総評を取得する/)).toBeTruthy();
-  });
-
-  it("with aiEvaluation: shows the result", () => {
-    useSimulationStore.setState({
-      aiEvaluation: {
-        score: 75,
-        rank: "A",
-        summary: "良好です",
-        strengths: ["強み1", "強み2"],
-        improvements: ["改善1", "改善2"],
-        conclusion: "結論",
-      },
-    });
-    render(<AIEvaluationCard />);
-    expect(screen.getAllByText(/良好|強み|改善|A/).length).toBeGreaterThan(0);
-  });
-
-  it("clicking the button fetches (shows an error on failure)", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 500,
-      json: async () => ({ error: "Server error" }),
-    });
-    globalThis.fetch = fetchMock as unknown as typeof fetch;
-    useSimulationStore.getState().calculate();
-    render(<AIEvaluationCard />);
-    const btn = screen.getByText(/AI総評を取得する/).closest("button")!;
-    await act(async () => { fireEvent.click(btn); });
-    await waitFor(() => {
-      // Either an error is shown or aiEvaluation stays null
-      expect(fetchMock).toHaveBeenCalled();
-    });
-  });
-
-  it("a successful click sets aiEvaluation", async () => {
-    const ai = { score: 88, rank: "A", summary: "OK", strengths: ["s1"], improvements: ["i1"], conclusion: "c" };
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ai,
-    });
-    globalThis.fetch = fetchMock as unknown as typeof fetch;
-    useSimulationStore.getState().calculate();
-    render(<AIEvaluationCard />);
-    const btn = screen.getByText(/AI総評を取得する/).closest("button")!;
-    await act(async () => { fireEvent.click(btn); });
-    await waitFor(() => {
-      expect(useSimulationStore.getState().aiEvaluation?.score).toBe(88);
-    });
-  });
-
-  it("renders each rank S/B/C/D/F", () => {
-    for (const rank of ["S", "B", "C", "D", "F"] as const) {
-      useSimulationStore.setState({
-        aiEvaluation: {
-          score: 50,
-          rank,
-          summary: `${rank} 評価`,
-          strengths: ["a"],
-          improvements: ["b"],
-          conclusion: "c",
-        },
-      });
-      const { unmount } = render(<AIEvaluationCard />);
-      expect(screen.getAllByText(new RegExp(rank)).length).toBeGreaterThan(0);
-      unmount();
-    }
   });
 });
 

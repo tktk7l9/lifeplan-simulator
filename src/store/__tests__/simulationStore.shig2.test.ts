@@ -15,7 +15,6 @@ beforeEach(() => {
     resultKey: null,
     isCalculating: false,
     savedSimulations: [],
-    aiEvaluation: null,
   });
 });
 
@@ -33,16 +32,6 @@ describe("results are bound to input (SHIG 35, 29)", () => {
     s.updateInput({ monthlyLivingExpense: 60 });
     s.setStep(RESULT_STEP);
     expect(useSimulationStore.getState().result!.finalAssets).toBeLessThan(before);
-  });
-
-  it("re-entering the result step without edits keeps the AI evaluation", () => {
-    const s = useSimulationStore.getState();
-    s.setStep(RESULT_STEP);
-    const ev = { score: 70, rank: "B" as const, summary: "", strengths: [], improvements: [], conclusion: "" };
-    s.setAiEvaluation(ev);
-    s.setStep(3);
-    s.setStep(RESULT_STEP);
-    expect(useSimulationStore.getState().aiEvaluation).toEqual(ev);
   });
 });
 

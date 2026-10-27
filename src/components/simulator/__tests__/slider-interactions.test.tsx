@@ -50,7 +50,6 @@ beforeEach(() => {
     result: null,
     isCalculating: false,
     savedSimulations: [],
-    aiEvaluation: null,
   });
 });
 

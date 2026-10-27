@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AssetChart } from "./AssetChart";
 import { CashFlowChart } from "./CashFlowChart";
 import { DataTable } from "./DataTable";
-import { AIEvaluationCard } from "./AIEvaluationCard";
 import { MonteCarloChart } from "./MonteCarloChart";
 import { SensitivityAnalysis } from "./SensitivityAnalysis";
 import { LifePhaseBreakdown } from "./LifePhaseBreakdown";
@@ -674,11 +673,6 @@ export function ResultsView({ onBack }: Props) {
           ))}
         </div>
       )}
-
-      {/* AI Evaluation */}
-      <div className="print:hidden">
-        <AIEvaluationCard />
-      </div>
 
       {/* Life phase breakdown */}
       <div className="print:hidden">

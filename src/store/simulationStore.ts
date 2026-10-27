@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { SimulationInput, SimulationResult, SavedSimulation, AIEvaluation } from "@/lib/simulation/types";
+import type { SimulationInput, SimulationResult, SavedSimulation } from "@/lib/simulation/types";
 import { runSimulation } from "@/lib/simulation/calculator";
 
 /** Index of the result ("summit") step; steps 0-6 are input forms. */
@@ -12,7 +12,6 @@ export interface SessionSnapshot {
   input: Partial<SimulationInput>;
   result: SimulationResult | null;
   resultKey: string | null;
-  aiEvaluation: AIEvaluation | null;
 }
 
 interface SimulationStore {
@@ -29,7 +28,6 @@ interface SimulationStore {
   sessionId: number;
   isCalculating: boolean;
   savedSimulations: SavedSimulation[];
-  aiEvaluation: AIEvaluation | null;
 
   updateInput: (patch: Partial<SimulationInput>) => void;
   setStep: (step: number) => void;
@@ -43,7 +41,6 @@ interface SimulationStore {
   /** Starts over with default input and returns the discarded session (for undo). */
   resetInput: () => SessionSnapshot;
   restoreSession: (snapshot: SessionSnapshot) => void;
-  setAiEvaluation: (evaluation: AIEvaluation | null) => void;
 }
 
 const defaultInput: Partial<SimulationInput> = {
@@ -172,8 +169,8 @@ function toFullInput(input: Partial<SimulationInput>): SimulationInput {
 }
 
 function snapshotOf(state: SessionSnapshot): SessionSnapshot {
-  const { currentStep, input, result, resultKey, aiEvaluation } = state;
-  return { currentStep, input, result, resultKey, aiEvaluation };
+  const { currentStep, input, result, resultKey } = state;
+  return { currentStep, input, result, resultKey };
 }
 
 /** Stable key of the input a result was computed from; used to skip needless recalculation. */
@@ -191,7 +188,6 @@ export const useSimulationStore = create<SimulationStore>()(
       sessionId: 0,
       isCalculating: false,
       savedSimulations: [],
-      aiEvaluation: null,
 
       updateInput: (patch) =>
         set((state) => ({ input: { ...state.input, ...patch } })),
@@ -211,7 +207,7 @@ export const useSimulationStore = create<SimulationStore>()(
           const { input } = get();
           const fullInput = toFullInput(input);
           const result = runSimulation(fullInput);
-          set({ result, resultKey: inputKey(input), isCalculating: false, aiEvaluation: null });
+          set({ result, resultKey: inputKey(input), isCalculating: false });
         } catch {
           set({ isCalculating: false });
         }
@@ -242,7 +238,6 @@ export const useSimulationStore = create<SimulationStore>()(
           input: sim.input,
           result: sim.result,
           resultKey: inputKey(sim.input),
-          aiEvaluation: null,
           currentStep: RESULT_STEP,
           sessionId: state.sessionId + 1,
         });
@@ -273,7 +268,6 @@ export const useSimulationStore = create<SimulationStore>()(
           input: defaultInput,
           result: null,
           resultKey: null,
-          aiEvaluation: null,
           currentStep: 0,
           sessionId: state.sessionId + 1,
         }));
@@ -281,8 +275,6 @@ export const useSimulationStore = create<SimulationStore>()(
       },
 
       restoreSession: (snapshot) => set((state) => ({ ...snapshot, sessionId: state.sessionId + 1 })),
-
-      setAiEvaluation: (evaluation) => set({ aiEvaluation: evaluation }),
     }),
     {
       name: "lifeplan-simulator-store",

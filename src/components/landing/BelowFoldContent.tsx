@@ -13,7 +13,7 @@ export function BelowFoldContent() {
         <div className="lp-ticker flex gap-10 md:gap-16 whitespace-nowrap" aria-hidden>
           {[...Array(2)].map((_, di) => (
             <div key={di} className="flex gap-10 md:gap-16 items-center">
-              {["100歳までの資産推移","たった5ステップ","完全無料","登録不要","AIがFP視点で総評","モンテカルロ10,000回"].map((t, i) => (
+              {["100歳までの資産推移","たった5ステップ","完全無料","登録不要","影響度ランキング","モンテカルロ10,000回"].map((t, i) => (
                 <span key={i} className="flex items-center gap-10 md:gap-16">
                   <span className="font-black tracking-tight" style={{ fontSize: "clamp(22px,3vw,40px)" }}>{t}</span>
                   <span className="lp-mono" style={{ color: "var(--amber-400)" }}>✦</span>
@@ -183,7 +183,7 @@ export function BelowFoldContent() {
             地図だけじゃない。<span style={{ color: "var(--amber-400)" }}>天気予報</span>までついてくる。
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-6 md:gap-8 mt-16">
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8 mt-16">
             <div className="rounded-2xl p-7 relative overflow-hidden" style={{ border: "1px solid rgba(253,211,77,.25)" }}>
               <div className="flex items-center justify-between gap-2 mb-5">
                 <div className="lp-mono text-[11px]" style={{ color: "var(--amber-300)" }}>FEATURE · 01</div>
@@ -229,27 +229,6 @@ export function BelowFoldContent() {
               </div>
               <p className="text-[14px] opacity-80" style={{ lineHeight: 2.05 }}>
                 どの項目を変えるのが一番効くか、結果への影響度を自動で順位付け。「まず何を頑張ればいい?」が分かります。
-              </p>
-            </div>
-
-            <div className="rounded-2xl p-7 relative overflow-hidden" style={{ border: "1px solid rgba(253,211,77,.25)", background: "rgba(253,211,77,.05)" }}>
-              <div className="flex items-center justify-between gap-2 mb-5">
-                <div className="lp-mono text-[11px]" style={{ color: "var(--amber-300)" }}>FEATURE · 03</div>
-                <span className="lp-mono text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap" style={{ border: "1px solid var(--amber-400)", color: "var(--amber-300)" }}>AI / FP視点</span>
-              </div>
-              <div className="font-black text-[26px] md:text-[30px] mb-6" style={{ lineHeight: 1.45 }}>AIが隣で読み解く</div>
-              <div className="space-y-2 mb-6 text-[12px]" style={{ lineHeight: 2.1 }}>
-                <div className="rounded-xl px-3 py-2" style={{ background: "rgba(253,248,239,.08)" }}>
-                  <div className="lp-mono text-[9px] mb-1" style={{ color: "var(--amber-300)" }}>AI ANALYSIS</div>
-                  60歳時点で資産が大きく減る局面があります。退職金受取と住宅繰上返済を分散させると<span className="font-bold" style={{ color: "var(--amber-300)" }}>成功率が84%→92%</span>に改善します。
-                </div>
-                <div className="rounded-xl px-3 py-2 ml-6" style={{ background: "rgba(253,248,239,.08)" }}>
-                  <div className="lp-mono text-[9px] mb-1" style={{ color: "var(--amber-300)" }}>ADVICE</div>
-                  NISA枠を月2万増やすことが最も費用対効果が高いです。
-                </div>
-              </div>
-              <p className="text-[14px] opacity-80" style={{ lineHeight: 2.05 }}>
-                数字の意味、リスクのありか、次に打てる手。ファイナンシャルプランナーに相談するように、AIが総評してくれます。
               </p>
             </div>
           </div>

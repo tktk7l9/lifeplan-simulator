@@ -6,7 +6,6 @@ import { render, screen, fireEvent, act, waitFor, within } from "@testing-librar
 import { ResultsView } from "../results/ResultsView";
 import { SavedSimulationsDrawer } from "../SavedSimulationsDrawer";
 import { SimulatorApp } from "../SimulatorApp";
-import { AIEvaluationCard } from "../results/AIEvaluationCard";
 import { DataTable } from "../results/DataTable";
 import { Toaster, TOAST_DURATION_MS } from "@/components/ui/undo-toast";
 import { useSimulationStore, RESULT_STEP } from "@/store/simulationStore";
@@ -35,7 +34,6 @@ beforeEach(() => {
     resultKey: null,
     isCalculating: false,
     savedSimulations: [],
-    aiEvaluation: null,
   });
 });
 
@@ -286,25 +284,6 @@ describe("step forms never show values other than the store's (SHIG 38, 54)", ()
     await act(async () => { await useSimulationStore.persist.rehydrate(); });
     expect(screen.getByRole("radio", { name: "女性" }).getAttribute("aria-checked")).toBe("true");
     expect(screen.getByRole("radio", { name: "あり" }).getAttribute("aria-checked")).toBe("true");
-  });
-});
-
-describe("AI evaluation: 再評価 re-runs and keeps the old result meanwhile (SHIG 11, 47, 54)", () => {
-  it("re-evaluates instead of discarding", async () => {
-    useSimulationStore.getState().setStep(RESULT_STEP);
-    const first = { score: 60, rank: "C" as const, summary: "旧評価", strengths: [], improvements: [], conclusion: "" };
-    const second = { ...first, score: 80, rank: "A" as const, summary: "新評価" };
-    useSimulationStore.getState().setAiEvaluation(first);
-    let resolve!: (v: Response) => void;
-    const fetchMock = vi.fn(() => new Promise<Response>((r) => { resolve = r; }));
-    vi.stubGlobal("fetch", fetchMock);
-    render(<AIEvaluationCard />);
-    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "再評価" })); });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(screen.getByText("旧評価")).toBeTruthy();
-    await act(async () => { resolve(new Response(JSON.stringify(second), { status: 200 })); });
-    await waitFor(() => expect(screen.getByText("新評価")).toBeTruthy());
-    vi.unstubAllGlobals();
   });
 });
 

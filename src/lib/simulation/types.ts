@@ -203,14 +203,3 @@ export interface SavedSimulation {
   input: SimulationInput;
   result: SimulationResult;
 }
-
-export type AIRank = "S" | "A" | "B" | "C" | "D" | "F";
-
-export interface AIEvaluation {
-  score: number;
-  rank: AIRank;
-  summary: string;
-  strengths: string[];
-  improvements: string[];
-  conclusion: string;
-}

@@ -54,7 +54,7 @@ export default function Home() {
 
               <div className="mt-6 md:mt-10 grid md:grid-cols-[auto_1fr_auto] gap-5 md:gap-12 items-end">
                 <p className="lp-hero-sub text-[15px] md:text-[17px] max-w-[42ch]" style={{ lineHeight: 2.1, color: "var(--ink-2)" }}>
-                  収入・支出・住宅・投資を5ステップ入力するだけ。100歳までの資産推移を、グラフとAIが一緒に読み解きます。
+                  収入・支出・住宅・投資を5ステップ入力するだけ。100歳までの資産推移と、老後まで資金が持つ確率をグラフで確かめられます。
                 </p>
 
                 <div className="hidden md:flex items-center gap-4" style={{ color: "var(--ink-2)" }}>

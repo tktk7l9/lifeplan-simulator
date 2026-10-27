@@ -12,7 +12,6 @@
 - **年金概算**: 厚生年金＋国民年金を就労年数・平均年収から試算
 - **モンテカルロシミュレーション**: 400回の確率的シミュレーションで破産確率を算出
 - **感度分析（トルネードチャート）**: 各パラメータが資産に与える影響をランキング表示
-- **AI総評**: Claude APIによるFP視点のスコア＆ランク評価（S〜F）
 - **シナリオ比較**: 保守・標準・楽観の3ケース比較
 - **データインポート**: ねんきんネットCSV・MoneyForward CSVに対応
 - **PDF出力**: 印刷用レポート生成
@@ -28,7 +27,6 @@
 | グラフ | Recharts |
 | フォーム | React Hook Form + Zod |
 | 状態管理 | Zustand（localStorage永続化） |
-| AI | Anthropic SDK（Claude API） |
 | ホスティング | Cloudflare Workers（OpenNext）。CSP はリクエストごとの nonce を Worker が付与（`script-src` に `'unsafe-inline'` なし） |
 
 ## セットアップ
@@ -37,25 +35,13 @@
 npm install
 ```
 
-`.env.local` を作成して Anthropic API キーを設定:
-
-```
-ANTHROPIC_API_KEY=your_api_key_here
-```
-
-開発サーバーを起動:
+開発サーバーを起動（環境変数は不要）:
 
 ```bash
 npm run dev
 ```
 
 [http://localhost:3000](http://localhost:3000) をブラウザで開く。
-
-## 環境変数
-
-| 変数名 | 説明 |
-|--------|------|
-| `ANTHROPIC_API_KEY` | AI総評機能に必要（[Anthropic Console](https://console.anthropic.com/)で取得） |
 
 ## ライセンス
 
