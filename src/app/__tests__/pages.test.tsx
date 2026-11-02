@@ -32,6 +32,7 @@ import HomeLayout from "../(home)/layout";
 import SimulatorPage from "../simulator/page";
 import SimulatorLayout from "../simulator/layout";
 import RootLayout from "../layout";
+import NotFound from "../not-found";
 import { Providers } from "@/components/providers";
 
 describe("(home)/page", () => {
@@ -78,5 +79,15 @@ describe("Providers", () => {
   it("passes children through", () => {
     render(<Providers><span>子</span></Providers>);
     expect(screen.getByText("子")).toBeTruthy();
+  });
+});
+
+describe("not-found", () => {
+  it("puts the message in a main landmark with a heading and ways back", () => {
+    render(<NotFound />);
+    const main = screen.getByRole("main");
+    expect(main.querySelector("h1")?.textContent).toBe("ページが見つかりません");
+    const hrefs = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
+    expect(hrefs).toEqual(["/simulator", "/"]);
   });
 });
